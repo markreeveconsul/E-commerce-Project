@@ -1,0 +1,36 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/Admin/.vscode/extensions/oracle.oracle-java-27.0.0/nbcode/java/maven/lib/jansi-2.4.3.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< edu.course:marketplace >-----------------------
+[INFO] Building marketplace 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ marketplace ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ marketplace ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ marketplace ---
+[INFO] skip non existing resourceDirectory C:\Users\Admin\Documents\Codex\2026-10-09\you-are-my-senior-java-mentor\outputs\marketplace\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ marketplace ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.566 s
+[INFO] Finished at: 2026-10-13T23:15:12+08:00
+[INFO] ------------------------------------------------------------------------
+Oct 13, 2026 11:15:15 PM com.sun.javafx.application.PlatformImpl startup
+WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @2669b199'
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::allocateMemory has been called by com.sun.marlin.OffHeapArray (file:/C:/Users/Admin/Documents/Codex/2026-10-09/you-are-my-senior-java-mentor/outputs/marketplace/.tools/m2/org/openjfx/javafx-graphics/21.0.6/javafx-graphics-21.0.6-win.jar)
+WARNING: Please consider reporting this to the maintainers of class com.sun.marlin.OffHeapArray
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+GUI SMOKE PASS: 35 assertions; catalog, filters, sold-out state, cart edits, draft retention, declined/approved payment, confirmation, history, admin create/edit/filter; 17 snapshots.

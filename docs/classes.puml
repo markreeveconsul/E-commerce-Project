@@ -1,0 +1,419 @@
+@startuml domain
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #F1F8F6
+title Market — domain and payment classes
+abstract class User {
+  -id : long
+  -username : String
+  #User(id : long, username : String)
+  +getId() : long
+  +getUsername() : String
+  {abstract} +canManageProducts() : boolean
+  {abstract} +canShop() : boolean
+  {abstract} +getRole() : String
+}
+class Guest {
+  +Guest()
+  +canManageProducts() : boolean
+  +canShop() : boolean
+  +getRole() : String
+}
+class DeliveryAddress <<record>> {
+  -recipient : String
+  -street : String
+  -city : String
+  -postalCode : String
+  +DeliveryAddress(recipient, street, city, postalCode)
+  +formatted() : String
+}
+class Customer {
+  +Customer(id : long, username : String)
+  +canManageProducts() : boolean
+  +canShop() : boolean
+  +getRole() : String
+}
+class Admin {
+  +Admin(id : long, username : String)
+  +canManageProducts() : boolean
+  +canShop() : boolean
+  +getRole() : String
+}
+enum Category {
+  ELECTRONICS
+  CLOTHING
+  HOME
+}
+class Product {
+  -id : long
+  -name : String
+  -category : Category
+  -price : BigDecimal
+  -stock : int
+  -active : boolean
+  -description : String
+  -photo : byte[]
+  +Product(id, name, category, price, stock, active)
+  +Product(id, name, category, price, stock, active, description, photo)
+  +getDescription() : String
+  +getPhoto() : byte[]
+  +getId() : long
+  +getName() : String
+  +getCategory() : Category
+  +getPrice() : BigDecimal
+  +getStock() : int
+  +isActive() : boolean
+}
+class Cart {
+  -customerId : long
+  -items : Map<Long, CartItem>
+  +Cart(customerId : long)
+  +getCustomerId() : long
+  +getItems() : List<CartItem>
+  +add(product : Product, quantity : int) : void
+  +setQuantity(product : Product, quantity : int) : void
+  +remove(productId : long) : void
+  +clear() : void
+  +getTotal() : BigDecimal
+}
+class CartItem {
+  -product : Product
+  -quantity : int
+  +CartItem(product : Product, quantity : int)
+  +getProduct() : Product
+  +getQuantity() : int
+  +getSubtotal() : BigDecimal
+}
+class Order <<record>> {
+  -id : long
+  -customerId : long
+  -createdAt : String
+  -address : String
+  -paymentMethod : String
+  -paymentStatus : String
+  -total : BigDecimal
+  -items : List<OrderItem>
+  +Order(id, customerId, createdAt, address, paymentMethod, paymentStatus, total, items)
+}
+class OrderItem <<record>> {
+  -productId : long
+  -productName : String
+  -unitPrice : BigDecimal
+  -quantity : int
+  +OrderItem(productId, productName, unitPrice, quantity)
+  +subtotal() : BigDecimal
+}
+class Money <<utility>> {
+  -Money()
+  {static} +price(value : BigDecimal) : BigDecimal
+  {static} +parse(text : String) : BigDecimal
+  {static} +cents(amount : BigDecimal) : long
+  {static} +amount(cents : long) : BigDecimal
+  {static} +format(amount : BigDecimal) : String
+}
+interface PaymentMethod {
+  +getName() : String
+  +pay(amount : BigDecimal) : PaymentResult
+}
+class CashOnDeliveryPayment {
+  +getName() : String
+  +pay(amount : BigDecimal) : PaymentResult
+  +toString() : String
+}
+class SimulatedWalletPayment {
+  -approved : boolean
+  +SimulatedWalletPayment(approved : boolean)
+  +getName() : String
+  +pay(amount : BigDecimal) : PaymentResult
+  +toString() : String
+}
+class PaymentResult <<record>> {
+  -accepted : boolean
+  -status : String
+  +PaymentResult(accepted : boolean, status : String)
+}
+User <|-- Guest
+User <|-- Customer
+User <|-- Admin
+Cart "1" *-- "0..*" CartItem : owns
+CartItem "0..*" --> "1" Product : references
+Order "1" *-- "1..*" OrderItem : purchase snapshot
+Product --> Category
+Product ..> Money
+PaymentMethod <|.. CashOnDeliveryPayment
+PaymentMethod <|.. SimulatedWalletPayment
+PaymentMethod ..> PaymentResult
+Customer "1" .. "0..*" Order : linked by customerId
+Customer "1" .. "0..1" Cart : linked by customerId in session
+OrderItem ..> Product : productId only
+note bottom of Order
+Records generate public accessors named after
+their fields (id(), total(), items(), etc.).
+Order copies its item list defensively.
+end note
+note bottom of Product
+Fields are private/final.
+Constructor validates replacement snapshots;
+there are no unrestricted setters.
+end note
+@enduml
+
+@startuml architecture
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+title Market — application dependencies (selected operations)
+package "Application" {
+  class ShopApp {
+    +start(stage : Stage) : void
+    {static} +main(args : String[]) : void
+  }
+  class Services <<record>> {
+    -auth : AuthService
+    -products : ProductService
+    -checkout : CheckoutService
+    -orders : OrderService
+  }
+}
+package "GUI" {
+  class ShopWindow {
+    -stage : Stage
+    -services : Services
+    -user : User
+    -cart : Cart
+    -shell : BorderPane
+    -draft : CheckoutDraft
+    -catalogState : CatalogState
+    -search : TextField
+    -pendingGuestCart : Cart
+    -cartButton : Button
+    +showStorefront() : void
+    +showLogin() : void
+    +showCatalog() : void
+    +showCart() : void
+    +showCheckout() : void
+    +showOrders() : void
+    +showAdmin() : void
+  }
+  class LoginView
+  class ProductDetailView
+  class CatalogState {
+    -categoryIndex : int
+    -sortIndex : int
+    -budgetIndex : int
+    -inStockOnly : boolean
+    -filtersExpanded : boolean
+    -scrollPosition : double
+    +getCategoryIndex() : int
+    +setCategoryIndex(value : int) : void
+    +getSortIndex() : int
+    +setSortIndex(value : int) : void
+  }
+  class ProductPhotoEditor {
+    -photo : byte[]
+    +importPhoto(file : Path) : void
+    +setPhoto(bytes : byte[]) : void
+    +getPhoto() : byte[]
+  }
+  class EditorialHeader {
+    +EditorialHeader()
+    +setProducts(products : List<Product>) : void
+  }
+  class CatalogView
+  class CartView
+  class CheckoutView
+  class ProductCard {
+    +ProductCard(product : Product, add : Runnable, details : Runnable)
+  }
+  class ProductArtwork {
+    +ProductArtwork(product : Product, height : double)
+  }
+  class OrderSummary {
+    +OrderSummary(cart : Cart, action : Node)
+  }
+  class CheckoutDraft {
+    -address : String
+    -recipient : String
+    -city : String
+    -postalCode : String
+    -paymentIndex : int
+    +getRecipient() : String
+    +setRecipient(value : String) : void
+    +getCity() : String
+    +setCity(value : String) : void
+    +getPostalCode() : String
+    +setPostalCode(value : String) : void
+    +getAddress() : String
+    +setAddress(value : String) : void
+    +getPaymentIndex() : int
+    +setPaymentIndex(value : int) : void
+    +clear() : void
+  }
+  class ConfirmationView {
+    +ConfirmationView(order : Order, orders : Runnable, browse : Runnable)
+  }
+
+  class OrdersView
+  class AdminView {
+    -editingId : long
+  }
+  class Ui <<utility>> {
+    {static} +async(owner, work, success) : void
+    {static} +error(e : Throwable) : void
+    {static} +integer(text : String) : int
+    {static} +selected(table) : T
+  }
+}
+package "Services" {
+  class ProductPhotos <<utility>> {
+    {static} +MAX_BYTES : int
+    {static} +read(file : Path) : byte[]
+    {static} +validate(bytes : byte[]) : void
+  }
+  class AuthService {
+    -database : DatabaseManager
+    -users : UserRepository
+    +login(username : String, password : String) : User
+  }
+  class ProductService {
+    -database : DatabaseManager
+    -products : ProductRepository
+    +search(user, query, category) : List<Product>
+    +get(id : long) : Product
+    +save(actor, id, name, category, price, stock, active) : void
+    +save(actor, id, name, category, price, stock, active, description, photo) : void
+  }
+  class CartService {
+    -products : ProductService
+    +add(user, cart, productId, quantity) : void
+    +update(user, cart, productId, quantity) : void
+    +transferGuest(guest : Cart, customer : User) : Cart
+    +review(cart : Cart) : String
+    {static} +checkOwner(user, cart) : void
+  }
+  class CheckoutService {
+    -database : DatabaseManager
+    -products : ProductRepository
+    -orders : OrderRepository
+    +checkout(customer, cart, address, payment) : Order
+  }
+  class OrderService {
+    -database : DatabaseManager
+    -orders : OrderRepository
+    +history(customer : User) : List<Order>
+  }
+  class Passwords <<utility>> {
+    {static} +hash(password : String) : String
+    {static} +matches(password : String, stored : String) : boolean
+  }
+}
+package "Persistence" {
+  class DatabaseManager {
+    -url : String
+    +DatabaseManager(file : Path)
+    +open() : Connection
+    +initialize() : void
+  }
+  class UserRepository {
+    +find(c : Connection, username : String) : Optional<Credentials>
+  }
+  class Credentials <<record>> {
+    -user : User
+    -passwordHash : String
+  }
+  class ProductRepository {
+    +list(c, includeInactive) : List<Product>
+    +find(c, id) : Product
+    +save(c, product) : void
+    +deductStock(c, product, quantity) : void
+  }
+  class OrderRepository {
+    +save(c, order) : Order
+    +forCustomer(c, customerId) : List<Order>
+  }
+}
+package "Exceptions" {
+  class ValidationException
+  class OutOfStockException
+  class StorageException
+}
+interface PaymentMethod
+class RuntimeException <<JDK>>
+RuntimeException <|-- ValidationException
+ValidationException <|-- OutOfStockException
+RuntimeException <|-- StorageException
+ShopApp ..> Services
+ShopApp ..> DatabaseManager
+ShopApp ..> ShopWindow
+Services o-- AuthService
+Services o-- ProductService
+Services o-- CheckoutService
+Services o-- OrderService
+ShopWindow *-- CheckoutDraft : owns session draft
+ShopWindow ..> ConfirmationView
+ShopWindow *-- CatalogState
+ShopWindow ..> Guest
+ShopWindow ..> ProductDetailView
+CatalogView --> CatalogState
+CatalogView *-- EditorialHeader
+EditorialHeader ..> ProductArtwork
+ProductDetailView ..> ProductArtwork
+ProductDetailView ..> CartService
+AdminView ..> ProductPhotoEditor
+ProductPhotoEditor ..> ProductArtwork
+ProductPhotoEditor ..> ProductPhotos
+ProductService ..> ProductPhotos
+CheckoutView ..> DeliveryAddress
+CatalogView ..> ProductCard
+ProductCard ..> ProductArtwork
+CartView ..> ProductArtwork
+CartView ..> OrderSummary
+CheckoutView ..> OrderSummary
+CheckoutView --> CheckoutDraft
+
+ShopWindow --> Services
+ShopWindow ..> LoginView
+ShopWindow ..> CatalogView
+ShopWindow ..> CartView
+ShopWindow ..> CheckoutView
+ShopWindow ..> OrdersView
+ShopWindow ..> AdminView
+LoginView ..> AuthService
+CatalogView ..> ProductService
+CatalogView ..> CartService
+CartView ..> CartService
+CheckoutView ..> CheckoutService
+OrdersView ..> OrderService
+AdminView ..> ProductService
+AuthService --> DatabaseManager
+AuthService --> UserRepository
+AuthService ..> Passwords
+DatabaseManager ..> Passwords : seeds demo accounts
+ProductService --> DatabaseManager
+ProductService --> ProductRepository
+CartService --> ProductService
+CheckoutService --> DatabaseManager
+CheckoutService --> ProductRepository
+CheckoutService --> OrderRepository
+CheckoutService ..> PaymentMethod : pay(total)
+CheckoutService ..> CartService : checkOwner
+OrderService --> DatabaseManager
+OrderService --> OrderRepository
+UserRepository +-- Credentials
+note bottom of Ui
+All GUI views use Ui.
+LoginView extends StackPane.
+Other screen views extend VBox.
+ProductArtwork extends StackPane.
+ProductCard and OrderSummary extend VBox.
+ShopApp extends JavaFX Application.
+end note
+note bottom of Services
+Record accessors are auth(), products(),
+checkout(), and orders().
+Services are supplied through constructors.
+Repository methods receive the active connection.
+end note
+@enduml

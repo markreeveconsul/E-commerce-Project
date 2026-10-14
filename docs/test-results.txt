@@ -1,0 +1,55 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/Admin/.vscode/extensions/oracle.oracle-java-27.0.0/nbcode/java/maven/lib/jansi-2.4.3.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< edu.course:marketplace >-----------------------
+[INFO] Building marketplace 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ marketplace ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ marketplace ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 48 source files with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ marketplace ---
+[INFO] skip non existing resourceDirectory C:\Users\Admin\Documents\Codex\2026-10-09\you-are-my-senior-java-mentor\outputs\marketplace\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ marketplace ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 21] to target\test-classes
+[INFO] /C:/Users/Admin/Documents/Codex/2026-10-09/you-are-my-senior-java-mentor/outputs/marketplace/src/test/java/edu/course/shop/GuiSmoke.java: C:\Users\Admin\Documents\Codex\2026-10-09\you-are-my-senior-java-mentor\outputs\marketplace\src\test\java\edu\course\shop\GuiSmoke.java uses unchecked or unsafe operations.
+[INFO] /C:/Users/Admin/Documents/Codex/2026-10-09/you-are-my-senior-java-mentor/outputs/marketplace/src/test/java/edu/course/shop/GuiSmoke.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ marketplace ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running edu.course.shop.ShopTest
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.sqlite.SQLiteJDBCLoader in an unnamed module (file:/C:/Users/Admin/Documents/Codex/2026-10-09/you-are-my-senior-java-mentor/outputs/marketplace/.tools/m2/org/xerial/sqlite-jdbc/3.53.4.0/sqlite-jdbc-3.53.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 34.64 s -- in edu.course.shop.ShopTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.5.0:jar (default-jar) @ marketplace ---
+[INFO] Building jar: C:\Users\Admin\Documents\Codex\2026-10-09\you-are-my-senior-java-mentor\outputs\marketplace\target\marketplace-1.0.0.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:02 min
+[INFO] Finished at: 2026-10-13T23:14:07+08:00
+[INFO] ------------------------------------------------------------------------
