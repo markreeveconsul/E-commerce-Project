@@ -88,24 +88,29 @@
 .store-footer { -fx-padding: 8 32; -fx-background-color: -surface; -fx-border-color: -line transparent transparent transparent; }
 .store-footer .muted { -fx-font-size: 11px; }
 
-/* Campaign. */
+/* Campaign: continuous charcoal canvas with a localized orange halo. */
 .catalog-page { -fx-padding: 0; }
-.editorial-header { -fx-background-color: #171719; -fx-pref-height: 340; -fx-min-height: 340; -fx-max-height: 340; }
+.editorial-header { -fx-background-color: linear-gradient(to right, #171719 0%, #171719 40%, #2B2420 100%); -fx-pref-height: 360; -fx-min-height: 360; -fx-max-height: 360; }
+.hero-glow { -fx-background-color: radial-gradient(center 50% 50%, radius 50%, rgba(230,84,54,.64) 0%, rgba(230,84,54,.26) 35%, rgba(230,84,54,.07) 58%, transparent 75%); }
 .hero-copy { -fx-padding: 30 40; }
-.hero-eyebrow { -fx-text-fill: #D3D3D1; -fx-font-size: 10px; -fx-font-weight: bold; }
-.hero-headline { -fx-text-fill: white; -fx-font-size: 60px; -fx-line-spacing: -8; }
-.hero-sub { -fx-text-fill: #D3D3D1; -fx-font-size: 14px; }
-.hero-compact .hero-headline { -fx-font-size: 46px; }
+.hero-eyebrow { -fx-text-fill: #F08B63; -fx-font-size: 10px; -fx-font-weight: bold; }
+.hero-headline { -fx-text-fill: white; -fx-font-size: 64px; }
+.hero-sub { -fx-text-fill: #D3D3D1; -fx-font-size: 15px; }
+.hero-compact .hero-headline { -fx-font-size: 48px; }
 .hero-compact .hero-copy { -fx-padding: 28 32; }
-.button.hero-solid { -fx-background-color: white; -fx-text-fill: -ink; -fx-border-color: white; -fx-padding: 12 24; -fx-min-height: 46; }
-.button.hero-solid:hover { -fx-background-color: #E5E5E2; -fx-border-color: #E5E5E2; }
-.hero-visual { -fx-background-color: linear-gradient(to bottom right, #F08B63, #E65436 55%, #D83921); }
+.button.hero-cta { -fx-background-color: #E65436; -fx-text-fill: #171719; -fx-border-color: #E65436; -fx-padding: 13 24; -fx-min-height: 48; -fx-font-size: 13px; }
+.button.hero-cta:hover { -fx-background-color: #F08B63; -fx-border-color: #F08B63; }
+.button.hero-cta:focused { -fx-border-color: white; -fx-effect: dropshadow(gaussian, rgba(255,255,255,.35), 6, .4, 0, 0); }
+.button.hero-link { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #D3D3D1; -fx-padding: 12 0; -fx-font-weight: normal; -fx-font-size: 12px; -fx-min-height: 48; }
+.button.hero-link:hover { -fx-text-fill: white; -fx-underline: true; }
+.button.hero-link:focused { -fx-border-color: #F08B63; }
 .button.hero-art-button { -fx-padding: 0; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0; -fx-background-radius: 0; -fx-border-radius: 0; }
-.button.hero-art-button:hover { -fx-opacity: .94; }
-.button.hero-art-button:focused { -fx-effect: innershadow(gaussian, white, 10, .8, 0, 0); }
-.campaign-caption { -fx-padding: 0 28 22 28; }
-.campaign-kicker { -fx-text-fill: #291F1B; -fx-font-size: 10px; -fx-font-weight: bold; }
-.campaign-link { -fx-text-fill: #291F1B; -fx-font-size: 14px; -fx-font-weight: bold; }
+.button.hero-art-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; }
+.button.hero-art-button:focused { -fx-effect: innershadow(gaussian, #F08B63, 10, .8, 0, 0); }
+.campaign-caption { -fx-padding: 0 32 24 32; -fx-alignment: bottom-right; }
+.campaign-kicker { -fx-text-fill: #AEA49D; -fx-font-size: 9px; -fx-font-weight: bold; }
+.campaign-link { -fx-text-fill: #F08B63; -fx-font-size: 12px; -fx-font-weight: bold; }
+.motion-control { -fx-font-size: 11px; -fx-text-fill: -ink-muted; }
 
 /* Catalog and collection discovery. */
 .collection-section { -fx-padding: 28 40 20 40; }
@@ -123,7 +128,7 @@
 .product-art.clothing { -fx-background-color: #F0ECE6; }
 .product-art.home { -fx-background-color: #EBEEE8; }
 .photo-button { -fx-padding: 0; -fx-border-color: transparent; -fx-background-color: transparent; -fx-background-radius: 2; -fx-border-radius: 2; -fx-effect: null; }
-.photo-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-opacity: .90; }
+.photo-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; }
 .photo-button:focused { -fx-border-color: -signal; }
 .photo-placeholder { -fx-text-fill: -ink-muted; -fx-font-size: 11px; }
 .quick-add { -fx-padding: 7 18; -fx-min-height: 36; -fx-font-size: 12px; }

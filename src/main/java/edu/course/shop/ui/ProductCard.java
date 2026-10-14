@@ -8,6 +8,7 @@ import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
@@ -18,11 +19,13 @@ public final class ProductCard extends VBox {
 
         // Photo: same box for every product, with rounded corners that match the card.
         ProductArtwork photo=new ProductArtwork(product,230);
+        StackPane frame=new StackPane(photo);frame.setMinWidth(0);
         Rectangle clip=new Rectangle();clip.setArcWidth(4);clip.setArcHeight(4);
-        photo.layoutBoundsProperty().addListener((o,a,b)->{clip.setWidth(b.getWidth());clip.setHeight(b.getHeight());});
-        photo.setClip(clip);
-        Button visual=Ui.button("",details);visual.setGraphic(photo);visual.setMaxWidth(Double.MAX_VALUE);
-        photo.prefWidthProperty().bind(visual.widthProperty().subtract(4));visual.getStyleClass().add("photo-button");
+        frame.layoutBoundsProperty().addListener((o,a,b)->{clip.setWidth(b.getWidth());clip.setHeight(b.getHeight());});
+        frame.setClip(clip);
+        Button visual=Ui.button("",details);visual.setGraphic(frame);visual.setMaxWidth(Double.MAX_VALUE);
+        frame.prefWidthProperty().bind(visual.widthProperty().subtract(4));visual.getStyleClass().add("photo-button");
+        Motion.zoom(visual,photo);
         visual.setAccessibleText("View "+product.getName());
 
         // Name: always two lines tall so every card lines up; longer names end in an ellipsis.

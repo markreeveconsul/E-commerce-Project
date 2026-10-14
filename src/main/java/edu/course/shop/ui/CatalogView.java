@@ -39,6 +39,7 @@ public final class CatalogView extends VBox {
     private final FlowPane chips=new FlowPane(8,8);
     private final VBox results=new VBox(16);
     private final ScrollPane scroll;
+    private final EditorialHeader hero;
     private final User user;private final Cart cart;private final ProductService products;private final CartService carts;
     private final Runnable changed;
     private final Consumer<String> toast; // optional: shows a floating "added to cart" message (null = old inline message)
@@ -92,20 +93,30 @@ public final class CatalogView extends VBox {
         results.getChildren().add(grid);
         VBox collection=new VBox(16,toolbar,filters,chips,feedback,results);collection.getStyleClass().add("collection-section");
         VBox content=new VBox(0);
-        EditorialHeader hero=new EditorialHeader(()->{
+        hero=new EditorialHeader(()->{
             content.applyCss();content.layout();
             double range=content.getHeight()-scrollViewportHeight();
             scrollTo(range<=0?0:collection.getBoundsInParent().getMinY()/range);
-        },()->browseCategory(Category.ELECTRONICS.ordinal()+1));
+        },()->browseCategory(Category.ELECTRONICS.ordinal()+1),()->{
+            clearing=true;category.getSelectionModel().select(Category.ELECTRONICS.ordinal()+1);search.setText("headphones");
+            clearing=false;filterChanged();
+        });
         hero.visibleProperty().bind(search.textProperty().isEmpty().and(category.getSelectionModel().selectedIndexProperty().isEqualTo(0))
             .and(budget.getSelectionModel().selectedIndexProperty().isEqualTo(0)).and(available.selectedProperty().not()));
         hero.managedProperty().bind(hero.visibleProperty());
         content.getChildren().addAll(hero,collection,collections(),closing());
         scroll=Ui.scroll(content);scroll.setId("catalog-scroll");getStyleClass().add("catalog-page");getChildren().add(scroll);
-        scroll.vvalueProperty().addListener((o,a,b)->{if(!restoring)state.setScrollPosition(b.doubleValue());});
+        scroll.vvalueProperty().addListener((o,a,b)->{if(!restoring)state.setScrollPosition(b.doubleValue());updateHeroViewport();});
+        scroll.viewportBoundsProperty().addListener((o,a,b)->updateHeroViewport());
+        content.layoutBoundsProperty().addListener((o,a,b)->updateHeroViewport());
         Platform.runLater(this::refresh);
     }
     private double scrollViewportHeight() { return scroll.getViewportBounds().getHeight(); }
+    private void updateHeroViewport() {
+        double height=scrollViewportHeight();
+        double top=Math.max(0,scroll.getContent().getLayoutBounds().getHeight()-height)*scroll.getVvalue();
+        hero.setInViewport(height>0&&top<hero.getBoundsInParent().getMaxY()&&top+height>hero.getBoundsInParent().getMinY());
+    }
     private void scrollTo(double value) { scroll.setVvalue(Math.max(0,Math.min(1,value))); }
     private VBox collections() {
         FlowPane tiles=new FlowPane(18,18);tiles.setId("collection-links");

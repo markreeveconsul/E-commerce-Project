@@ -57,6 +57,7 @@ public final class Ui {
     public static Button button(String text, Runnable action) {
         Button button = new Button(text);
         button.setOnAction(e -> attempt(action));
+        Motion.lift(button);
         return button;
     }
 

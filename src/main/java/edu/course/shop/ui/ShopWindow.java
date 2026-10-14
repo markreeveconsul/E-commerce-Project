@@ -23,6 +23,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -123,7 +124,9 @@ public final class ShopWindow {
         }
         // Footer: two real labels pushed apart, instead of one label padded with spaces.
         Region footerSpace=new Region();HBox.setHgrow(footerSpace,Priority.ALWAYS);
-        HBox footer=new HBox(12,Ui.label("MARKET · Good things, every day.","muted"),footerSpace,link("About",this::showInfo),Ui.label("USD · Course demo · Simulated payments","muted"));
+        CheckBox motion=new CheckBox("Reduce motion");motion.setId("reduce-motion");motion.getStyleClass().add("motion-control");
+        motion.selectedProperty().bindBidirectional(Motion.reducedProperty());
+        HBox footer=new HBox(16,Ui.label("MARKET · Good things, every day.","muted"),footerSpace,motion,link("About",this::showInfo),Ui.label("USD · Course demo · Simulated payments","muted"));
         footer.getStyleClass().add("store-footer");footer.setAlignment(Pos.CENTER_LEFT);
         shell.setBottom(footer);stage.getScene().setRoot(window);
     }
@@ -149,7 +152,7 @@ public final class ShopWindow {
         int count=cart.getItems().stream().mapToInt(CartItem::getQuantity).sum();
         cartButton.setText("Cart · "+count);
         // One gentle pulse per addition; a new addition replaces any unfinished pulse.
-        if(lastCartCount>=0&&count>lastCartCount){
+        if(lastCartCount>=0&&count>lastCartCount&&!Motion.isReduced()){
             if(cartPulse!=null)cartPulse.stop();
             cartButton.setScaleX(1);cartButton.setScaleY(1);
             cartPulse=new ScaleTransition(Duration.millis(90),cartButton);
@@ -163,9 +166,9 @@ public final class ShopWindow {
     private void showToast(String message){
         if(toast==null)return;
         toast.setText(message);if(toastAnimation!=null)toastAnimation.stop();
-        FadeTransition in=new FadeTransition(Duration.millis(150),toast);in.setToValue(1);
+        FadeTransition in=new FadeTransition(Duration.millis(Motion.isReduced()?1:150),toast);in.setToValue(1);
         PauseTransition hold=new PauseTransition(Duration.seconds(2.2));
-        FadeTransition out=new FadeTransition(Duration.millis(150),toast);out.setToValue(0);
+        FadeTransition out=new FadeTransition(Duration.millis(Motion.isReduced()?1:150),toast);out.setToValue(0);
         toastAnimation=new SequentialTransition(in,hold,out);toastAnimation.play();
     }
 
@@ -198,6 +201,10 @@ public final class ShopWindow {
     }
     private void animateDrawer(double x,double opacity,Runnable finished){
         if(drawerAnimation!=null)drawerAnimation.stop();
+        if(Motion.isReduced()) {
+            drawerAnimation=null;activeDrawer.setTranslateX(x);drawerScrim.setOpacity(opacity);
+            if(finished!=null)finished.run();return;
+        }
         TranslateTransition slide=new TranslateTransition(Duration.millis(200),activeDrawer);
         slide.setToX(x);slide.setInterpolator(Interpolator.EASE_BOTH);
         FadeTransition fade=new FadeTransition(Duration.millis(200),drawerScrim);fade.setToValue(opacity);
