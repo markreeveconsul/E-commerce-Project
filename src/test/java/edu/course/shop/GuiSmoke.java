@@ -71,12 +71,25 @@ public final class GuiSmoke {
             });
             screenshot("01-login.png",1280,860);
             screenshot("24-login-compact.png",960,680);screenshot("01-login.png",1280,860);
+            check(fx(()->scene.lookup("#login-pc") instanceof javafx.scene.image.ImageView image&&!image.getImage().isError()),"Account campaign loads supplied PC artwork");
+            text("password","temporary");press("show-password");
+            check(fx(()->scene.lookup("#password-visible").isVisible()&&!scene.lookup("#password").isVisible()),"Show reveals only the visible password control");
+            text("password-visible","changed");press("show-password");
+            check(fx(()->((PasswordField)scene.lookup("#password")).getText()).equals("changed"),"Password edits survive hiding");
+            text("password","");
+            fx(()->{((CheckBox)scene.lookup("#login-reduce-motion")).fire();return null;});
+            check(fx(()->Motion.isReduced()&&scene.lookup("#hero-float").getTranslateY()==0),"Login motion toggle resets campaign movement");
+            fx(()->{((CheckBox)scene.lookup("#login-reduce-motion")).fire();return null;});
             press("login");check(!label("username-error").isBlank(),"Missing username needs field error");
             login("customer","incorrect");idle();check(label("login-feedback").contains("Incorrect"),"Wrong password needs inline error");
             click("← Continue browsing");catalog();
             check(fx(()->((Button)scene.lookup("#account")).getText()).equals("Sign in"),"Guests browse without login");
             check(fx(()->scene.lookup("#search").isVisible()&&scene.lookup("#catalog-search")!=null),"Catalog search is reachable");
             check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=300,"Campaign artwork fills the hero height");
+            check(fx(()->{
+                javafx.scene.layout.Region art=(javafx.scene.layout.Region)scene.lookup("#product-4").lookup(".product-art");
+                return Math.abs(art.getWidth()-art.getHeight())<1;
+            }),"Catalog product artwork uses square frames");
             check(fx(()->scene.lookup("#product-4").lookup(".collection-artwork")!=null),"Seed product renders original offline artwork");
             check(fx(()->scene.lookup("#hero-headset") instanceof javafx.scene.image.ImageView view&&!view.getImage().isError()),"Campaign uses the bundled supplied headset image");
             fx(()->{((CheckBox)scene.lookup("#reduce-motion")).fire();return null;});

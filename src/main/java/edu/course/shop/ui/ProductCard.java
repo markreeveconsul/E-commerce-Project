@@ -18,13 +18,13 @@ public final class ProductCard extends VBox {
         setId("product-"+product.getId());getStyleClass().add("product-card");setSpacing(0);setMinWidth(0);setMaxWidth(Double.MAX_VALUE);
 
         // Photo: same box for every product, with rounded corners that match the card.
-        ProductArtwork photo=new ProductArtwork(product,230);
+        ProductArtwork photo=new ProductArtwork(product,230,true);
         StackPane frame=new StackPane(photo);frame.setMinWidth(0);
         Rectangle clip=new Rectangle();clip.setArcWidth(4);clip.setArcHeight(4);
         frame.layoutBoundsProperty().addListener((o,a,b)->{clip.setWidth(b.getWidth());clip.setHeight(b.getHeight());});
         frame.setClip(clip);
         Button visual=Ui.button("",details);visual.setGraphic(frame);visual.setMaxWidth(Double.MAX_VALUE);
-        frame.prefWidthProperty().bind(visual.widthProperty().subtract(4));visual.getStyleClass().add("photo-button");
+        frame.prefWidthProperty().bind(visual.widthProperty());visual.getStyleClass().add("photo-button");
         Motion.zoom(visual,photo);
         visual.setAccessibleText("View "+product.getName());
 

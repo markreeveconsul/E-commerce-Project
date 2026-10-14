@@ -74,8 +74,8 @@
 /* Store navigation. */
 .store-announcement { -fx-background-color: -tint; -fx-text-fill: -ink; -fx-padding: 9 24; -fx-font-size: 11px; -fx-alignment: center; }
 .store-header { -fx-padding: 17 32; -fx-background-color: -surface; -fx-border-color: transparent transparent -line transparent; }
-.brand-link { -fx-background-color: transparent; -fx-font-size: 29px; -fx-padding: 0 4; -fx-border-color: transparent; -fx-effect: null; }
-.brand-link:hover { -fx-background-color: transparent; -fx-border-color: transparent; }
+.brand-link { -fx-background-color: transparent; -fx-font-size: 29px; -fx-padding: 1 9; -fx-border-color: #E65436; -fx-border-width: 2; -fx-border-radius: 40; -fx-effect: dropshadow(gaussian, rgba(230,84,54,.38), 8, .18, 0, 0); }
+.brand-link:hover { -fx-background-color: transparent; -fx-border-color: #F08B63; -fx-effect: dropshadow(gaussian, rgba(230,84,54,.48), 10, .18, 0, 0); }
 .header-link { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 9 12; -fx-effect: null; -fx-font-weight: normal; -fx-graphic-text-gap: 10; }
 .header-link:hover { -fx-background-color: -tint; -fx-border-color: transparent; }
 .button.cart-button { -fx-background-color: -brand; -fx-text-fill: white; -fx-border-color: -brand; -fx-padding: 10 18; }
@@ -225,3 +225,13 @@
 .scroll-bar .thumb:hover { -fx-background-color: #999994; }
 .scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-padding: 0; }
+
+/* Vertical power campaign; shares the storefront halo and motion. */
+.account-campaign { -fx-min-height: 0; -fx-pref-height: 600; -fx-max-height: 10000; -fx-background-color: linear-gradient(to bottom right, #171719 0%, #171719 45%, #2B2420 100%); }
+.account-campaign .hero-copy { -fx-padding: 32 32 12 32; -fx-spacing: 14; }
+.account-campaign .hero-headline { -fx-font-size: 48px; }
+.account-campaign.hero-compact .hero-headline { -fx-font-size: 40px; }
+.account-campaign .hero-sub { -fx-font-size: 14px; }
+.account-edition { -fx-padding: 12 32 24 32; -fx-text-fill: #F08B63; }
+.password-toggle { -fx-min-width: 48; -fx-text-fill: -signal; }
+.login-card .text-field:focused { -fx-effect: dropshadow(gaussian, rgba(230,84,54,.14), 5, .15, 0, 0); }

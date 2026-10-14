@@ -93,3 +93,5 @@ Maven package completed successfully and produced target/marketplace-1.0.0.jar. 
 - [ ] Explain one test's setup, input, expected result, and assertion.
 
 Do not mark these manual checks completed merely because the automated suite passes.
+
+Account refinement coverage: GuiSmoke verifies supplied PC loading, password visibility/edit retention, login reduced motion and square catalog geometry alongside existing shopping/auth/upload flows. BannerMotionSmoke checks account animation/reduction and compact artwork fit, plus generated opaque and alpha-padded photo fixtures for fill/contain geometry. All fixtures are synthetic and use disposable databases.

@@ -36,30 +36,37 @@ public final class EditorialHeader extends StackPane {
 
     public EditorialHeader(Runnable shop,Runnable electronics) { this(shop,electronics,electronics); }
 
-    public EditorialHeader(Runnable shop,Runnable electronics,Runnable headphones) {
-        setId("editorial-hero");getStyleClass().add("editorial-header");
+    public EditorialHeader(Runnable shop,Runnable electronics,Runnable headphones) { this(shop,electronics,headphones,false); }
+
+    /** Account campaign uses the same motion lifecycle, with a vertical PC composition. */
+    public static EditorialHeader forLogin() { return new EditorialHeader(null,null,null,true); }
+
+    private EditorialHeader(Runnable shop,Runnable electronics,Runnable headphones,boolean account) {
+        setId(account?"login-campaign":"editorial-hero");getStyleClass().add("editorial-header");
+        if(account)getStyleClass().add("account-campaign");
         glow.setId("hero-glow");glow.getStyleClass().add("hero-glow");glow.setMouseTransparent(true);glow.setOpacity(.65);
         glow.setMaxSize(640,640);glow.setPrefSize(640,640);
         StackPane.setAlignment(glow,Pos.CENTER_RIGHT);StackPane.setMargin(glow,new Insets(0,-25,0,0));
         Pane rings=new Rings();rings.setMouseTransparent(true);
 
-        Label eyebrow=Ui.label("MARKET / THE SOUND EDIT","hero-eyebrow");
-        VBox headline=new VBox(-5,Ui.label("TUNE IN.","hero-headline"),Ui.label("STAND OUT.","hero-headline"));
+        Label eyebrow=Ui.label(account?"MARKET / THE POWER EDIT":"MARKET / THE SOUND EDIT","hero-eyebrow");
+        VBox headline=new VBox(-5,Ui.label(account?"POWER UP.":"TUNE IN.","hero-headline"),Ui.label("STAND OUT.","hero-headline"));
         headline.setId("hero-headline");
-        Label support=Ui.label("Find your rhythm. Make it yours.","hero-sub");
+        Label support=Ui.label(account?"Sign in. Find your next favorite.":"Find your rhythm. Make it yours.","hero-sub");
         Button browse=Ui.button("Explore headphones  →",headphones);browse.setId("hero-headphones");browse.getStyleClass().add("hero-cta");
         Button all=Ui.button("Browse collection  ↗",shop);all.setId("hero-shop");all.getStyleClass().add("hero-link");
         FlowPane actions=new FlowPane(16,8,browse,all);actions.setId("hero-actions");
         VBox copy=new VBox(18,eyebrow,headline,support,actions);copy.getStyleClass().add("hero-copy");
         copy.setMinWidth(0);copy.setAlignment(Pos.CENTER_LEFT);HBox.setHgrow(copy,Priority.ALWAYS);
-        copyNodes=new Node[]{eyebrow,headline,support,actions};
+        if(account)copy.getChildren().remove(actions);
+        copyNodes=account?new Node[]{eyebrow,headline,support}:new Node[]{eyebrow,headline,support,actions};
 
-        Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource("/images/headset-campaign.png")).toExternalForm());
+        Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource(account?"/images/login-pc-campaign.png":"/images/headset-campaign.png")).toExternalForm());
         if(image.isError())throw new IllegalStateException("Campaign image could not be loaded",image.getException());
-        ImageView headset=new ImageView(image);headset.setId("hero-headset");headset.setPreserveRatio(true);headset.setSmooth(true);
-        headset.fitHeightProperty().bind(heightProperty().multiply(1.10));
+        ImageView headset=new ImageView(image);headset.setId(account?"login-pc":"hero-headset");headset.setPreserveRatio(true);headset.setSmooth(true);
+        if(!account)headset.fitHeightProperty().bind(heightProperty().multiply(1.10));
         floating.setId("hero-float");floating.getChildren().add(headset);
-        StackPane.setAlignment(headset,Pos.TOP_CENTER);StackPane.setMargin(headset,new Insets(16,0,0,0));
+        StackPane.setAlignment(headset,Pos.TOP_CENTER);StackPane.setMargin(headset,new Insets(account?0:16,0,0,0));
         parallax.setId("hero-parallax");parallax.getChildren().add(floating);
         productReveal.getChildren().add(parallax);productReveal.setMouseTransparent(true);
         floating.setMinSize(0,0);parallax.setMinSize(0,0);productReveal.setMinSize(0,0);
@@ -72,10 +79,24 @@ public final class EditorialHeader extends StackPane {
         discover.setAccessibleText("Explore electronics; headset campaign artwork");discover.getStyleClass().add("hero-art-button");
         discover.setMinWidth(310);discover.setPrefWidth(500);discover.setMaxWidth(550);discover.setMaxHeight(Double.MAX_VALUE);
         visual.prefWidthProperty().bind(discover.widthProperty());visual.prefHeightProperty().bind(heightProperty());
-        HBox content=new HBox(0,copy,discover);content.setAlignment(Pos.CENTER_LEFT);
-        getChildren().addAll(glow,rings,content);Ui.round(this,0);
+        if(account) {
+            visual.getChildren().remove(productReveal);
+            Label edition=Ui.label("01 / BUILT FOR YOUR NEXT CHAPTER","campaign-kicker");
+            edition.getStyleClass().add("account-edition");
+            StackPane artwork=new StackPane(productReveal);artwork.setMinSize(0,0);
+            VBox.setVgrow(artwork,Priority.ALWAYS);
+            headset.fitHeightProperty().bind(javafx.beans.binding.Bindings.max(1,artwork.heightProperty().subtract(24)));
+            headset.fitWidthProperty().bind(javafx.beans.binding.Bindings.max(1,artwork.widthProperty().subtract(56)));
+            StackPane.setAlignment(headset,Pos.CENTER);
+            VBox content=new VBox(0,copy,artwork,edition);content.setMinSize(0,0);
+            getChildren().addAll(glow,rings,new CircuitAccents(),content);
+        } else {
+            HBox content=new HBox(0,copy,discover);content.setAlignment(Pos.CENTER_LEFT);
+            getChildren().addAll(glow,rings,content);
+        }
+        Ui.round(this,0);
         widthProperty().addListener((o,a,b)->{
-            getStyleClass().remove("hero-compact");if(b.doubleValue()<1050)getStyleClass().add("hero-compact");
+            getStyleClass().remove("hero-compact");if(b.doubleValue()<(account?550:1050))getStyleClass().add("hero-compact");
             discover.setPrefWidth(b.doubleValue()<1050?410:500);
         });
 
@@ -150,6 +171,28 @@ public final class EditorialHeader extends StackPane {
         pointer.stop();
         if(canAnimate()) {pointer.setToX(0);pointer.setToY(0);pointer.play();}
         else {parallax.setTranslateX(0);parallax.setTranslateY(0);}
+    }
+
+    /** Fine grid and framing marks leave the artwork and copy as the focal points. */
+    private static final class CircuitAccents extends Pane {
+        CircuitAccents() { setMouseTransparent(true); }
+        @Override protected void layoutChildren() {
+            getChildren().clear();
+            double w=getWidth(),h=getHeight();
+            for(double x=28;x<w;x+=48)line(x,h*.36,x,h-48,Color.web("#F08B63",.05));
+            for(double y=h*.36;y<h-48;y+=48)line(28,y,w-28,y,Color.web("#F08B63",.05));
+            double top=h*.39,bottom=h-58;
+            for(double x:new double[]{28,w-28}) {
+                double d=x==28?1:-1;
+                line(x,top,x+d*24,top,Color.web("#F08B63",.65));
+                line(x,top,x,top+24,Color.web("#F08B63",.65));
+                line(x,bottom,x+d*24,bottom,Color.web("#F08B63",.4));
+                line(x,bottom,x,bottom-24,Color.web("#F08B63",.4));
+            }
+        }
+        private void line(double x1,double y1,double x2,double y2,Color color) {
+            Line line=new Line(x1,y1,x2,y2);line.setStroke(color);getChildren().add(line);
+        }
     }
 
     /** Restrained sound-wave rings and diagonal accents, drawn at the current banner size. */

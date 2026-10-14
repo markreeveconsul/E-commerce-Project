@@ -127,6 +127,50 @@ public final class BannerMotionSmoke {
             check(fx(()->stage.getScene().lookup("#hero-float").getTranslateY())==catalogStopped,"Catalog scrolling pauses offscreen campaign");
             fx(()->{((javafx.scene.control.ScrollPane)stage.getScene().lookup("#catalog-scroll")).setVvalue(0);return null;});Thread.sleep(350);
             check(Math.abs(fx(()->stage.getScene().lookup("#hero-float").getTranslateY())-catalogStopped)>.03,"Scrolling back resumes campaign");
+            // Exercise actual viewport geometry with opaque and alpha-padded uploads.
+            for(boolean transparent:new boolean[]{false,true}) {
+                BufferedImage fixture=new BufferedImage(400,200,BufferedImage.TYPE_INT_ARGB);
+                var graphics=fixture.createGraphics();
+                if(!transparent){graphics.setColor(java.awt.Color.BLACK);graphics.fillRect(0,0,400,200);}
+                graphics.setColor(java.awt.Color.ORANGE);graphics.fillRect(150,40,100,120);graphics.dispose();
+                var bytes=new java.io.ByteArrayOutputStream();ImageIO.write(fixture,"png",bytes);
+                Product uploaded=new Product(99,"Frame probe",Category.ELECTRONICS,new BigDecimal("10"),1,true,"",bytes.toByteArray());
+                fx(()->{
+                    ProductCard photoCard=new ProductCard(uploaded,()->{},()->{});photoCard.setMaxWidth(300);
+                    var photoScene=new Scene(new StackPane(photoCard),400,600);
+                    photoScene.getStylesheets().add(BannerMotionSmoke.class.getResource("/shop.css").toExternalForm());
+                    stage.setScene(photoScene);stage.sizeToScene();photoScene.getRoot().applyCss();photoScene.getRoot().layout();return null;
+                });
+                check(fx(()->{
+                    ImageView photo=(ImageView)stage.getScene().lookup(".product-photo");
+                    var viewport=photo.getViewport();var bounds=photo.getBoundsInParent();
+                    var art=(javafx.scene.layout.Region)stage.getScene().lookup(".product-art");
+                    if(transparent)return Math.abs(viewport.getWidth()/viewport.getHeight()-100.0/120)<.02
+                        &&viewport.getWidth()<photo.getImage().getWidth()/2&&bounds.getWidth()<art.getWidth()&&bounds.getHeight()<art.getHeight();
+                    return Math.abs(viewport.getWidth()-viewport.getHeight())<1&&Math.abs(bounds.getWidth()-art.getWidth())<1&&Math.abs(bounds.getHeight()-art.getHeight())<1;
+                }),transparent?"Transparent margins trimmed with full cutout visible":"Opaque photo fills square without distortion or side gaps");
+                fx(()->{
+                    var shot=stage.getScene().getRoot().snapshot(null,null);
+                    BufferedImage png=new BufferedImage((int)shot.getWidth(),(int)shot.getHeight(),BufferedImage.TYPE_INT_ARGB);
+                    for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,shot.getPixelReader().getArgb(x,y));
+                    ImageIO.write(png,"png",output.resolve(transparent?"photo-cutout.png":"photo-fill.png").toFile());return null;
+                });
+            }
+            fx(()->{
+                hero=EditorialHeader.forLogin();hero.setMinHeight(0);hero.setPrefHeight(640);hero.setMaxHeight(Double.MAX_VALUE);
+                var loginScene=new Scene(new StackPane(hero),480,640);
+                loginScene.getStylesheets().add(BannerMotionSmoke.class.getResource("/shop.css").toExternalForm());
+                stage.setScene(loginScene);stage.sizeToScene();return null;
+            });
+            waitFor(()->Math.abs(hero.lookup("#hero-float").getTranslateY())>.03);
+            check(true,"PC account campaign animates in a shown window");
+            runFx(()->Motion.reducedProperty().set(true));
+            check(drift()==0&&fx(()->hero.lookup("#hero-headline").getOpacity())==1,"Account reduced motion resets drift and reveals all text");
+            check(fx(()->{
+                ImageView image=(ImageView)hero.lookup("#login-pc");
+                return image.getBoundsInParent().getWidth()<hero.getWidth()&&image.getBoundsInParent().getHeight()<hero.getHeight()-150;
+            }),"PC artwork fits compact campaign without stretching");
+            snapshot(output.resolve("login-campaign.png"));
             System.out.println("BANNER MOTION SMOKE PASS: "+checks+" assertions; real hover, float, glow, parallax, reduced motion, viewport/window/detach lifecycle; 60 rendered frames.");
         } finally {fx(()->{Motion.reducedProperty().set(false);if(stage!=null)stage.close();return null;});Platform.exit();}
     }

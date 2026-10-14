@@ -35,3 +35,5 @@ A new pulse/message replaces the previous one. Navigation cancels pending drawer
 ## Verify
 
 The regular `GuiSmoke` exercises the headphone action, motion toggle, navigation, shopping, checkout and uploads. `BannerMotionSmoke` uses a shown JavaFX window, real pointer movement and synthetic local products to check actual hover/float/glow/parallax, reduced motion, scene/window/viewport lifecycle, compact sizing, and scrolling inside the real storefront. It also exports actual scene frames for the animation preview. Both use software rendering under Xvfb on Linux; file-picker and presentation-machine scaling checks remain manual.
+
+The account PC campaign reuses EditorialHeader's float, glow, entrance, pointer and window/detach lifecycle in a vertical composition. A login Reduce motion control updates the same session preference as the storefront footer. The logo glow is static. Photo zoom is clipped to the square catalog frame; image fitting does not stretch uploaded photos.

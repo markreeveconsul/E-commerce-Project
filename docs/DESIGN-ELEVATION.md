@@ -24,3 +24,11 @@ The campaign uses the user-supplied headset image, trimmed only to remove fully 
 Java 21 and JavaFX 21.0.6 on Linux: 26 backend tests passed; the real JavaFX smoke harness passed 61 assertions and generated 24 snapshots, covering shopping, filtering, guest transfer, drawer interactions, declined/approved checkout, admin editing and upload persistence. The added checks cover visible search, campaign sizing/actions, category shortcuts and offline artwork. Screenshots are rendered at 1280×860 and 960×680; these do not replace presentation-machine checks of the native file picker, keyboard focus or display scaling.
 
 The desktop application remains JavaFX. Start with `mvn compile javafx:run` or the existing Windows `build.ps1 Run` helper.
+
+## Account power campaign and consistent product frames
+
+Login uses the supplied PC cutout with “POWER UP. STAND OUT.” on a full-height charcoal panel. An orange halo, fine technical grid, corner marks and edition caption compose the artwork; drift, glow and parallax share the storefront banner lifecycle and session motion preference. The sign-in form has a Show/Hide password control, focused-field glow, its own Reduce motion checkbox and a scrollable container for shorter windows.
+
+Catalog frames are square. Opaque uploads fill with a centered, proportional crop; transparent cutouts have alpha margins removed and fit within 88% of the frame, retaining the complete subject. Details and photo editor retain the full-image view. Center cropping can hide edges of unusually tall/wide opaque photos; use transparent product cutouts when the complete silhouette is essential. Image assignment remains controlled by the administrator: a headphone photo attached to “Mechanical keyboard” must be replaced with the correct product photo.
+
+The MARKET navigation mark uses a 2 px orange pill outline with a soft stationary glow, slightly brighter on hover.
