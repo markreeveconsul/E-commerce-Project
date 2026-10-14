@@ -36,6 +36,13 @@ public final class DatabaseManager {
             if (!columns.contains("photo")) s.executeUpdate("ALTER TABLE products ADD COLUMN photo BLOB");
             if (!columns.contains("specifications")) s.executeUpdate("ALTER TABLE products ADD COLUMN specifications TEXT NOT NULL DEFAULT ''");
             s.executeUpdate("CREATE TABLE IF NOT EXISTS product_photos (product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE, position INTEGER NOT NULL CHECK(position BETWEEN 0 AND 3), photo BLOB NOT NULL, PRIMARY KEY(product_id,position))");
+            s.executeUpdate("CREATE TABLE IF NOT EXISTS saved_items (customer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE, PRIMARY KEY(customer_id,product_id))");
+            s.executeUpdate("CREATE TABLE IF NOT EXISTS customer_profiles (customer_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, display_name TEXT NOT NULL)");
+            s.executeUpdate("CREATE TABLE IF NOT EXISTS customer_addresses (id INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, recipient TEXT NOT NULL, street TEXT NOT NULL, city TEXT NOT NULL, postal TEXT NOT NULL, preferred INTEGER NOT NULL CHECK(preferred IN (0,1)))");
+            s.executeUpdate("CREATE UNIQUE INDEX IF NOT EXISTS one_default_address ON customer_addresses(customer_id) WHERE preferred=1");
+            if (!columns.contains("photo_frame")) s.executeUpdate("ALTER TABLE products ADD COLUMN photo_frame TEXT NOT NULL DEFAULT 'AUTO'");
+            if (!columns.contains("photo_x")) s.executeUpdate("ALTER TABLE products ADD COLUMN photo_x REAL NOT NULL DEFAULT 0.5");
+            if (!columns.contains("photo_y")) s.executeUpdate("ALTER TABLE products ADD COLUMN photo_y REAL NOT NULL DEFAULT 0.5");
             int userCount;
             try (ResultSet r = s.executeQuery("SELECT COUNT(*) FROM users")) { r.next(); userCount = r.getInt(1); }
             if (userCount == 0) {

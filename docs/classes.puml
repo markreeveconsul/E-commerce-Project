@@ -57,12 +57,14 @@ class Product {
   -photo : byte[]
   -additionalPhotos : List<byte[]>
   -specifications : String
+  -photoFrame : PhotoFrame
   +Product(id, name, category, price, stock, active)
   +Product(id, name, category, price, stock, active, description, photo)
   +getDescription() : String
   +getPhoto() : byte[]
   +getAdditionalPhotos() : List<byte[]>
   +getSpecifications() : String
+  +getPhotoFrame() : PhotoFrame
   +getId() : long
   +getName() : String
   +getCategory() : Category
@@ -144,6 +146,12 @@ User <|-- Admin
 Cart "1" *-- "0..*" CartItem : owns
 CartItem "0..*" --> "1" Product : references
 Order "1" *-- "1..*" OrderItem : purchase snapshot
+class PhotoFrame <<record>> {
+  +mode : Mode
+  +x : double
+  +y : double
+}
+Product --> PhotoFrame
 Product --> Category
 Product ..> Money
 PaymentMethod <|.. CashOnDeliveryPayment
@@ -179,6 +187,7 @@ package "Application" {
     -products : ProductService
     -checkout : CheckoutService
     -orders : OrderService
+    +accounts() : AccountService
   }
 }
 package "GUI" {
@@ -220,6 +229,8 @@ package "GUI" {
     +importPhoto(file : Path) : void
     +setPhoto(bytes : byte[]) : void
     +getPhoto() : byte[]
+    +getFraming() : PhotoFrame
+    +setFraming(frame : PhotoFrame) : void
   }
   class EditorialHeader {
     +EditorialHeader(shop : Runnable, electronics : Runnable)
@@ -231,6 +242,7 @@ package "GUI" {
     {static} +isReduced() : boolean
     {static} +lift(target : Node) : void
     {static} +zoom(trigger : Node, image : Node) : void
+    {static} +reveal(target : Node) : void
   }
   class CollectionArtwork {
     +CollectionArtwork(subject : String)
@@ -294,6 +306,7 @@ package "Services" {
     -database : DatabaseManager
     -users : UserRepository
     +login(username : String, password : String) : User
+    +accounts() : AccountService
   }
   class ProductService {
     -database : DatabaseManager
@@ -303,12 +316,24 @@ package "Services" {
     +save(actor, id, name, category, price, stock, active) : void
     +save(actor, id, name, category, price, stock, active, description, photo) : void
   }
+  class AccountService {
+    -database : DatabaseManager
+    +saved(user : User) : Set<long>
+    +saveItem(user, productId, saved) : void
+    +displayName(user) : String
+    +saveName(user, name) : void
+    +addresses(user) : List<SavedAddress>
+    +saveAddress(user, id, address, preferred) : void
+    +removeAddress(user, id) : void
+  }
   class CartService {
     -products : ProductService
     +add(user, cart, productId, quantity) : void
     +update(user, cart, productId, quantity) : void
     +transferGuest(guest : Cart, customer : User) : Cart
     +review(cart : Cart) : String
+    +prepareRepeat(user, cart, order) : RepeatPlan
+    +applyRepeat(user, cart, plan) : void
     {static} +checkOwner(user, cart) : void
   }
   class CheckoutService {
@@ -400,6 +425,23 @@ CartView ..> OrderSummary
 CheckoutView ..> OrderSummary
 CheckoutView --> CheckoutDraft
 
+class AccountView
+class SavedItemsView
+class SavedItems
+class SearchSuggestions
+class QuantityControl
+class SpecificationsEditor
+ShopWindow *-- SavedItems
+ShopWindow ..> AccountView
+ShopWindow ..> SavedItemsView
+AccountView --> AccountService
+SavedItems --> AccountService
+SavedItemsView --> ProductService
+CatalogView ..> SearchSuggestions
+ProductDetailView ..> QuantityControl
+AdminView ..> SpecificationsEditor
+AccountService --> DatabaseManager
+AuthService ..> AccountService
 ShopWindow --> Services
 ShopWindow ..> LoginView
 ShopWindow ..> CatalogView
@@ -440,6 +482,7 @@ end note
 note bottom of Services
 Record accessors are auth(), products(),
 checkout(), and orders().
+accounts() supplies customer account persistence.
 Services are supplied through constructors.
 Repository methods receive the active connection.
 end note

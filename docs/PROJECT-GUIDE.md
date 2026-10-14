@@ -181,3 +181,8 @@ Potential later work: FXML after understanding JavaFX, persisted carts, discount
 The existing task branch carries ongoing improvements. The storefront hero remains unchanged. Login uses a large, proportional PC crop; purchase actions use orange, catalog cards show brief Added feedback and the toast offers Review cart. Cart and checkout stack below 920 px of content width, preserving one outer scroll surface. Drawer keyboard focus cycles within the overlay and returns to a visible trigger.
 
 Gallery uploads support one main photo plus four real additional angles. Optional specifications use one key/value per line. The additive database migration preserves products and receipts; product metadata, primary photo and gallery rows are saved in one transaction. Existing stock-only edits preserve the gallery and specifications. Removing the main photo in the editor clears its gallery; canceling an edit preserves saved data.
+
+
+## Next UI implementation
+
+See [Approved next UI](NEXT-UI.md) for saved items/profile/address persistence, search suggestions, range filters, gallery zoom, order cards, Buy again, Undo, responsive layouts, photo framing and motion. Both existing campaign artworks/designs are retained.

@@ -10,19 +10,23 @@ import java.util.function.Consumer;
 public final class ProductDetailView extends VBox {
     public ProductDetailView(Product product,User user,Cart cart,CartService carts,ProductService products,
                              Runnable changed,Runnable back,Runnable openCart,Consumer<Product> openProduct) {
+        this(product,user,cart,carts,products,changed,back,openCart,openProduct,null,null);
+    }
+    public ProductDetailView(Product product,User user,Cart cart,CartService carts,ProductService products,
+                             Runnable changed,Runnable back,Runnable openCart,Consumer<Product> openProduct,SavedItems saved,Consumer<String> toast) {
         setId("product-detail");getStyleClass().add("page");setSpacing(18);
         Label feedback=Ui.feedback("detail-feedback");
-        Spinner<Integer> quantity=new Spinner<>(1,Math.max(1,product.getStock()),1);quantity.setId("detail-quantity");
-        quantity.setAccessibleText("Quantity");quantity.setPrefWidth(100);
+        QuantityControl quantity=new QuantityControl(product.getStock());quantity.setId("detail-quantity");
+        quantity.setAccessibleText("Quantity");quantity.setPrefWidth(150);
         // One dominant purchase action beside the price and stock status.
         Button add=Ui.primary(product.getStock()==0?"Sold out":"Add to cart",()->Ui.async(this,"Adding to cart…",()->{
             carts.add(user,cart,product.getId(),quantity.getValue());return true;
-        },done->{changed.run();Ui.success(feedback,"✓ Added to your cart.");},error->Ui.failure(feedback,error)));
+        },done->{changed.run();Ui.success(feedback,"✓ Added to your cart.");if(toast!=null)toast.accept("✓ "+product.getName()+" added to cart");},error->Ui.failure(feedback,error)));
         add.setId("detail-add");add.setDisable(!product.isActive()||product.getStock()==0);add.setMaxWidth(Double.MAX_VALUE);
         add.getStyleClass().addAll("cta","purchase-action");
         quantity.setDisable(product.getStock()==0);
         TitledPane description=section("Product details",product.getDescription().isBlank()?
-            "The seller has not added a description yet.":product.getDescription());description.setExpanded(true);description.setId("product-details-panel");
+            "The seller has not added a description yet.":product.getDescription());description.setExpanded(true);description.setVisible(!product.getDescription().isBlank());description.managedProperty().bind(description.visibleProperty());description.setId("product-details-panel");
         TitledPane delivery=section("Delivery & payment","Shipping is free in this course demo. Choose cash on delivery or a simulated wallet at checkout. No real payment or delivery is processed.");
         TitledPane stock=section("Availability",product.getStock()+" units currently available. Items in a cart are not reserved; stock is checked again at checkout.");
 
@@ -37,26 +41,30 @@ public final class ProductDetailView extends VBox {
         String details=product.getDescription();
         Label preview=Ui.label(details.length()>160?details.substring(0,160)+"…":details,"product-description");
         preview.setVisible(!details.isBlank());preview.managedProperty().bind(preview.visibleProperty());
-        VBox info=new VBox(14,Ui.label(Ui.category(product.getCategory())+" · #"+product.getId(),"eyebrow"),
+        Region heartSpacer=new Region();HBox.setHgrow(heartSpacer,Priority.ALWAYS);
+        HBox heading=new HBox(12,Ui.label(Ui.category(product.getCategory())+" · #"+product.getId(),"eyebrow"),heartSpacer);
+        heading.setAlignment(Pos.CENTER_LEFT);if(saved!=null)heading.getChildren().add(saved.heart(product));
+        VBox info=new VBox(14,heading,
             Ui.label(product.getName(),"page-title"),priceRow,preview,quantityRow,add,feedback,viewCart,description,specifications(product),delivery,stock);
         info.getStyleClass().add("detail-info");info.setMinWidth(300);info.setPrefWidth(420);info.setMaxWidth(460);
 
         ProductGallery gallery=new ProductGallery(product);HBox.setHgrow(gallery,Priority.ALWAYS);
-        HBox columns=new HBox(32,gallery,info);columns.setAlignment(Pos.TOP_LEFT);
+        info.setMaxWidth(Double.MAX_VALUE);
+        VBox columns=Ui.responsiveColumns(gallery,info,1000,32);columns.setId("detail-columns");columns.widthProperty().addListener((o,a,b)->gallery.setCompact(b.doubleValue()<1000));
 
         // Related products reuse ProductCard, so they look and behave exactly like the storefront grid.
         FlowPane suggestions=new FlowPane(20,20);suggestions.setId("related-products");
         VBox related=new VBox(14,Ui.label("More from this category","section-title"),suggestions);related.setVisible(false);related.managedProperty().bind(related.visibleProperty());
         VBox content=new VBox(32,columns,related);
         Button backButton=Ui.link("← Back to results",back);backButton.setMaxWidth(Region.USE_PREF_SIZE);
-        getChildren().addAll(backButton,Ui.scroll(content));
-        Platform.runLater(()->Ui.async(this,"Finding related products…",()->products.search(user,"",product.getCategory()),rows->{
+        getChildren().addAll(Ui.label("Shop / "+Ui.category(product.getCategory())+" / "+product.getName(),"breadcrumb"),backButton,Ui.scroll(content));
+        Platform.runLater(()->Ui.readOnly(this,()->products.search(user,"",product.getCategory()),rows->{
             for(Product p:rows.stream().filter(p->p.getId()!=product.getId()).limit(4).toList()){
                 ProductCard card=new ProductCard(p,()->Ui.async(this,"Adding to cart…",()->{
                     carts.add(user,cart,p.getId(),1);return true;
                 },done->{changed.run();if(suggestions.lookup("#product-"+p.getId()) instanceof ProductCard added)added.confirmAdded();Ui.success(feedback,"✓ "+p.getName()+" added to your cart.");},error->Ui.failure(feedback,error)),
                     ()->openProduct.accept(p));
-                card.setPrefWidth(220);suggestions.getChildren().add(card);
+                if(saved!=null)card.enableSavedItems(saved);card.setPrefWidth(220);suggestions.getChildren().add(card);
             }
             related.setVisible(!suggestions.getChildren().isEmpty());
         },error->Ui.failure(feedback,error)));
@@ -73,7 +81,7 @@ public final class ProductDetailView extends VBox {
                 HBox.setHgrow(value,Priority.ALWAYS);values.getChildren().add(new HBox(16,key,value));
             } else values.getChildren().add(Ui.label(line,"product-description"));
         }
-        TitledPane pane=new TitledPane("Specifications",values);pane.setId("product-specifications");pane.setAnimated(false);pane.setExpanded(true);return pane;
+        TitledPane pane=new TitledPane("Specifications",values);pane.setId("product-specifications");pane.setAnimated(false);pane.setExpanded(false);pane.setVisible(!product.getSpecifications().isBlank());pane.managedProperty().bind(pane.visibleProperty());return pane;
     }
     private TitledPane section(String title,String text) {
         TitledPane pane=new TitledPane(title,Ui.label(text,"product-description"));pane.setExpanded(false);pane.setAnimated(false);return pane;

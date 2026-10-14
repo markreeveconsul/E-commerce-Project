@@ -44,6 +44,7 @@ public final class GuiSmoke {
     private static void idle()throws Exception{waitFor(()->!scene.getRoot().isDisabled());}
     private static void catalog()throws Exception{waitFor(()->scene.lookup("#product-grid") instanceof TilePane p && !p.getChildren().isEmpty()&&!scene.getRoot().isDisabled());}
     private static void screenshot(String name,int width,int height)throws Exception{
+        waitFor(()->scene.getRoot().lookupAll(".page").stream().allMatch(node->node.getOpacity()==1));
         fx(()->{
             scene.getRoot().resize(width,height);scene.getRoot().applyCss();scene.getRoot().layout();
             var image=scene.getRoot().snapshot(null,null);
@@ -130,7 +131,7 @@ public final class GuiSmoke {
             fx(()->{var card=scene.lookup("#product-4");((Button)card.lookupAll(".button").stream().filter(n->n instanceof Button b&&b.getText().equals("View product")).findFirst().orElseThrow()).fire();return null;});
             waitFor(()->scene.lookup("#product-detail")!=null&&!scene.getRoot().isDisabled());idle();screenshot("14-product-detail.png",1280,860);
             screenshot("15-product-detail-compact.png",960,680);screenshot("14-product-detail.png",1280,860);
-            fx(()->{((Spinner<Integer>)scene.lookup("#detail-quantity")).getValueFactory().setValue(2);return null;});
+            fx(()->{((QuantityControl)scene.lookup("#detail-quantity")).valueProperty().set(2);return null;});
             press("detail-add");idle();
             fx(()->{((Button)scene.lookup("#nav-cart")).fire();return null;});
             check(fx(()->scene.lookup("#cart-drawer")!=null),"Cart opens as drawer without leaving details");
@@ -255,7 +256,7 @@ public final class GuiSmoke {
             press("place-order");waitFor(()->scene.lookup("#confirmation")!=null);
             check(fx(()->((Button)scene.lookup("#nav-cart")).getText()).equals("Cart · 0"),"Success clears badge");
             screenshot("07-confirmation.png",1280,860);
-            click("View my orders");waitFor(()->scene.lookup("#orders-table") instanceof TableView<?> t&&t.getItems().size()==1);
+            click("View my orders");waitFor(()->scene.lookup("#order-cards") instanceof VBox t&&t.getChildren().size()==1);
             screenshot("05-orders.png",1280,860);
             click("Sign out");catalog();press("account");login("admin","admin123");
             waitFor(()->scene.lookup("#admin-table") instanceof TableView<?> t&&t.getItems().size()==6);

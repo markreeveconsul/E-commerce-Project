@@ -14,7 +14,7 @@ The helper finds a JDK through JAVA_HOME or Program Files/Java, then Maven throu
 
 If your PowerShell policy prevents running local scripts, use your IDE's Maven support with the goals `compile javafx:run`, or run `mvn compile javafx:run` in a terminal with Maven configured. Do not double-click the ordinary JAR; it is not a standalone installer.
 
-**Requirements:** JDK 21 or newer and Maven. Verified here with JDK 26.0.1 on Windows. The compiler targets Java 21; JavaFX is pinned to 21.0.6. A separate JDK 21 runtime check remains useful before presenting on another machine.
+**Requirements:** JDK 21 or newer and Maven. Verified here with JDK 26.0.1 on Windows. The compiler targets Java 21; JavaFX is pinned to 21.0.6. Linux checks also passed with Temurin JDK 21.0.12.1 and Maven 3.9.9; presentation-machine display checks remain manual.
 
 | Role | Username | Password |
 |---|---|---|
@@ -26,13 +26,14 @@ These are public demonstration credentials. Password hashes, rather than plainte
 ## What works
 
 - Role-based login and service-level permission checks.
-- Guest storefront, product details, name search, category filtering, and price sorting.
+- Guest storefront, product details, debounced search suggestions, labeled category/budget/custom-price filters, and name/price sorting.
+- Guest/customer saved items, persistent customer profiles, and a saved delivery address book.
 - Admin main-photo and gallery uploads (up to five photos), preview, replacement/removal, persistent descriptions and optional specifications.
 - Admin create/edit, stock adjustments, and product deactivation.
-- Per-item cart controls, live cart counts, removal, and shared order summaries.
+- Per-item cart controls, live cart counts, removal with Undo, and responsive shared order summaries.
 - Cash on delivery and simulated wallet approval/decline.
 - Transactional checkout: order and stock changes commit together.
-- Customer-specific order history and purchase-time snapshots.
+- Customer-specific order cards, purchase-time receipts, and reviewed Buy again with current stock/prices.
 - SQLite persistence at `data/shop.db`, created on first launch.
 
 Prices use **USD** as a demonstration choice. Shipping is free; taxes are omitted. No real payment is processed. Cart contents are temporary. Guest selections transfer on customer sign-in; customer logout or app exit discards the cart.
@@ -45,7 +46,7 @@ Prices use **USD** as a demonstration choice. Shipping is free; taxes are omitte
 .\build.ps1 Package
 ```
 
-Test runs the JUnit service/integration suite with fresh temporary databases. Smoke runs the real JavaFX controls against a separate database and regenerates seventeen scene snapshots. Package runs tests and produces a normal Maven JAR in target; runtime dependencies are still required.
+Test runs the JUnit service/integration suite with fresh temporary databases. Smoke runs the real JavaFX controls against a separate database and regenerates 26 scene snapshots. Package runs tests and produces a normal Maven JAR in target; runtime dependencies are still required.
 
 Cross-platform Maven alternatives: `mvn test`, `mvn package`, `mvn javafx:run`. The PowerShell smoke helper is Windows-specific.
 
@@ -63,6 +64,8 @@ Cross-platform Maven alternatives: `mvn test`, `mvn package`, `mvn javafx:run`. 
 All Java paths above are under `src/main/java/edu/course/shop`.
 
 ## Deliverables
+
+- [Approved next UI implementation and verification](docs/NEXT-UI.md)
 
 - [Nike-inspired design elevation](docs/DESIGN-ELEVATION.md)
 

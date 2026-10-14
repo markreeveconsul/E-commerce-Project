@@ -46,4 +46,13 @@ public final class Motion {
         reduced.addListener(new WeakInvalidationListener(update));
         trigger.getProperties().put("market.imageMotion",update);
     }
+    /** Short entrance only; callers exclude campaign nodes. */
+    public static void reveal(Node target) {
+        javafx.animation.FadeTransition fade=new javafx.animation.FadeTransition(Duration.millis(180),target);
+        if(isReduced()) {target.setOpacity(1);return;}
+        target.setOpacity(.25);fade.setToValue(1);fade.play();
+        InvalidationListener cancel=o->{if(target.getScene()==null||isReduced()){fade.stop();target.setOpacity(1);}};
+        target.sceneProperty().addListener(cancel);reduced.addListener(new WeakInvalidationListener(cancel));
+        target.getProperties().put("market.reveal",cancel);
+    }
 }

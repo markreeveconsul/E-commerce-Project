@@ -1,5 +1,6 @@
 package edu.course.shop.ui;
 import edu.course.shop.model.Product;
+import edu.course.shop.model.PhotoFrame;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -11,15 +12,15 @@ public final class ProductArtwork extends StackPane {
         this(product,height,false);
     }
     public ProductArtwork(Product product,double height,boolean square) {
-        this(product.getPhoto(), product.getName(), height,square);
+        this(product.getPhoto(), product.getName(), height,square,product.getPhotoFrame());
         getStyleClass().add(product.getCategory().name().toLowerCase(java.util.Locale.ROOT));
         if (product.getPhoto() == null && CollectionArtwork.supports(product.getName())) {
             getChildren().setAll(new CollectionArtwork(product.getName()));
             setAccessibleText("Illustration of " + product.getName() + "; actual product may vary");
         }
     }
-    public ProductArtwork(byte[] photo, String name, double height) { this(photo,name,height,false); }
-    private ProductArtwork(byte[] photo, String name, double height,boolean square) {
+    public ProductArtwork(byte[] photo, String name, double height) { this(photo,name,height,false,PhotoFrame.AUTO); }
+    public ProductArtwork(byte[] photo, String name, double height,boolean square,PhotoFrame frame) {
         setMinHeight(height); setPrefHeight(height); setMaxHeight(height);
         setMinWidth(0); setPrefWidth(height * 1.35); getStyleClass().add("product-art");
         if(square) {
@@ -33,15 +34,16 @@ public final class ProductArtwork extends StackPane {
                 if(square) {
                     javafx.geometry.Rectangle2D subject=alphaBounds(image);
                     boolean cutout=subject!=null;
+                    boolean contain=frame.mode()==PhotoFrame.Mode.CONTAIN||(frame.mode()==PhotoFrame.Mode.AUTO&&cutout);
                     javafx.geometry.Rectangle2D source=cutout?subject:new javafx.geometry.Rectangle2D(0,0,image.getWidth(),image.getHeight());
                     javafx.beans.InvalidationListener size=o->{
                         double w=Math.max(1,getWidth()),h=Math.max(1,getHeight());
-                        if(cutout) {
+                        if(contain) {
                             view.setViewport(source);view.setFitWidth(w*.88);view.setFitHeight(h*.88);
                         } else {
                             double scale=Math.max(w/source.getWidth(),h/source.getHeight());
                             double vw=w/scale,vh=h/scale;
-                            view.setViewport(new javafx.geometry.Rectangle2D((image.getWidth()-vw)/2,(image.getHeight()-vh)/2,vw,vh));
+                            view.setViewport(new javafx.geometry.Rectangle2D(source.getMinX()+(source.getWidth()-vw)*frame.x(),source.getMinY()+(source.getHeight()-vh)*frame.y(),vw,vh));
                             view.setFitWidth(w);view.setFitHeight(h);
                         }
                     };

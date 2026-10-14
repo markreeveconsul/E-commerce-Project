@@ -9,6 +9,9 @@ import javafx.scene.layout.*;
 public final class CartDrawer extends VBox {
     private final User user;private final Cart cart;private final CartService carts;
     private final Runnable changed,close,review,checkout;
+    private CartItem removed;
+    private final javafx.animation.PauseTransition undoTimeout=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(6));
+    private final Button undo=Ui.link("Undo removal",()->undoRemoval());
     private final VBox lines=new VBox(),bottom=new VBox(12);
     private final Label feedback=Ui.feedback("drawer-feedback"),count=Ui.label("","section-title");
     public CartDrawer(User user,Cart cart,CartService carts,Runnable changed,Runnable close,Runnable review,Runnable checkout) {
@@ -18,7 +21,9 @@ public final class CartDrawer extends VBox {
         dismiss.getStyleClass().add("icon-button");
         Region gap=new Region();HBox.setHgrow(gap,Priority.ALWAYS);
         HBox header=new HBox(12,count,gap,dismiss);header.setAlignment(Pos.CENTER_LEFT);
-        getChildren().addAll(header,feedback,Ui.scroll(lines),bottom);render();
+        undo.setId("drawer-undo-removal");undo.setVisible(false);undo.managedProperty().bind(undo.visibleProperty());undoTimeout.setOnFinished(e->{removed=null;undo.setVisible(false);});
+        sceneProperty().addListener((o,a,b)->{if(b==null){undoTimeout.stop();removed=null;undo.setVisible(false);}});
+        getChildren().addAll(header,feedback,undo,Ui.scroll(lines),bottom);render();
     }
     private void render() {
         int total=cart.getItems().stream().mapToInt(CartItem::getQuantity).sum();count.setText("Your cart ("+total+")");
@@ -44,7 +49,7 @@ public final class CartDrawer extends VBox {
             quantity.setMinWidth(30);quantity.setAlignment(Pos.CENTER);quantity.setWrapText(false);
             HBox stepper=new HBox(2,minus,quantity,plus);stepper.getStyleClass().add("stepper");stepper.setAlignment(Pos.CENTER);
 
-            Button remove=Ui.button("Remove",()->{cart.remove(p.getId());changed.run();render();});remove.getStyleClass().add("text-button");remove.setId("drawer-remove-"+p.getId());
+            Button remove=Ui.button("Remove",()->{removed=new CartItem(p,item.getQuantity());cart.remove(p.getId());changed.run();render();undo.setVisible(true);undo.requestFocus();undoTimeout.playFromStart();Ui.success(feedback,p.getName()+" removed.");});remove.getStyleClass().add("text-button");remove.setId("drawer-remove-"+p.getId());
             Region controlGap=new Region();HBox.setHgrow(controlGap,Priority.ALWAYS);
             HBox controls=new HBox(8,stepper,controlGap,remove);controls.setAlignment(Pos.CENTER_LEFT);
 
@@ -63,6 +68,10 @@ public final class CartDrawer extends VBox {
     }
     private void update(Product product,int quantity) {
         Ui.async(this,"Updating cart…",()->{carts.update(user,cart,product.getId(),quantity);return true;},
-            done->{changed.run();render();Ui.success(feedback,"Quantity updated.");},error->Ui.failure(feedback,error));
+            done->{changed.run();render();Motion.reveal(lines);Ui.success(feedback,"Quantity updated.");},error->Ui.failure(feedback,error));
+    }
+    private void undoRemoval() {
+        if(removed==null)return;CartItem item=removed;
+        Ui.async(this,"Restoring item…",()->{carts.add(user,cart,item.getProduct().getId(),item.getQuantity());return true;},done->{undoTimeout.stop();removed=null;undo.setVisible(false);changed.run();render();Ui.success(feedback,"Item restored at its current price.");},error->Ui.failure(feedback,error));
     }
 }

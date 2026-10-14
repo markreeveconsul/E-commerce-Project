@@ -23,14 +23,15 @@ public final class ProductRepository {
     }
     public void save(Connection c, Product product) throws SQLException {
         String sql = product.getId() == 0
-            ? "INSERT INTO products(name,category,price_cents,stock,active,description,photo,specifications) VALUES(?,?,?,?,?,?,?,?)"
-            : "UPDATE products SET name=?,category=?,price_cents=?,stock=?,active=?,description=?,photo=?,specifications=? WHERE id=?";
+            ? "INSERT INTO products(name,category,price_cents,stock,active,description,photo,specifications,photo_frame,photo_x,photo_y) VALUES(?,?,?,?,?,?,?,?,?,?,?)"
+            : "UPDATE products SET name=?,category=?,price_cents=?,stock=?,active=?,description=?,photo=?,specifications=?,photo_frame=?,photo_x=?,photo_y=? WHERE id=?";
         try (PreparedStatement p = c.prepareStatement(sql)) {
             p.setString(1, product.getName()); p.setString(2, product.getCategory().name()); p.setLong(3, Money.cents(product.getPrice()));
             p.setInt(4, product.getStock()); p.setBoolean(5, product.isActive());
             p.setString(6, product.getDescription()); p.setBytes(7, product.getPhoto());
             p.setString(8,product.getSpecifications());
-            if (product.getId() != 0) p.setLong(9, product.getId());
+            p.setString(9,product.getPhotoFrame().mode().name());p.setDouble(10,product.getPhotoFrame().x());p.setDouble(11,product.getPhotoFrame().y());
+            if (product.getId() != 0) p.setLong(12, product.getId());
             if (p.executeUpdate() != 1) throw new ValidationException("Product no longer exists.");
         }
         long id=product.getId();
@@ -52,6 +53,6 @@ public final class ProductRepository {
         try(PreparedStatement p=c.prepareStatement("SELECT photo FROM product_photos WHERE product_id=? ORDER BY position")) {
             p.setLong(1,r.getLong("id"));try(ResultSet images=p.executeQuery()){while(images.next())gallery.add(images.getBytes(1));}
         }
-        return new Product(r.getLong("id"), r.getString("name"), Category.valueOf(r.getString("category")), Money.amount(r.getLong("price_cents")), r.getInt("stock"), r.getBoolean("active"), r.getString("description"), r.getBytes("photo"),gallery,r.getString("specifications"));
+        return new Product(r.getLong("id"), r.getString("name"), Category.valueOf(r.getString("category")), Money.amount(r.getLong("price_cents")), r.getInt("stock"), r.getBoolean("active"), r.getString("description"), r.getBytes("photo"),gallery,r.getString("specifications"),new PhotoFrame(PhotoFrame.Mode.valueOf(r.getString("photo_frame")),r.getDouble("photo_x"),r.getDouble("photo_y")));
     }
 }

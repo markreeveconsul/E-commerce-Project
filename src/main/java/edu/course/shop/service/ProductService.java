@@ -43,9 +43,15 @@ public final class ProductService {
     public void save(User actor,long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
                      byte[] photo,List<byte[]> additionalPhotos,String specifications) {
         if(actor==null||!actor.canManageProducts())throw new ValidationException("Administrator access is required.");
+        save(actor,id,name,category,price,stock,active,description,photo,additionalPhotos,specifications,
+            id==0?PhotoFrame.AUTO:get(id).getPhotoFrame());
+    }
+    public void save(User actor,long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
+                     byte[] photo,List<byte[]> additionalPhotos,String specifications,PhotoFrame frame) {
+        if(actor==null||!actor.canManageProducts())throw new ValidationException("Administrator access is required.");
         byte[] snapshot = photo == null ? null : photo.clone();
         ProductPhotos.validate(snapshot);
-        Product product = new Product(id, name, category, price, stock, active, description, snapshot,additionalPhotos,specifications);
+        Product product = new Product(id, name, category, price, stock, active, description, snapshot,additionalPhotos,specifications,frame);
         for(byte[] bytes:product.getAdditionalPhotos())ProductPhotos.validate(bytes);
         try (Connection c = database.open()) {
             c.setAutoCommit(false);

@@ -11,6 +11,7 @@ public final class StoreIcon {
         String path=switch(name) {
             case "bag" -> "M5 7 H19 L20 21 H4 Z M9 8 V6 A3 3 0 0 1 15 6 V8";
             case "account" -> "M16 7 A4 4 0 1 1 8 7 A4 4 0 1 1 16 7 M4 21 V19 A8 8 0 0 1 20 19 V21";
+            case "heart" -> "M12 21 L3 12 C-2 6 5 -1 12 6 C19 -1 26 6 21 12 Z";
             case "search" -> "M16 10 A6 6 0 1 1 4 10 A6 6 0 1 1 16 10 M15 15 L21 21";
             default -> throw new IllegalArgumentException("Unknown icon: "+name);
         };

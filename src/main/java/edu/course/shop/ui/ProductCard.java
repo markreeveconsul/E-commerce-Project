@@ -15,22 +15,33 @@ import javafx.scene.shape.Rectangle;
 /** Photo and details open the same product; quick add delegates to CartService. */
 public final class ProductCard extends VBox {
     private final Button quick;
+    private final StackPane photoFrame;
+    private final Product productForSaving;
+    private StackPane visualLayer;
     private final javafx.animation.PauseTransition confirmation=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2.5));
     public void confirmAdded() {
         confirmation.stop();quick.setText("Added ✓");quick.getStyleClass().add("added-confirmation");confirmation.playFromStart();
     }
     public ProductCard(Product product,Runnable add,Runnable details) {
-        setId("product-"+product.getId());getStyleClass().add("product-card");setSpacing(0);setMinWidth(0);setMaxWidth(Double.MAX_VALUE);
+        productForSaving=product;setId("product-"+product.getId());getStyleClass().add("product-card");setSpacing(0);setMinWidth(0);setMaxWidth(Double.MAX_VALUE);
 
         // Photo: same box for every product, with rounded corners that match the card.
         ProductArtwork photo=new ProductArtwork(product,230,true);
-        StackPane frame=new StackPane(photo);frame.setMinWidth(0);
+        StackPane frame=new StackPane(photo);photoFrame=frame;frame.setMinWidth(0);
         Rectangle clip=new Rectangle();clip.setArcWidth(4);clip.setArcHeight(4);
         frame.layoutBoundsProperty().addListener((o,a,b)->{clip.setWidth(b.getWidth());clip.setHeight(b.getHeight());});
         frame.setClip(clip);
         Button visual=Ui.button("",details);visual.setGraphic(frame);visual.setMaxWidth(Double.MAX_VALUE);
         frame.prefWidthProperty().bind(visual.widthProperty());visual.getStyleClass().add("photo-button");
-        Motion.zoom(visual,photo);
+        Motion.zoom(visual,photo);Motion.lift(this);
+        if(!product.getAdditionalPhotos().isEmpty()) {
+            ProductArtwork alternate=new ProductArtwork(product.getAdditionalPhotos().getFirst(),product.getName(),230,true,product.getPhotoFrame());
+            alternate.getStyleClass().add(product.getCategory().name().toLowerCase(java.util.Locale.ROOT));alternate.setMouseTransparent(true);alternate.setOpacity(0);frame.getChildren().add(alternate);
+            javafx.animation.FadeTransition fade=new javafx.animation.FadeTransition(javafx.util.Duration.millis(180),alternate);
+            javafx.beans.InvalidationListener sync=o->{fade.stop();double opacity=visual.isHover()?1:0;
+                if(visual.getScene()==null||Motion.isReduced()){alternate.setOpacity(0);return;}fade.setToValue(opacity);fade.play();};
+            visual.hoverProperty().addListener(sync);visual.sceneProperty().addListener(sync);Motion.reducedProperty().addListener(new javafx.beans.WeakInvalidationListener(sync));visual.getProperties().put("market.alternatePhoto",sync);
+        }
         visual.setAccessibleText("View "+product.getName());
 
         // Name: always two lines tall so every card lines up; longer names end in an ellipsis.
@@ -55,6 +66,10 @@ public final class ProductCard extends VBox {
         HBox actions=new HBox(8,view,space,quick);actions.setAlignment(Pos.CENTER_LEFT);
 
         VBox body=new VBox(8,Ui.label(Ui.category(product.getCategory()),"eyebrow"),name,priceRow,actions);
-        body.getStyleClass().add("product-body");getChildren().addAll(visual,body);
+        body.getStyleClass().add("product-body");visualLayer=new StackPane(visual);getChildren().addAll(visualLayer,body);
+    }
+    public void enableSavedItems(SavedItems saved) {
+        // A sibling control avoids nesting a focusable heart inside the image button.
+        Button heart=saved.heart(productForSaving);StackPane.setAlignment(heart,Pos.TOP_RIGHT);StackPane.setMargin(heart,new javafx.geometry.Insets(10));visualLayer.getChildren().add(heart);
     }
 }

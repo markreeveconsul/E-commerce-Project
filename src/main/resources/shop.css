@@ -250,3 +250,39 @@
 .toast .label { -fx-text-fill: white; }
 .button.toast-action { -fx-text-fill: white; -fx-background-color: transparent; -fx-border-color: #77777A; -fx-font-size: 12px; -fx-min-height: 34; -fx-padding: 6 12; }
 .button.toast-action:focused { -fx-border-color: #F08B63; }
+
+/* Approved next UI: shared shopping surfaces. Campaign and login artwork rules remain intact. */
+.breadcrumb { -fx-font-size: 12px; -fx-text-fill: -ink-muted; }
+.save-heart { -fx-padding: 0; -fx-min-width: 40; -fx-max-width: 40; -fx-min-height: 40; -fx-max-height: 40; -fx-font-size: 23px; -fx-background-color: rgba(255,255,255,.94); -fx-border-color: #DEDEDB; }
+.save-heart:selected { -fx-text-fill: #C43D25; -fx-border-color: #E65436; }
+.product-card { -fx-background-radius: 8; }
+.skeleton-block { -fx-background-color: #ECECE8; -fx-background-radius: 6; }
+.order-card, .address-card { -fx-background-color: -surface; -fx-padding: 22; -fx-border-color: -line; -fx-border-radius: 10; -fx-background-radius: 10; }
+.order-selected { -fx-border-color: #E65436; -fx-border-width: 2; }
+.address-card { -fx-background-color: -tint; -fx-padding: 16; }
+.payment-choice { -fx-background-color: -surface; -fx-text-fill: -ink; -fx-border-color: #D5D5D5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 16 18; -fx-cursor: hand; -fx-font-weight: bold; }
+.payment-choice:selected { -fx-background-color: #FFF1EB; -fx-border-color: #C43D25; -fx-border-width: 2; }
+.payment-choice:focused { -fx-effect: dropshadow(gaussian, rgba(216,57,33,.3), 6, .3, 0, 0); }
+.compact-menu { -fx-background-color: -surface; -fx-border-color: -line; -fx-border-radius: 24; -fx-background-radius: 24; -fx-padding: 8 12; }
+.compact-menu:focused { -fx-border-color: -signal; }
+.context-menu { -fx-background-color: -surface; -fx-border-color: -line; -fx-background-radius: 8; -fx-padding: 8; }
+.menu-item { -fx-padding: 12 18; }
+.menu-item:focused { -fx-background-color: -tint; }
+.menu-item:focused .label { -fx-text-fill: -ink; }
+
+/* Catalog discovery: generous search, labeled controls and a quiet filter surface. */
+.catalog-search-surface { -fx-background-color: #F5F5F3; -fx-border-color: #DEDEDA; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 4 14; -fx-min-height: 54; }
+.text-field.catalog-search-input { -fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0; -fx-padding: 10 0; -fx-font-size: 15px; }
+.text-field.catalog-search-input:focused { -fx-border-color: transparent transparent -signal transparent; -fx-border-radius: 0; }
+.button.search-clear { -fx-min-width: 32; -fx-min-height: 32; -fx-padding: 0; -fx-font-size: 23px; -fx-background-color: white; -fx-border-color: #DEDEDA; }
+#catalog-search { -fx-min-height: 54; -fx-padding: 12 28; -fx-background-radius: 10; -fx-border-radius: 10; }
+.catalog-filter-panel, .inventory-filter-panel { -fx-background-color: #F5F5F3; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #E6E6E1; -fx-border-radius: 10; }
+.catalog-filter-panel .field-label { -fx-font-size: 12px; }
+.catalog-filter-panel .check-box { -fx-padding: 5 0; }
+.catalog-filter-panel .link-button { -fx-min-height: 26; -fx-padding: 3 0; }
+#toggle-filters { -fx-min-height: 42; -fx-background-radius: 8; -fx-border-radius: 8; }
+#sort { -fx-background-radius: 8; -fx-border-radius: 8; }
+.image-viewer { -fx-background-color: white; -fx-padding: 24; }
+.image-viewer-surface, .image-viewer-viewport, .image-viewer-viewport > .viewport { -fx-background-color: #F5F5F3; }
+.image-viewer-viewport { -fx-border-color: #E4E4E4; -fx-padding: 0; }
+.image-viewer-tools { -fx-padding: 4 0; }

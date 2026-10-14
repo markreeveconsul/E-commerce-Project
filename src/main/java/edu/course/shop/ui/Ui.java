@@ -140,6 +140,32 @@ public final class Ui {
         return scroll;
     }
 
+    /** Reparent only at a breakpoint, preserving keyboard focus in both layouts. */
+    public static VBox responsiveColumns(javafx.scene.layout.Region first,javafx.scene.layout.Region second,double breakpoint,double gap) {
+        VBox root=new VBox(gap);root.setMinWidth(0);HBox wide=new HBox(gap);wide.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(first,Priority.ALWAYS);HBox.setHgrow(second,Priority.ALWAYS);
+        wide.getChildren().addAll(first,second);root.getChildren().add(wide);boolean[] stacked={false};
+        root.widthProperty().addListener((o,a,b)->{
+            boolean compact=b.doubleValue()<breakpoint;if(stacked[0]==compact)return;stacked[0]=compact;
+            Node focus=root.getScene()==null?null:root.getScene().getFocusOwner();boolean inside=false;
+            for(Node node=focus;node!=null;node=node.getParent())if(node==root){inside=true;break;}
+            wide.getChildren().clear();root.getChildren().clear();
+            first.setMaxWidth(Double.MAX_VALUE);second.setMaxWidth(Double.MAX_VALUE);
+            if(compact)root.getChildren().addAll(first,second);else{wide.getChildren().addAll(first,second);root.getChildren().add(wide);}
+            if(inside&&focus!=null)focus.requestFocus();
+        });return root;
+    }
+
+    public static VBox skeleton() {
+        VBox placeholder=new VBox(16);placeholder.setId("loading-placeholder");placeholder.setAccessibleText("Loading products");
+        HBox cards=new HBox(20);
+        for(int i=0;i<3;i++) {
+            javafx.scene.layout.Region photo=new javafx.scene.layout.Region();photo.setPrefSize(220,190);photo.getStyleClass().add("skeleton-block");
+            javafx.scene.layout.Region title=new javafx.scene.layout.Region();title.setPrefSize(180,16);title.getStyleClass().add("skeleton-block");
+            VBox card=new VBox(12,photo,title);card.setMinWidth(0);HBox.setHgrow(card,Priority.ALWAYS);cards.getChildren().add(card);
+        }placeholder.getChildren().addAll(cards,label("Finding your next favorite…","muted"));return placeholder;
+    }
+
     /** Stack purchase columns in compact windows, sharing one outer scroll surface. */
     public static VBox purchaseColumns(javafx.scene.layout.Region form,javafx.scene.layout.Region summary) {
         VBox content=new VBox(24);content.setMinWidth(0);
@@ -156,11 +182,32 @@ public final class Ui {
             else{columns.getChildren().addAll(form,summary);content.getChildren().add(columns);}
             if(restore&&focus!=null)focus.requestFocus();
         });
-        summary.setMaxWidth(330);return content;
+        summary.setMaxWidth(330);stickySummary(content,form,summary,stacked);return content;
+    }
+
+    /** Keep a short summary visible beside a long form; compact layouts use normal scrolling. */
+    private static void stickySummary(VBox content,javafx.scene.layout.Region form,javafx.scene.layout.Region summary,boolean[] stacked) {
+        ScrollPane[] owner={null};javafx.beans.InvalidationListener[] update={null};
+        content.sceneProperty().addListener((o,a,b)->{
+            if(owner[0]!=null&&update[0]!=null){owner[0].vvalueProperty().removeListener(update[0]);owner[0].viewportBoundsProperty().removeListener(update[0]);content.layoutBoundsProperty().removeListener(update[0]);summary.layoutBoundsProperty().removeListener(update[0]);owner[0]=null;}
+            summary.setTranslateY(0);if(b==null)return;
+            javafx.application.Platform.runLater(()->{
+                if(content.getScene()==null)return;
+                Node parent=content.getParent();while(parent!=null&&!(parent instanceof ScrollPane))parent=parent.getParent();
+                if(!(parent instanceof ScrollPane scroll))return;owner[0]=scroll;
+                update[0]=change->{
+                    if(stacked[0]||summary.getHeight()>scroll.getViewportBounds().getHeight()-16){summary.setTranslateY(0);return;}
+                    double offset=Math.max(0,scroll.getContent().getLayoutBounds().getHeight()-scroll.getViewportBounds().getHeight())*scroll.getVvalue();
+                    double start=content.localToScene(0,0).getY()-scroll.getContent().localToScene(0,0).getY();
+                    summary.setTranslateY(Math.max(0,Math.min(offset-start,form.getHeight()-summary.getHeight())));
+                };
+                scroll.vvalueProperty().addListener(update[0]);scroll.viewportBoundsProperty().addListener(update[0]);content.layoutBoundsProperty().addListener(update[0]);summary.layoutBoundsProperty().addListener(update[0]);update[0].invalidated(null);
+            });
+        });
     }
 
     public static VBox empty(String title, String detail, String action, Runnable callback) {
-        VBox box = new VBox(14, label(title, "section-title"), label(detail, "muted"), primary(action, callback));
+        VBox box = new VBox(14, StoreIcon.of("bag"), label(title, "section-title"), label(detail, "muted"), primary(action, callback));
         box.setAlignment(Pos.CENTER);
         box.getStyleClass().add("empty-state");
         return box;
@@ -237,6 +284,14 @@ public final class Ui {
 
     public static <T> void async(Node owner, Callable<T> work, Consumer<T> success) {
         async(owner, "Loading…", work, success, Ui::error);
+    }
+
+    /** Read-only secondary content must not interrupt typing or purchase controls. */
+    public static <T> void readOnly(Node owner,Callable<T> work,Consumer<T> success,Consumer<Throwable> failure) {
+        Task<T> task=new Task<>() {protected T call() throws Exception{return work.call();}};
+        task.setOnSucceeded(e->{if(owner.getScene()!=null)attempt(()->success.accept(task.getValue()));});
+        task.setOnFailed(e->{if(owner.getScene()!=null)failure.accept(task.getException());});
+        Thread thread=new Thread(task,"shop-read");thread.setDaemon(true);thread.start();
     }
 
     /** Tasks preserve the FX thread for rendering, and block duplicate mutations. */
