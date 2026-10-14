@@ -71,12 +71,26 @@ public final class GuiSmoke {
             });
             screenshot("01-login.png",1280,860);
             screenshot("24-login-compact.png",960,680);screenshot("01-login.png",1280,860);
+            check(fx(()->scene.lookup("#login-pc").getBoundsInParent().getWidth()>scene.lookup("#login-campaign").getBoundsInParent().getWidth()*.94),"Login PC dominates campaign width");
+            check(fx(()->scene.lookup("#login-pc") instanceof javafx.scene.image.ImageView image&&!image.getImage().isError()),"Account campaign loads supplied PC artwork");
+            text("password","temporary");press("show-password");
+            check(fx(()->scene.lookup("#password-visible").isVisible()&&!scene.lookup("#password").isVisible()),"Show reveals only the visible password control");
+            text("password-visible","changed");press("show-password");
+            check(fx(()->((PasswordField)scene.lookup("#password")).getText()).equals("changed"),"Password edits survive hiding");
+            text("password","");
+            fx(()->{((CheckBox)scene.lookup("#login-reduce-motion")).fire();return null;});
+            check(fx(()->Motion.isReduced()&&scene.lookup("#hero-float").getTranslateY()==0),"Login motion toggle resets campaign movement");
+            fx(()->{((CheckBox)scene.lookup("#login-reduce-motion")).fire();return null;});
             press("login");check(!label("username-error").isBlank(),"Missing username needs field error");
             login("customer","incorrect");idle();check(label("login-feedback").contains("Incorrect"),"Wrong password needs inline error");
             click("← Continue browsing");catalog();
             check(fx(()->((Button)scene.lookup("#account")).getText()).equals("Sign in"),"Guests browse without login");
             check(fx(()->scene.lookup("#search").isVisible()&&scene.lookup("#catalog-search")!=null),"Catalog search is reachable");
             check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=300,"Campaign artwork fills the hero height");
+            check(fx(()->{
+                javafx.scene.layout.Region art=(javafx.scene.layout.Region)scene.lookup("#product-4").lookup(".product-art");
+                return Math.abs(art.getWidth()-art.getHeight())<1;
+            }),"Catalog product artwork uses square frames");
             check(fx(()->scene.lookup("#product-4").lookup(".collection-artwork")!=null),"Seed product renders original offline artwork");
             check(fx(()->scene.lookup("#hero-headset") instanceof javafx.scene.image.ImageView view&&!view.getImage().isError()),"Campaign uses the bundled supplied headset image");
             fx(()->{((CheckBox)scene.lookup("#reduce-motion")).fire();return null;});
@@ -122,6 +136,14 @@ public final class GuiSmoke {
             check(fx(()->scene.lookup("#cart-drawer")!=null),"Cart opens as drawer without leaving details");
             waitFor(()->Math.abs(scene.lookup("#cart-drawer").getTranslateX())<0.01);
             screenshot("18-cart-drawer.png",1280,860);screenshot("19-cart-drawer-compact.png",960,680);screenshot("18-cart-drawer.png",1280,860);
+            fx(()->{
+                scene.lookup("#close-cart-drawer").requestFocus();
+                scene.lookup("#cart-drawer").fireEvent(new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_PRESSED,"","",javafx.scene.input.KeyCode.TAB,false,false,false,false));
+                return null;
+            });
+            check(fx(()->{
+                var focused=scene.getFocusOwner();while(focused!=null){if(focused==scene.lookup("#cart-drawer"))return true;focused=focused.getParent();}return false;
+            }),"Tab navigation stays inside cart drawer");
             press("drawer-plus-4");idle();
             check(fx(()->((Button)scene.lookup("#nav-cart")).getText()).equals("Cart · 3"),"Drawer changes update header");
             press("drawer-minus-4");idle();
@@ -187,13 +209,26 @@ public final class GuiSmoke {
             press("nav-cart");check(fx(()->scene.getRoot().lookupAll(".empty-state").size())==1,"Empty cart is actionable");
             click("Browse products");catalog();press("add-4");idle();
             check(fx(()->((Button)scene.lookup("#nav-cart")).getText()).equals("Cart · 1"),"Cart badge after add");
+            check(fx(()->((Button)scene.lookup("#add-4")).getText()).equals("Added ✓"),"Catalog action confirms a successful add");
+            waitFor(()->scene.lookup("#cart-toast").getOpacity()>.99);
+            check(fx(()->scene.lookup("#toast-review-cart").isVisible()),"Added toast offers a cart review action");
+            fx(()->{scene.lookup("#toast-review-cart").requestFocus();return null;});
+            press("toast-review-cart");waitFor(()->scene.lookup("#cart-drawer")!=null);press("close-cart-drawer");waitFor(()->scene.lookup("#cart-drawer")==null);
+            check(fx(()->scene.getFocusOwner()==scene.lookup("#nav-cart")),"Closing toast-opened drawer returns focus to visible cart control");
             press("nav-cart");press("plus-4");idle();
             check(fx(()->((Button)scene.lookup("#nav-cart")).getText()).equals("Cart · 2"),"Cart badge after plus");
             press("minus-4");idle();
             text("cart-quantity-4","0");click("Update");idle();
             check(label("cart-feedback").contains("Quantity"),"Invalid quantity shows useful error");
             text("cart-quantity-4","2");click("Update");idle();
+            text("cart-quantity-4","20");click("Update");idle();
+            check(fx(()->((Button)scene.lookup("#plus-4")).isDisabled()),"Cart increase disables at available stock");
+            fx(()->{((Button)scene.lookup("#nav-cart")).fire();return null;});
+            check(fx(()->((Button)scene.lookup("#drawer-plus-4")).isDisabled()),"Drawer increase disables at available stock");
+            press("close-cart-drawer");waitFor(()->scene.lookup("#cart-drawer")==null);
+            text("cart-quantity-4","2");click("Update");idle();
             screenshot("03-cart.png",1280,860);screenshot("09-cart-compact.png",960,680);
+            check(fx(()->((VBox)scene.lookup("#cart-columns")).getChildren().getFirst() instanceof VBox),"Compact cart stacks items and summary");
             screenshot("03-cart.png",1280,860);
             press("remove-4");check(fx(()->scene.getRoot().lookupAll(".empty-state").size())==1,"Removing last item shows empty state");
             click("Browse products");catalog();press("add-4");idle();press("add-1");idle();press("nav-cart");
@@ -205,10 +240,13 @@ public final class GuiSmoke {
             press("place-order");check(!label("address-error").isBlank(),"Missing address is inline");
             text("address","123 Sample Street");press("place-order");
             check(!label("recipient-error").isBlank()&&!label("city-error").isBlank()&&!label("postal-error").isBlank(),"Delivery fields require meaningful values");
+            check(fx(()->scene.getFocusOwner()==scene.lookup("#recipient")),"Checkout focuses first invalid delivery field");
+            check(fx(()->((Button)scene.lookup("#place-order")).getText()).contains("$72.80"),"Checkout action states the actual order total");
             text("recipient","Demo Customer");text("city","Demo City");text("postal-code","12345");
             text("address","123 Sample Street, Demo City");click("← Back to cart");press("checkout");
             check(fx(()->((TextArea)scene.lookup("#address")).getText()).equals("123 Sample Street, Demo City"),"Back navigation preserves draft");
             screenshot("04-checkout.png",1280,860);screenshot("10-checkout-compact.png",960,680);
+            check(fx(()->((VBox)scene.lookup("#checkout-columns")).getChildren().getFirst() instanceof VBox),"Compact checkout stacks form and summary in one scroller");
             screenshot("04-checkout.png",1280,860);
             fx(()->{((ComboBox<?>)scene.lookup("#payment")).getSelectionModel().select(2);return null;});
             press("place-order");idle();check(label("checkout-feedback").contains("declined"),"Decline stays on checkout with feedback");
@@ -235,10 +273,28 @@ public final class GuiSmoke {
             check(!label("photo-feedback").isBlank(),"Photo upload provides draft feedback");
             check(fx(()->scene.lookup("#photo-preview").lookupAll(".product-photo").size())==1,"Uploaded photo renders in preview");
             screenshot("16-photo-upload.png",1280,860);
+            java.awt.image.BufferedImage alternate=new java.awt.image.BufferedImage(260,180,java.awt.image.BufferedImage.TYPE_INT_RGB);
+            var angleGraphics=alternate.createGraphics();angleGraphics.setColor(java.awt.Color.BLUE);angleGraphics.fillRect(0,0,260,180);angleGraphics.dispose();ImageIO.write(alternate,"png",photo.toFile());
+            fx(()->{((ProductPhotoEditor)scene.lookup("#photo-editor")).importAdditionalPhoto(photo);return null;});idle();
+            text("product-specifications-input","Material: Test fixture\nIncluded items: One demo unit");
+            check(fx(()->((ProductPhotoEditor)scene.lookup("#photo-editor")).getAdditionalPhotos().size())==1,"Admin editor accepts a gallery angle in the draft");
             press("save-product");
             waitFor(()->((TableView<?>)scene.lookup("#admin-table")).getItems().size()==7);
             Product uploaded=services.products().search(admin,"GUI smoke",null).getFirst();
             check(uploaded.getPhoto()!=null,"Admin save persists photo");
+            check(uploaded.getAdditionalPhotos().size()==1&&uploaded.getSpecifications().contains("Material"),"Admin save persists gallery and specifications");
+            Scene inventoryScene=scene;
+            fx(()->{
+                Stage galleryStage=new Stage();scene=new Scene(new ProductDetailView(uploaded,new Guest(),new Cart(0),new CartService(services.products()),services.products(),()->{},()->{},()->{},p->{}),1280,860);
+                scene.getStylesheets().add(GuiSmoke.class.getResource("/shop.css").toExternalForm());galleryStage.setScene(scene);galleryStage.show();return null;
+            });idle();
+            check(fx(()->scene.lookup("#gallery-thumbnails").isVisible()&&scene.lookup("#product-specifications")!=null),"Product details offers real uploaded angles and specifications");
+            press("gallery-photo-1");
+            check(fx(()->scene.lookup("#gallery-photo-1").getStyleClass().contains("gallery-selected")),"Selecting an angle updates the gallery selection");
+            check(fx(()->((javafx.scene.image.ImageView)scene.lookup("#gallery-main").lookup(".product-photo")).getImage().getPixelReader().getColor(10,10).getBlue())>.9,"Selected angle is rendered in the large photo");
+            screenshot("25-product-gallery.png",1280,860);screenshot("26-product-gallery-compact.png",960,680);
+            fx(()->{((Stage)scene.getWindow()).close();scene=inventoryScene;return null;});
+
             Files.delete(photo);
             check(services.products().get(uploaded.getId()).getPhoto()!=null,"Deleting original file keeps saved photo");
             text("admin-search","GUI smoke");check(fx(()->((TableView<?>)scene.lookup("#admin-table")).getItems().size())==1,"Admin search");
@@ -247,6 +303,7 @@ public final class GuiSmoke {
             check(fx(()->((TextField)scene.lookup("#product-name")).getText()).equals("GUI smoke product"),"Explicit edit fills form");
             screenshot("11-admin-editor.png",1280,860);screenshot("17-admin-editor-compact.png",960,680);screenshot("11-admin-editor.png",1280,860);
             check(fx(()->scene.lookup("#photo-preview").lookupAll(".product-photo").size())==1,"Reopening edit restores uploaded photo");
+            check(fx(()->((ProductPhotoEditor)scene.lookup("#photo-editor")).getAdditionalPhotos().size())==1&&fx(()->((TextArea)scene.lookup("#product-specifications-input")).getText()).contains("Material"),"Reopening editor retains gallery and specifications");
             press("remove-photo");click("Cancel");press("edit-product");
             check(fx(()->scene.lookup("#photo-preview").lookupAll(".product-photo").size())==1,"Cancel preserves saved photo");
             Path bad=Path.of(args[1]).toAbsolutePath().getParent().resolve("bad-upload.jpg");Files.writeString(bad,"not a photo");
@@ -255,6 +312,7 @@ public final class GuiSmoke {
             check(fx(()->scene.lookup("#photo-preview").lookupAll(".product-photo").size())==1,"Invalid upload keeps existing photo");
             press("remove-photo");press("save-product");idle();press("edit-product");
             check(services.products().get(uploaded.getId()).getPhoto()==null,"Saving removal clears persistent photo");
+            check(services.products().get(uploaded.getId()).getAdditionalPhotos().isEmpty(),"Removing main photo also clears gallery angles");
             fx(()->{((CheckBox)scene.lookup("#product-active")).setSelected(false);return null;});press("save-product");
             waitFor(()->!scene.getRoot().isDisabled()&&((TableView<?>)scene.lookup("#admin-table")).getItems().size()==1);
             text("admin-search","");
@@ -262,7 +320,7 @@ public final class GuiSmoke {
             check(fx(()->((TableView<?>)scene.lookup("#admin-table")).getItems().size())==6,"Active filter hides deactivated item");
             screenshot("06-admin.png",1280,860);screenshot("12-admin-compact.png",960,680);
             check(services.products().search(services.auth().login("customer","customer123"),"GUI smoke",null).isEmpty(),"Inactive hidden from customer");
-            System.out.println("GUI SMOKE PASS: "+checks+" assertions; editorial actions, artwork, catalog, filters, sold-out state, cart edits, draft retention, declined/approved payment, confirmation, history, admin create/edit/filter; 24 snapshots.");
+            System.out.println("GUI SMOKE PASS: "+checks+" assertions; editorial actions, artwork, catalog, filters, sold-out state, cart edits, draft retention, declined/approved payment, confirmation, history, admin create/edit/filter; 26 snapshots.");
         }finally{Platform.exit();}
     }
 }

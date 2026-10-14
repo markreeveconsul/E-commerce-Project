@@ -1,3 +1,13 @@
+# Approved wireframe verification — October 14, 2026
+
+Latest refinement: **31 backend tests, 89 shopping GUI assertions and 30 motion assertions passed**. The backend suite covers additive migration, gallery persistence, unauthorized/invalid updates, defensive photo copies and rollback of product/gallery writes. The shown-window GUI checks cover larger PC framing, real gallery selection, specifications, cancel/removal, Added feedback, actionable toast, drawer focus, stock limits, retained checkout inputs and compact stacked layouts. The motion pass verifies the unchanged storefront hero and proportional oversized account crop.
+
+A focused scratch JavaFX check used a real 960×680 scene with header/footer space and verified that cart checkout and place-order actions are fully reachable after scrolling to the end. Native file chooser and laptop display/GPU checks remain manual. Fixtures are synthetic fresh SQLite databases; the user's store database was not accessed.
+
+Gallery screenshots use visibly synthetic test images; actual additional product angles and specifications are supplied through the admin editor.
+
+## Earlier verification history
+
 # Animated banner verification — October 14, 2026
 
 Java 21 / Maven 3.9.9 / JavaFX 21.0.6 on Linux: **66 shopping GUI assertions** and **25 motion assertions passed**. The shown-window motion harness uses JavaFX Robot to exercise hover and parallax, checks reduced motion and window/scene/viewport lifecycle, verifies compact sizing, and checks scrolling inside the actual storefront. It exported 60 scene frames for the preview. The earlier **26-test backend pass** was reused after confirming identical backend/test/pom input hashes. Compilation and whitespace checks passed. Synthetic window resizing under Xvfb produced GTK resize warnings; behavioral and dimension assertions passed. Presentation-machine GPU performance, display scaling and the native file picker remain manual checks.
@@ -93,3 +103,5 @@ Maven package completed successfully and produced target/marketplace-1.0.0.jar. 
 - [ ] Explain one test's setup, input, expected result, and assertion.
 
 Do not mark these manual checks completed merely because the automated suite passes.
+
+Account refinement coverage: GuiSmoke verifies supplied PC loading, password visibility/edit retention, login reduced motion and square catalog geometry alongside existing shopping/auth/upload flows. BannerMotionSmoke checks account animation/reduction and compact artwork fit, plus generated opaque and alpha-padded photo fixtures for fill/contain geometry. All fixtures are synthetic and use disposable databases.

@@ -43,7 +43,8 @@ The call direction is GUI -> services -> models/repositories -> SQLite. Models n
 | CollectionArtwork / StoreIcon | Original offline demo illustrations / consistent navigation icons |
 | EditorialHeader | Layered headset campaign with headphone search, collection navigation and animation lifecycle |
 | ProductCard / ProductArtwork | Reusable product card / uploaded photo, original demo illustration or neutral placeholder |
-| ProductPhotos / ProductPhotoEditor | Image validation / chooser, preview and temporary upload draft |
+| ProductPhotos / ProductPhotoEditor | Image validation / main-photo and gallery-angle drafts |
+| ProductGallery | Full photo view, actual uploaded thumbnail selection and image enlargement |
 | CatalogState / DeliveryAddress | Retained filters / validated delivery value object |
 | OrderSummary / CheckoutDraft | Reusable cart summary / temporary checkout input |
 | Ui | Shared components, inline feedback, error presentation, background task wrapper |
@@ -69,7 +70,8 @@ Composition: Cart owns its CartItems; Order owns its OrderItems. Association: Ca
 | Table | Important fields |
 |---|---|
 | users | id, unique username, password_hash, role |
-| products | id, name, category, price_cents, stock, active, description, photo (BLOB) |
+| products | id, name, category, price_cents, stock, active, description, photo (BLOB), specifications |
+| product_photos | product_id, position (0–3), photo (BLOB); additional gallery angles |
 | orders | id, customer_id, created_at, address, payment_method, payment_status, total_cents |
 | order_items | order_id, product_id, product_name, unit_price_cents, quantity |
 
@@ -99,7 +101,7 @@ The cart is not a reservation. A price change is rejected rather than silently c
 |---|---|---|
 | Login | TextField, PasswordField, Button | AuthService.login |
 | Catalog | TilePane of ProductCards, search/category/sort controls | ProductService.search; CartService.add |
-| Product details | Photo, description, stock, quantity Spinner | ProductService.get; CartService.add |
+| Product details | Uploaded gallery, description/specifications, stock, quantity Spinner | ProductService.get; CartService.add |
 | Cart | Item rows, +/- and quantity fields, OrderSummary | CartService.update; Cart.remove; Cart.getTotal |
 | Checkout | Recipient/street/city/postal fields, payment ComboBox, inline errors, OrderSummary | CheckoutService.checkout |
 | Orders | TableView and formatted receipt panel | OrderService.history |
@@ -173,3 +175,9 @@ Suggested remaining two-week work: days 1–3 understand models and services; da
 A working implementation does not guarantee marks: the student must understand and explain it. Database persistence is supporting infrastructure, not evidence of OOP by itself.
 
 Potential later work: FXML after understanding JavaFX, persisted carts, discounts through a pricing policy, packaged runtime image. Avoid adding those until the current code can be explained confidently.
+
+## Approved UI/UX refinement
+
+The existing task branch carries ongoing improvements. The storefront hero remains unchanged. Login uses a large, proportional PC crop; purchase actions use orange, catalog cards show brief Added feedback and the toast offers Review cart. Cart and checkout stack below 920 px of content width, preserving one outer scroll surface. Drawer keyboard focus cycles within the overlay and returns to a visible trigger.
+
+Gallery uploads support one main photo plus four real additional angles. Optional specifications use one key/value per line. The additive database migration preserves products and receipts; product metadata, primary photo and gallery rows are saved in one transaction. Existing stock-only edits preserve the gallery and specifications. Removing the main photo in the editor clears its gallery; canceling an edit preserves saved data.

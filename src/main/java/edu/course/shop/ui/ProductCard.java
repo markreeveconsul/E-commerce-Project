@@ -14,17 +14,22 @@ import javafx.scene.shape.Rectangle;
 
 /** Photo and details open the same product; quick add delegates to CartService. */
 public final class ProductCard extends VBox {
+    private final Button quick;
+    private final javafx.animation.PauseTransition confirmation=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2.5));
+    public void confirmAdded() {
+        confirmation.stop();quick.setText("Added ✓");quick.getStyleClass().add("added-confirmation");confirmation.playFromStart();
+    }
     public ProductCard(Product product,Runnable add,Runnable details) {
         setId("product-"+product.getId());getStyleClass().add("product-card");setSpacing(0);setMinWidth(0);setMaxWidth(Double.MAX_VALUE);
 
         // Photo: same box for every product, with rounded corners that match the card.
-        ProductArtwork photo=new ProductArtwork(product,230);
+        ProductArtwork photo=new ProductArtwork(product,230,true);
         StackPane frame=new StackPane(photo);frame.setMinWidth(0);
         Rectangle clip=new Rectangle();clip.setArcWidth(4);clip.setArcHeight(4);
         frame.layoutBoundsProperty().addListener((o,a,b)->{clip.setWidth(b.getWidth());clip.setHeight(b.getHeight());});
         frame.setClip(clip);
         Button visual=Ui.button("",details);visual.setGraphic(frame);visual.setMaxWidth(Double.MAX_VALUE);
-        frame.prefWidthProperty().bind(visual.widthProperty().subtract(4));visual.getStyleClass().add("photo-button");
+        frame.prefWidthProperty().bind(visual.widthProperty());visual.getStyleClass().add("photo-button");
         Motion.zoom(visual,photo);
         visual.setAccessibleText("View "+product.getName());
 
@@ -43,7 +48,9 @@ public final class ProductCard extends VBox {
         Button view=Ui.link("View product",details);view.setId("view-"+product.getId());
         view.setAccessibleText("View details for "+product.getName());
         Region space=new Region();HBox.setHgrow(space,Priority.ALWAYS);
-        Button quick=Ui.button(soldOut?"Sold out":"+ Add",add);quick.setId("add-"+product.getId());
+        quick=Ui.button(soldOut?"Sold out":"+ Add",add);quick.setId("add-"+product.getId());
+        confirmation.setOnFinished(e->{quick.setText("+ Add");quick.getStyleClass().remove("added-confirmation");});
+        sceneProperty().addListener((o,a,b)->{if(b==null){confirmation.stop();quick.setText(soldOut?"Sold out":"+ Add");quick.getStyleClass().remove("added-confirmation");}});
         quick.getStyleClass().add("quick-add");quick.setDisable(soldOut);quick.setAccessibleText("Add "+product.getName()+" to cart");
         HBox actions=new HBox(8,view,space,quick);actions.setAlignment(Pos.CENTER_LEFT);
 
