@@ -41,14 +41,16 @@ public final class ProductDetailView extends VBox {
         String details=product.getDescription();
         Label preview=Ui.label(details.length()>160?details.substring(0,160)+"…":details,"product-description");
         preview.setVisible(!details.isBlank());preview.managedProperty().bind(preview.visibleProperty());
-        VBox info=new VBox(14,Ui.label(Ui.category(product.getCategory())+" · #"+product.getId(),"eyebrow"),
+        Region heartSpacer=new Region();HBox.setHgrow(heartSpacer,Priority.ALWAYS);
+        HBox heading=new HBox(12,Ui.label(Ui.category(product.getCategory())+" · #"+product.getId(),"eyebrow"),heartSpacer);
+        heading.setAlignment(Pos.CENTER_LEFT);if(saved!=null)heading.getChildren().add(saved.heart(product));
+        VBox info=new VBox(14,heading,
             Ui.label(product.getName(),"page-title"),priceRow,preview,quantityRow,add,feedback,viewCart,description,specifications(product),delivery,stock);
         info.getStyleClass().add("detail-info");info.setMinWidth(300);info.setPrefWidth(420);info.setMaxWidth(460);
 
         ProductGallery gallery=new ProductGallery(product);HBox.setHgrow(gallery,Priority.ALWAYS);
         info.setMaxWidth(Double.MAX_VALUE);
         VBox columns=Ui.responsiveColumns(gallery,info,1000,32);columns.setId("detail-columns");columns.widthProperty().addListener((o,a,b)->gallery.setCompact(b.doubleValue()<1000));
-        if(saved!=null)info.getChildren().add(0,saved.heart(product));
 
         // Related products reuse ProductCard, so they look and behave exactly like the storefront grid.
         FlowPane suggestions=new FlowPane(20,20);suggestions.setId("related-products");

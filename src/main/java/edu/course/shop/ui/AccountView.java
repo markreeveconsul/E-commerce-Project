@@ -13,29 +13,41 @@ public final class AccountView extends VBox {
         Label feedback=Ui.feedback("account-feedback");TextField name=new TextField();name.setId("display-name");
         TextField recipient=new TextField(),street=new TextField(),city=new TextField(),postal=new TextField();
         recipient.setId("saved-recipient");street.setId("saved-street");city.setId("saved-city");postal.setId("saved-postal");
+        TextField[] addressInputs={recipient,street,city,postal};
+        Label[] addressErrors={Ui.feedback("saved-recipient-error"),Ui.feedback("saved-street-error"),Ui.feedback("saved-city-error"),Ui.feedback("saved-postal-error")};
+        for(int i=0;i<addressInputs.length;i++){int field=i;addressInputs[i].textProperty().addListener((o,a,b)->{addressErrors[field].setText("");Ui.flag(addressInputs[field],false);});}
+        Label addressTitle=Ui.label("Add an address","section-title");addressTitle.setId("address-form-title");
+        Label profileError=Ui.feedback("profile-error");name.textProperty().addListener((o,a,b)->{profileError.setText("");Ui.flag(name,false);});
         CheckBox preferred=new CheckBox("Use as my default address");preferred.setId("default-address");
         VBox list=new VBox(12);list.setId("address-list");
-        Runnable reset=()->{editing=0;recipient.clear();street.clear();city.clear();postal.clear();preferred.setSelected(false);};
+        Runnable reset=()->{editing=0;recipient.clear();street.clear();city.clear();postal.clear();preferred.setSelected(false);addressTitle.setText("Add an address");for(int i=0;i<addressInputs.length;i++){addressErrors[i].setText("");Ui.flag(addressInputs[i],false);}};
         Runnable refresh=()->Ui.async(this,"Loading your account…",()->accounts.addresses(user),rows->{
             list.getChildren().clear();if(rows.isEmpty())list.getChildren().add(Ui.label("No addresses yet. Add one below.","muted"));
             for(var row:rows) {
-                Button edit=Ui.link("Edit",()->{editing=row.id();recipient.setText(row.address().recipient());street.setText(row.address().street());city.setText(row.address().city());postal.setText(row.address().postalCode());preferred.setSelected(row.preferred());recipient.requestFocus();});
+                Button edit=Ui.link("Edit",()->{editing=row.id();addressTitle.setText("Edit address");recipient.setText(row.address().recipient());street.setText(row.address().street());city.setText(row.address().city());postal.setText(row.address().postalCode());preferred.setSelected(row.preferred());recipient.requestFocus();});
                 Button remove=Ui.link("Remove",()->Ui.async(this,"Removing address…",()->{accounts.removeAddress(user,row.id());return true;},done->{reset.run();reload();Ui.success(feedback,"Address removed.");},error->Ui.failure(feedback,error)));
                 VBox card=new VBox(8,Ui.label(row.address().formatted(),"summary-item"),Ui.label(row.preferred()?"Default address":"Saved address","eyebrow"),new HBox(16,edit,remove));card.getStyleClass().add("address-card");list.getChildren().add(card);
             }
         },error->Ui.failure(feedback,error));
         // Reload through the existing refresh action after a mutation.
         Button reload=new Button();reload.setOnAction(e->refresh.run());getProperties().put("market.reload",reload);
-        Button saveName=Ui.primary("Save profile",()->{String value=name.getText();Ui.async(this,"Saving profile…",()->{accounts.saveName(user,value);return true;},done->Ui.success(feedback,"Profile saved."),error->Ui.failure(feedback,error));});saveName.setId("save-profile");saveName.getStyleClass().add("purchase-action");
-        VBox profile=new VBox(16,Ui.label("Profile","section-title"),Ui.label("Signed in as "+user.getUsername(),"muted"),Ui.field("Display name",name,Ui.feedback("profile-error")),saveName);profile.getStyleClass().add("card");profile.setMinWidth(0);
+        Button saveName=Ui.primary("Save profile",()->{String value=name.getText();Ui.async(this,"Saving profile…",()->{accounts.saveName(user,value);return true;},done->Ui.success(feedback,"Profile saved."),error->{Ui.failure(profileError,error);Ui.flag(name,true);name.requestFocus();});});saveName.setId("save-profile");saveName.getStyleClass().add("purchase-action");
+        VBox profile=new VBox(16,Ui.label("Profile","section-title"),Ui.label("Signed in as "+user.getUsername(),"muted"),Ui.field("Display name",name,profileError),saveName);profile.getStyleClass().add("card");profile.setMinWidth(0);
         Button saveAddress=Ui.primary("Save address",()->{
+            for(int i=0;i<addressInputs.length;i++){addressErrors[i].setText("");Ui.flag(addressInputs[i],false);}
             try {DeliveryAddress value=new DeliveryAddress(recipient.getText(),street.getText(),city.getText(),postal.getText());long id=editing;boolean isDefault=preferred.isSelected();
                 Ui.async(this,"Saving address…",()->{accounts.saveAddress(user,id,value,isDefault);return true;},done->{reset.run();Ui.success(feedback,"Address saved.");refresh.run();},error->Ui.failure(feedback,error));
-            }catch(RuntimeException e){Ui.failure(feedback,e);recipient.requestFocus();}
+            }catch(RuntimeException e){
+                int field=recipient.getText().trim().isEmpty()||recipient.getText().trim().length()>80?0:
+                    street.getText().trim().length()<5||street.getText().trim().length()>250?1:
+                    city.getText().trim().isEmpty()||city.getText().trim().length()>60?2:
+                    !postal.getText().trim().matches("[A-Za-z0-9 -]{2,12}")?3:1;
+                addressErrors[field].setText(e.getMessage());Ui.flag(addressInputs[field],true);addressInputs[field].requestFocus();
+            }
         });saveAddress.setId("save-address");saveAddress.getStyleClass().add("purchase-action");
-        VBox addressBook=new VBox(16,Ui.label("Saved addresses","section-title"),list,
-            Ui.field("Recipient",recipient,Ui.feedback("saved-recipient-error")),Ui.field("Street address",street,Ui.feedback("saved-street-error")),
-            Ui.field("City",city,Ui.feedback("saved-city-error")),Ui.field("Postal code",postal,Ui.feedback("saved-postal-error")),preferred,new HBox(12,saveAddress,Ui.button("New address",reset)));
+        VBox addressBook=new VBox(16,Ui.label("Saved addresses","section-title"),Ui.label("Keep up to five addresses for faster checkout.","muted"),list,addressTitle,
+            Ui.field("Recipient",recipient,addressErrors[0]),Ui.field("Street address",street,addressErrors[1]),
+            Ui.field("City",city,addressErrors[2]),Ui.field("Postal code",postal,addressErrors[3]),preferred,new HBox(12,saveAddress,Ui.button("New address",reset)));
         addressBook.getStyleClass().add("card");addressBook.setMinWidth(0);
         VBox content=Ui.responsiveColumns(profile,addressBook,850,24);
         getChildren().addAll(Ui.label("Your space","page-title"),new HBox(12,Ui.button("Saved items",savedItems),Ui.button("Your orders",orders)),feedback,Ui.scroll(content));

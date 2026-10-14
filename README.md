@@ -26,7 +26,7 @@ These are public demonstration credentials. Password hashes, rather than plainte
 ## What works
 
 - Role-based login and service-level permission checks.
-- Guest storefront, product details, debounced search suggestions, category and custom-price filtering, and price sorting.
+- Guest storefront, product details, debounced search suggestions, labeled category/budget/custom-price filters, and name/price sorting.
 - Guest/customer saved items, persistent customer profiles, and a saved delivery address book.
 - Admin main-photo and gallery uploads (up to five photos), preview, replacement/removal, persistent descriptions and optional specifications.
 - Admin create/edit, stock adjustments, and product deactivation.

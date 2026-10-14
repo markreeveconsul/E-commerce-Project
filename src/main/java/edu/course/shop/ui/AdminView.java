@@ -116,7 +116,13 @@ public final class AdminView extends VBox {
         HBox stats=new HBox(36,activeCount,lowCount,photoCount);stats.getStyleClass().add("admin-stats");
         stats.visibleProperty().bind(form.visibleProperty().not());stats.managedProperty().bind(stats.visibleProperty());
         count.visibleProperty().bind(form.visibleProperty().not());count.managedProperty().bind(count.visibleProperty());
-        HBox filterBar=new HBox(10,search,status,filterCategory),actions=new HBox(12,add,editButton);
+        Button clearSearch=Ui.button("Clear",()->{search.clear();search.requestFocus();});clearSearch.setId("clear-admin-search");
+        clearSearch.disableProperty().bind(search.textProperty().isEmpty());
+        HBox inventorySearch=new HBox(8,search,clearSearch);inventorySearch.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        VBox searchField=new VBox(7,Ui.label("Search inventory","field-label"),inventorySearch);HBox.setHgrow(searchField,Priority.ALWAYS);search.setMinWidth(0);
+        Label statusLabel=Ui.label("Status","field-label"),categoryLabel=Ui.label("Category","field-label");statusLabel.setLabelFor(status);categoryLabel.setLabelFor(filterCategory);
+        HBox filterBar=new HBox(16,searchField,new VBox(7,statusLabel,status),new VBox(7,categoryLabel,filterCategory)),actions=new HBox(12,add,editButton);
+        filterBar.setAlignment(javafx.geometry.Pos.BOTTOM_LEFT);filterBar.getStyleClass().add("inventory-filter-panel");
         filterBar.visibleProperty().bind(form.visibleProperty().not());filterBar.managedProperty().bind(filterBar.visibleProperty());
         actions.visibleProperty().bind(form.visibleProperty().not());actions.managedProperty().bind(actions.visibleProperty());
         VBox body=new VBox(18,table,form);

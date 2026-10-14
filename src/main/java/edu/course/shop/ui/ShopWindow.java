@@ -123,7 +123,7 @@ public final class ShopWindow {
             cartButton.setGraphic(StoreIcon.of("bag"));cartButton.getStyleClass().add("cart-button");
             Button account=link(user instanceof Guest?"Sign in":"My orders",user instanceof Guest?this::showLogin:this::showOrders);account.setId("account");
             account.setGraphic(StoreIcon.of("account"));
-            Button favorites=link("",this::showSaved);favorites.setGraphic(StoreIcon.of("heart"));favorites.setId("nav-saved");favorites.setAccessibleText("Saved items");
+            Button favorites=link("Saved items",this::showSaved);favorites.setGraphic(StoreIcon.of("heart"));favorites.setId("nav-saved");favorites.setAccessibleText("Saved items");
             HBox right=new HBox(4,favorites,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);
             if(!(user instanceof Guest)){Button profile=link("Profile",this::showAccount);profile.setId("nav-profile");right.getChildren().addAll(profile,link("Sign out",this::signOut));}
             Button all=Ui.button("Shop all",()->category(0));navButtons.add(all);
@@ -137,7 +137,7 @@ public final class ShopWindow {
             javafx.scene.control.MenuItem allItem=new javafx.scene.control.MenuItem("Shop all");allItem.setOnAction(e->category(0));menu.getItems().add(allItem);
             for(Category c:Category.values()){javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(c));item.setOnAction(e->category(c.ordinal()+1));menu.getItems().add(item);}
             HBox header=new HBox(16,logo,categories,menu,spacer,right);
-            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(user instanceof Guest?1120:1200));categories.managedProperty().bind(categories.visibleProperty());
+            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(user instanceof Guest?1200:1340));categories.managedProperty().bind(categories.visibleProperty());
             menu.visibleProperty().bind(categories.visibleProperty().not());menu.managedProperty().bind(menu.visibleProperty());
             header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
             Label announcement=Ui.label("GOOD FINDS. ZERO SHIPPING FEES.  /  Free shipping on every demo order","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
