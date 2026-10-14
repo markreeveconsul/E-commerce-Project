@@ -5,7 +5,8 @@
 The user’s reference is Nike: oversized display type, confident monochrome surfaces, large imagery, simple product cards and clear shopping actions. Market keeps its name and mixed electronics, clothing and home catalog. No Nike logo, assets or product claims are included.
 
 - Bundled Archivo Black display font (SIL Open Font License in `src/main/resources/fonts/OFL.txt`). Body text uses the platform’s system font.
-- A dark campaign with a warm signal-orange illustration panel. Explore the collection scrolls to products; the artwork opens Electronics.
+- A continuous charcoal-to-black campaign with the supplied headset cutout, an orange halo and sound-wave rings. “TUNE IN. STAND OUT.” is the headline. Explore headphones searches the Electronics collection for headphones; Browse collection scrolls to products; the artwork opens Electronics.
+- Staggered banner entrance, floating headset, glow pulse, cursor parallax, button lift and product-image hover zoom. Reduce motion is available in the footer; animation pauses when the banner is offscreen or hidden.
 - Visible search, collapsed filters, active filter chips, retained search/category/price/stock/sort and scroll state.
 - Flat product cards with larger visual areas and consistent quick-add controls. Sold-out actions remain disabled.
 - Collection shortcuts and an editorial closing section below the product grid.
@@ -16,7 +17,7 @@ The user’s reference is Nike: oversized display type, confident monochrome sur
 
 `CollectionArtwork` draws six original illustrations with JavaFX Canvas. Only exact demo names receive matching illustrations. Other products retain the neutral placeholder. Uploaded photos always take priority; the photo editor never substitutes an illustration for an absent upload. Illustrations are identified in accessibility text and on the product detail page as illustrations, with an “actual product may vary” caption. Database content and pricing are unchanged.
 
-The campaign is decorative collection artwork, independent of current stock. Its action opens the category; it does not promise availability of a specific item.
+The campaign uses the user-supplied headset image, trimmed only to remove fully transparent margins and bundled under `src/main/resources/images/headset-campaign.png`. It does not overwrite catalog photos or imply that the wired headset is the catalog’s wireless model. The campaign is collection artwork, independent of current stock. Its action opens the category; it does not promise availability of a specific item.
 
 ## Verification
 

@@ -1,3 +1,9 @@
+# Animated banner verification — October 14, 2026
+
+Java 21 / Maven 3.9.9 / JavaFX 21.0.6 on Linux: **66 shopping GUI assertions** and **25 motion assertions passed**. The shown-window motion harness uses JavaFX Robot to exercise hover and parallax, checks reduced motion and window/scene/viewport lifecycle, verifies compact sizing, and checks scrolling inside the actual storefront. It exported 60 scene frames for the preview. The earlier **26-test backend pass** was reused after confirming identical backend/test/pom input hashes. Compilation and whitespace checks passed. Synthetic window resizing under Xvfb produced GTK resize warnings; behavioral and dimension assertions passed. Presentation-machine GPU performance, display scaling and the native file picker remain manual checks.
+
+See [Animations](ANIMATIONS.md) for the controls and lifecycle behavior. Earlier verification follows.
+
 # Current design elevation verification — October 14, 2026
 
 Linux / Temurin 21.0.12.1 / Maven 3.9.9 / JavaFX 21.0.6: **26 backend tests passed** and **61 GUI assertions passed**, with 24 scene snapshots. The smoke harness uses Xvfb, software rendering and a fresh isolated SQLite database. New coverage includes campaign dimensions/actions, visible search, offline illustrations, collection shortcuts (including clearing a search in the same category), and compact collection tiles. An existing stale payment-validation error was found and fixed. Screens were inspected at 1280×860 and 960×680. Native file-picker and presentation-machine keyboard/display checks remain manual.

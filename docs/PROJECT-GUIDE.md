@@ -39,8 +39,9 @@ The call direction is GUI -> services -> models/repositories -> SQLite. Models n
 | ShopApp / Services | Entry point / dependency wiring |
 | ShopWindow | Session state, cart badge, checkout draft, and active navigation |
 | LoginView, CatalogView, ProductDetailView, CartView, CheckoutView, ConfirmationView, OrdersView, AdminView | One screen each |
+| Motion | Session motion preference and reusable hover effects |
 | CollectionArtwork / StoreIcon | Original offline demo illustrations / consistent navigation icons |
-| EditorialHeader | Campaign introduction with shopping and electronics actions |
+| EditorialHeader | Layered headset campaign with headphone search, collection navigation and animation lifecycle |
 | ProductCard / ProductArtwork | Reusable product card / uploaded photo, original demo illustration or neutral placeholder |
 | ProductPhotos / ProductPhotoEditor | Image validation / chooser, preview and temporary upload draft |
 | CatalogState / DeliveryAddress | Retained filters / validated delivery value object |

@@ -219,6 +219,14 @@ package "GUI" {
   }
   class EditorialHeader {
     +EditorialHeader(shop : Runnable, electronics : Runnable)
+    +EditorialHeader(shop : Runnable, electronics : Runnable, headphones : Runnable)
+    +setInViewport(value : boolean) : void
+  }
+  class Motion {
+    {static} +reducedProperty() : BooleanProperty
+    {static} +isReduced() : boolean
+    {static} +lift(target : Node) : void
+    {static} +zoom(trigger : Node, image : Node) : void
   }
   class CollectionArtwork {
     +CollectionArtwork(subject : String)
@@ -364,7 +372,10 @@ ShopWindow ..> Guest
 ShopWindow ..> ProductDetailView
 CatalogView --> CatalogState
 CatalogView *-- EditorialHeader
-EditorialHeader *-- CollectionArtwork
+EditorialHeader ..> Motion
+ProductCard ..> Motion
+Ui ..> Motion
+ShopWindow ..> Motion
 ProductArtwork *-- CollectionArtwork
 CatalogView *-- CollectionArtwork
 ShopWindow ..> StoreIcon
@@ -416,7 +427,7 @@ note bottom of Ui
 All GUI views use Ui.
 LoginView extends StackPane.
 Other screen views extend VBox.
-ProductArtwork extends StackPane.
+ProductArtwork and EditorialHeader extend StackPane.
 ProductCard and OrderSummary extend VBox.
 ShopApp extends JavaFX Application.
 end note

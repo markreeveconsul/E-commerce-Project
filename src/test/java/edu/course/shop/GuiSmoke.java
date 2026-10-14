@@ -78,6 +78,16 @@ public final class GuiSmoke {
             check(fx(()->scene.lookup("#search").isVisible()&&scene.lookup("#catalog-search")!=null),"Catalog search is reachable");
             check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=300,"Campaign artwork fills the hero height");
             check(fx(()->scene.lookup("#product-4").lookup(".collection-artwork")!=null),"Seed product renders original offline artwork");
+            check(fx(()->scene.lookup("#hero-headset") instanceof javafx.scene.image.ImageView view&&!view.getImage().isError()),"Campaign uses the bundled supplied headset image");
+            fx(()->{((CheckBox)scene.lookup("#reduce-motion")).fire();return null;});
+            check(fx(Motion::isReduced),"Footer enables reduced motion");
+            press("hero-headphones");catalog();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1&&
+                fx(()->((TextField)scene.lookup("#search")).getText()).equals("headphones"),"Primary campaign action finds headphones");
+            check(fx(()->((CheckBox)scene.lookup("#reduce-motion")).isSelected()),"Motion preference survives catalog navigation");
+            click("Shop all");catalog();
+            fx(()->{((CheckBox)scene.lookup("#reduce-motion")).fire();return null;});
+            check(!fx(Motion::isReduced),"Footer restores normal motion");
             press("hero-shop");
             check(fx(()->((ScrollPane)scene.lookup("#catalog-scroll")).getVvalue()>0),"Hero shopping action scrolls to products");
             screenshot("22-product-collection.png",1280,860);
