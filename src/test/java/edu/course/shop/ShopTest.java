@@ -31,6 +31,7 @@ class ShopTest {
         orders = new OrderService(database, orderRepo); carts = new CartService(products);
         auth = new AuthService(database, new UserRepository());
         customer = auth.login("customer", "customer123"); admin = auth.login("admin", "admin123");
+        TechTestCatalog.prepare(products,admin);
         cart = new Cart(customer.getId()); product = products.search(customer, "", null).getFirst();
     }
     @Test void loginChecksCredentialsAndResolvesRoles() {
@@ -41,25 +42,25 @@ class ShopTest {
         assertThrows(ValidationException.class, () -> auth.login("' OR 1=1 --", "x"));
     }
     @Test void invalidProductsCannotBeConstructed() {
-        assertThrows(ValidationException.class, () -> new Product(0, "", Category.HOME, BigDecimal.ONE, 1, true));
+        assertThrows(ValidationException.class, () -> new Product(0, "", Category.PC_PARTS, BigDecimal.ONE, 1, true));
         assertThrows(ValidationException.class, () -> Money.parse("abc"));
         assertThrows(ValidationException.class, () -> Money.parse("-2"));
         assertThrows(ValidationException.class, () -> Money.parse("1.234"));
-        assertThrows(ValidationException.class, () -> new Product(0, "Test", Category.HOME, BigDecimal.ONE, -1, true));
+        assertThrows(ValidationException.class, () -> new Product(0, "Test", Category.PC_PARTS, BigDecimal.ONE, -1, true));
     }
     @Test void customersCannotEditProductsEvenOutsideGui() {
-        assertThrows(ValidationException.class, () -> products.save(customer, 0, "Test", Category.HOME, BigDecimal.ONE, 1, true));
+        assertThrows(ValidationException.class, () -> products.save(customer, 0, "Test", Category.PC_PARTS, BigDecimal.ONE, 1, true));
     }
     @Test void adminCreatesEditsAndDeactivatesProducts() {
-        products.save(admin, 0, "Test item", Category.HOME, new BigDecimal("1.25"), 3, true);
-        Product p = products.search(customer, "TEST ITEM", Category.HOME).getFirst();
-        products.save(admin, p.getId(), "Updated item", Category.CLOTHING, new BigDecimal("2.50"), 5, false);
+        products.save(admin, 0, "Test item", Category.PC_PARTS, new BigDecimal("1.25"), 3, true);
+        Product p = products.search(customer, "TEST ITEM", Category.PC_PARTS).getFirst();
+        products.save(admin, p.getId(), "Updated item", Category.PERIPHERALS, new BigDecimal("2.50"), 5, false);
         assertTrue(products.search(customer, "Updated item", null).isEmpty());
-        assertEquals(5, products.search(admin, "Updated item", Category.CLOTHING).getFirst().getStock());
+        assertEquals(5, products.search(admin, "Updated item", Category.PERIPHERALS).getFirst().getStock());
     }
     @Test void searchCombinesNameAndCategory() {
-        assertEquals(1, products.search(customer, "KEYBOARD", Category.ELECTRONICS).size());
-        assertTrue(products.search(customer, "keyboard", Category.HOME).isEmpty());
+        assertEquals(1, products.search(customer, "KEYBOARD", Category.PERIPHERALS).size());
+        assertTrue(products.search(customer, "keyboard", Category.PC_PARTS).isEmpty());
         assertEquals(6, products.search(customer, "", null).size());
     }
     @Test void cartCombinesItemsAndProtectsItsCollection() {
@@ -184,7 +185,7 @@ class ShopTest {
     }
     @Test void photoBytesAreEncapsulatedAndBasicEditPreservesPhoto() throws Exception {
         byte[] bytes=testPhoto("png",10,10), expected=bytes.clone();
-        Product p=new Product(0,"Photo",Category.HOME,BigDecimal.ONE,2,true,"Description",bytes);
+        Product p=new Product(0,"Photo",Category.PC_PARTS,BigDecimal.ONE,2,true,"Description",bytes);
         bytes[0]=0;p.getPhoto()[1]=0;
         assertArrayEquals(expected,p.getPhoto());
         products.save(admin,product.getId(),product.getName(),product.getCategory(),product.getPrice(),3,true,"Description",expected);
@@ -194,9 +195,9 @@ class ShopTest {
     }
     @Test void photosAndDescriptionsRequireAdminAccessAndValidDescription() throws Exception {
         byte[] photo=testPhoto("png",2,2);
-        assertThrows(ValidationException.class,()->products.save(customer,product.getId(),"Edit",Category.HOME,BigDecimal.ONE,1,true,"",photo));
-        assertThrows(ValidationException.class,()->products.save(new Guest(),product.getId(),"Edit",Category.HOME,BigDecimal.ONE,1,true,"",photo));
-        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Edit",Category.HOME,BigDecimal.ONE,1,true,"x".repeat(1001),photo));
+        assertThrows(ValidationException.class,()->products.save(customer,product.getId(),"Edit",Category.PC_PARTS,BigDecimal.ONE,1,true,"",photo));
+        assertThrows(ValidationException.class,()->products.save(new Guest(),product.getId(),"Edit",Category.PC_PARTS,BigDecimal.ONE,1,true,"",photo));
+        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Edit",Category.PC_PARTS,BigDecimal.ONE,1,true,"x".repeat(1001),photo));
     }
     @Test void existingSchemaMigratesWithoutLosingProducts() throws Exception {
         DatabaseManager legacy=new DatabaseManager(temp.resolve("legacy.db"));
@@ -247,7 +248,7 @@ class ShopTest {
         products.save(admin,6,lamp.getName(),lamp.getCategory(),lamp.getPrice(),0,true);
         assertEquals(4,products.search(new Guest(),"",null,false,new BigDecimal("50")).size());
         assertEquals(3,products.search(new Guest(),"",null,true,new BigDecimal("50")).size());
-        assertEquals(1,products.search(new Guest(),"",Category.HOME,true,new BigDecimal("50")).size());
+        assertEquals(1,products.search(new Guest(),"",Category.PC_PARTS,true,new BigDecimal("50")).size());
         assertTrue(products.search(new Guest(),"keyboard",null,true,new BigDecimal("50")).isEmpty());
         assertThrows(ValidationException.class,()->products.search(customer,"",null,true,new BigDecimal("-1")));
     }
@@ -255,7 +256,7 @@ class ShopTest {
 
     @Test void gallerySpecificationsPersistAndBasicEditsPreserveThem() throws Exception {
         byte[] main=testPhoto("png",10,10),angle=testPhoto("png",12,8);
-        products.save(admin,0,"Gallery product",Category.HOME,BigDecimal.TEN,3,true,"Description",main,java.util.List.of(angle),"Material: Cotton");
+        products.save(admin,0,"Gallery product",Category.PC_PARTS,BigDecimal.TEN,3,true,"Description",main,java.util.List.of(angle),"Material: Cotton");
         Product saved=products.search(admin,"Gallery product",null).getFirst();
         assertEquals(1,saved.getAdditionalPhotos().size());assertArrayEquals(angle,saved.getAdditionalPhotos().getFirst());
         products.save(admin,saved.getId(),saved.getName(),saved.getCategory(),saved.getPrice(),4,true);
@@ -266,21 +267,21 @@ class ShopTest {
     }
     @Test void galleryPhotoBytesAreDefensiveCopies() throws Exception {
         byte[] main=testPhoto("png",10,10),angle=testPhoto("png",8,12),expected=angle.clone();
-        Product p=new Product(0,"Gallery",Category.HOME,BigDecimal.ONE,1,true,"",main,java.util.List.of(angle),"");
+        Product p=new Product(0,"Gallery",Category.PC_PARTS,BigDecimal.ONE,1,true,"",main,java.util.List.of(angle),"");
         angle[0]=0;p.getAdditionalPhotos().getFirst()[1]=0;assertArrayEquals(expected,p.getAdditionalPhotos().getFirst());
     }
     @Test void invalidGalleryContentCannotOverwriteSavedProduct() throws Exception {
         byte[] main=testPhoto("png",10,10);
-        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.HOME,BigDecimal.ONE,1,true,"",main,java.util.List.of(new byte[]{1,2,3}),""));
+        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.PC_PARTS,BigDecimal.ONE,1,true,"",main,java.util.List.of(new byte[]{1,2,3}),""));
         assertEquals(product.getName(),products.get(product.getId()).getName());
-        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.HOME,BigDecimal.ONE,1,true,"",main,java.util.Collections.nCopies(5,main),""));
-        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.HOME,BigDecimal.ONE,1,true,"",null,java.util.List.of(main),""));
-        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.HOME,BigDecimal.ONE,1,true,"",main,java.util.List.of(),"x".repeat(1001)));
+        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.PC_PARTS,BigDecimal.ONE,1,true,"",main,java.util.Collections.nCopies(5,main),""));
+        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.PC_PARTS,BigDecimal.ONE,1,true,"",null,java.util.List.of(main),""));
+        assertThrows(ValidationException.class,()->products.save(admin,product.getId(),"Invalid",Category.PC_PARTS,BigDecimal.ONE,1,true,"",main,java.util.List.of(),"x".repeat(1001)));
     }
     @Test void galleryChangesRequireAdministratorAccess() throws Exception {
         byte[] main=testPhoto("png",10,10);
         for(User actor:java.util.List.of(customer,new Guest()))assertThrows(ValidationException.class,()->
-            products.save(actor,product.getId(),"Unauthorized",Category.HOME,BigDecimal.ONE,1,true,"",main,java.util.List.of(main),"Material: Cotton"));
+            products.save(actor,product.getId(),"Unauthorized",Category.PC_PARTS,BigDecimal.ONE,1,true,"",main,java.util.List.of(main),"Material: Cotton"));
         assertEquals(product.getName(),products.get(product.getId()).getName());
     }
     @Test void failedGallerySaveRollsBackProductAndPreviousAngles() throws Exception {
@@ -289,7 +290,7 @@ class ShopTest {
         try(Connection c=database.open();Statement statement=c.createStatement()) {
             statement.executeUpdate("CREATE TRIGGER reject_gallery BEFORE INSERT ON product_photos BEGIN SELECT RAISE(ABORT,'test failure'); END");
         }
-        assertThrows(StorageException.class,()->products.save(admin,product.getId(),"Changed",Category.HOME,BigDecimal.TEN,1,true,"Changed",angle,java.util.List.of(main),"Changed spec"));
+        assertThrows(StorageException.class,()->products.save(admin,product.getId(),"Changed",Category.PC_PARTS,BigDecimal.TEN,1,true,"Changed",angle,java.util.List.of(main),"Changed spec"));
         Product restored=products.get(product.getId());assertEquals(product.getName(),restored.getName());assertEquals("Original spec",restored.getSpecifications());
         assertArrayEquals(main,restored.getPhoto());assertArrayEquals(angle,restored.getAdditionalPhotos().getFirst());
     }

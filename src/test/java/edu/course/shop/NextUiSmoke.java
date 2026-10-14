@@ -44,6 +44,7 @@ public final class NextUiSmoke {
     public static void main(String[] args)throws Exception{
         evidence=Path.of(args[0]);Files.createDirectories(evidence);DatabaseManager db=new DatabaseManager(Path.of(args[1]));db.initialize();ProductRepository pr=new ProductRepository();OrderRepository or=new OrderRepository();
         Services services=new Services(new AuthService(db,new UserRepository()),new ProductService(db,pr),new CheckoutService(db,pr,or),new OrderService(db,or));User admin=services.auth().login("admin","admin123"),customer=services.auth().login("customer","customer123");
+        TechTestCatalog.prepare(services.products(),admin);
         byte[] main=photo(0x245C70),angle=photo(0xDB6939);Product p=services.products().get(1);services.products().save(admin,1,p.getName(),p.getCategory(),p.getPrice(),12,true,"A synthetic fixture used to verify product details and gallery controls.",main,List.of(angle),"Material: Test fixture\nIncluded items: One unit");
         CountDownLatch ready=new CountDownLatch(1);Platform.startup(ready::countDown);ready.await();Platform.setImplicitExit(false);
         try {
@@ -81,7 +82,7 @@ public final class NextUiSmoke {
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1,"Invalid range retains previously loaded products");
             fx(()->{((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().select(1);return null;});idle();
             check(fx(()->((TextField)scene.lookup("#minimum-price")).getText()).isEmpty()&&fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==3,"Quick budget replaces stale custom range and recovers invalid draft");
-            text("search","mug");press("catalog-search");idle();press("clear-search");idle();
+            text("search","thermal");press("catalog-search");idle();press("clear-search");idle();
             check(fx(()->((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().getSelectedIndex())==1,"Clear search preserves the shopper's budget");
             screenshot("10-catalog-filters.png");
             resize(960,680);
@@ -113,6 +114,9 @@ public final class NextUiSmoke {
             press("checkout");waitFor(()->scene.lookup("#checkout-saved-address") instanceof ComboBox<?> combo&&!combo.getItems().isEmpty()&&!scene.getRoot().isDisabled());
             fx(()->{((ComboBox<?>)scene.lookup("#checkout-saved-address")).getSelectionModel().selectFirst();return null;});check(fx(()->((TextArea)scene.lookup("#address")).getText()).equals("123 Test Street"),"Saved address fills checkout without changing stored address");
             fx(()->{((ToggleButton)scene.lookup("#payment-wallet")).fire();return null;});check(fx(()->((ComboBox<?>)scene.lookup("#payment")).getSelectionModel().getSelectedIndex())==1,"Payment card selects supported wallet method");screenshot("05-checkout.png");
+            fx(()->{Node parent=scene.lookup("#checkout-columns");while(parent!=null&&!(parent instanceof ScrollPane))parent=parent.getParent();((ScrollPane)parent).setVvalue(.35);return null;});
+            check(fx(()->scene.lookup("#place-order").getParent().getTranslateY())==0,"Short checkout viewport uses normal scrolling for the full summary");
+            resize(1280,960);
             fx(()->{Node parent=scene.lookup("#checkout-columns");while(parent!=null&&!(parent instanceof ScrollPane))parent=parent.getParent();((ScrollPane)parent).setVvalue(.35);return null;});
             check(fx(()->scene.lookup("#place-order").getParent().getTranslateY())>0,"Wide summary follows scrolling beside checkout form");
             press("place-order");waitFor(()->scene.lookup("#confirmation")!=null&&!scene.getRoot().isDisabled());click("View my orders");waitFor(()->scene.lookup("#order-card-1")!=null&&!scene.getRoot().isDisabled());screenshot("06-order-history.png");

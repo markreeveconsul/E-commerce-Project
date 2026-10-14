@@ -26,6 +26,8 @@ These are public demonstration credentials. Password hashes, rather than plainte
 ## What works
 
 - Role-based login and service-level permission checks.
+- Tech collections: PC Sets, PC Parts, Laptops, Phones & Tablets, Peripherals & Accessories, and Other Electronics.
+- Old clothing/home items stay inactive in inventory for replacement; product content and historical receipts are preserved.
 - Guest storefront, product details, debounced search suggestions, labeled category/budget/custom-price filters, and name/price sorting.
 - Guest/customer saved items, persistent customer profiles, and a saved delivery address book.
 - Admin main-photo and gallery uploads (up to five photos), preview, replacement/removal, persistent descriptions and optional specifications.

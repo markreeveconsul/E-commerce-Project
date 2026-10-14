@@ -18,6 +18,7 @@ class AccountAndRepeatTest {
     @BeforeEach void setup() throws Exception {
         db=new DatabaseManager(temp.resolve("account.db"));db.initialize();AuthService auth=new AuthService(db,new UserRepository());
         customer=auth.login("customer","customer123");admin=auth.login("admin","admin123");accounts=auth.accounts();products=new ProductService(db,new ProductRepository());carts=new CartService(products);
+        TechTestCatalog.prepare(products,admin);
         try(Connection c=db.open();PreparedStatement p=c.prepareStatement("INSERT INTO users(id,username,password_hash,role) VALUES(99,'other',?,'CUSTOMER')")){p.setString(1,Passwords.hash("test"));p.executeUpdate();}other=new Customer(99,"other");
     }
     @Test void savedItemsAreIdempotentPrivateAndPersistent() {

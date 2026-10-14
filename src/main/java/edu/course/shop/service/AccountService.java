@@ -30,7 +30,7 @@ public final class AccountService {
     public void saveItem(User user,long productId,boolean saved) {
         try(Connection c=database.open()) {
             customer(c,user);
-            if(saved)try(PreparedStatement exists=c.prepareStatement("SELECT 1 FROM products WHERE id=? AND active=1")) {
+            if(saved)try(PreparedStatement exists=c.prepareStatement("SELECT 1 FROM products WHERE id=? AND active=1 AND category NOT IN ('CLOTHING','HOME')")) {
                 exists.setLong(1,productId);try(ResultSet r=exists.executeQuery()){if(!r.next())throw new ValidationException("This product is no longer available.");}
             }
             try(PreparedStatement p=c.prepareStatement(saved?"INSERT OR IGNORE INTO saved_items(customer_id,product_id) VALUES(?,?)":"DELETE FROM saved_items WHERE customer_id=? AND product_id=?")) {
