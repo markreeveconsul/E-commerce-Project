@@ -6,7 +6,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.*;
 import java.util.Locale;
 
-/** Original, offline illustrations for the six demo products, never presented as photos. */
+/** Original offline collection illustrations, never presented as product photographs. */
 public final class CollectionArtwork extends Region {
     private final Canvas canvas = new Canvas();
     private final String subject;
@@ -22,7 +22,7 @@ public final class CollectionArtwork extends Region {
 
     public static boolean supports(String name) {
         return switch (name.toLowerCase(Locale.ROOT)) {
-            case "wireless headphones", "mechanical keyboard", "everyday cotton tee", "canvas tote", "ceramic mug", "desk lamp" -> true;
+            case "wireless headphones", "mechanical keyboard", "everyday cotton tee", "canvas tote", "ceramic mug", "desk lamp", "pc set", "pc parts", "laptop", "phone and tablet", "desktop speaker" -> true;
             default -> false;
         };
     }
@@ -48,6 +48,11 @@ public final class CollectionArtwork extends Region {
             case "canvas tote" -> tote(g);
             case "ceramic mug" -> mug(g);
             case "desk lamp" -> lamp(g);
+            case "pc set" -> pc(g);
+            case "pc parts" -> parts(g);
+            case "laptop" -> laptop(g);
+            case "phone and tablet" -> mobile(g);
+            case "desktop speaker" -> speaker(g);
             default -> { }
         }
         g.restore();
@@ -94,6 +99,65 @@ public final class CollectionArtwork extends Region {
         }
         g.setFill(gradient("#DAD8D1", "#AAA8A2")); g.fillRoundRect(136, 209, 140, 19, 3, 3);
         g.restore();
+    }
+
+    private void screen(GraphicsContext g,double x,double y,double width,double height) {
+        g.setFill(gradient("#34383E","#171A20"));g.fillRoundRect(x,y,width,height,12,12);
+        g.setFill(gradient("#212630","#10141B"));g.fillRoundRect(x+8,y+8,width-16,height-16,6,6);
+        g.setStroke(Color.web("#F08B63"));g.setLineWidth(3);
+        g.strokePolyline(new double[]{x+18,x+width*.47,x+width*.65,x+width-16},new double[]{y+height*.73,y+height*.47,y+height*.62,y+height*.25},4);
+        g.setFill(Color.web("#E65436"));g.fillOval(x+width*.63,y+height*.59,6,6);
+    }
+    private void pc(GraphicsContext g) {
+        screen(g,40,70,220,154);
+        g.setFill(Color.web("#4C515B"));g.fillRect(137,223,27,39);g.fillRoundRect(106,258,88,11,5,5);
+        g.setFill(gradient("#373B43","#16191F"));g.fillRoundRect(284,48,90,220,12,12);
+        g.setFill(Color.web("#0D1016"));g.fillRoundRect(295,59,66,191,5,5);
+        for(int i=0;i<3;i++){
+            g.setStroke(Color.web(i==1?"#F08B63":"#E65436"));g.setLineWidth(5);g.strokeOval(310,78+i*55,37,37);
+            g.setFill(Color.web("#262D38"));g.fillOval(318,86+i*55,21,21);
+        }
+        g.setFill(Color.web("#F08B63"));g.fillOval(326,58,5,5);
+        g.setFill(Color.web("#C1C4C9"));g.fillRoundRect(71,280,181,9,4,4);
+    }
+    private void parts(GraphicsContext g) {
+        g.save();g.translate(210,170);g.rotate(-12);g.translate(-210,-170);
+        g.setFill(gradient("#3C4850","#1B252D"));g.fillRoundRect(52,105,311,113,10,10);
+        g.setFill(Color.web("#131B23"));g.fillRoundRect(61,114,292,94,8,8);
+        for(int i=0;i<2;i++){
+            double x=120+i*133;g.setStroke(Color.web("#626D79"));g.setLineWidth(4);g.strokeOval(x-35,124,70,70);
+            g.setStroke(Color.web("#E65436"));g.setLineWidth(3);g.strokeArc(x-28,131,56,56,10,135,javafx.scene.shape.ArcType.OPEN);
+            g.setFill(Color.web("#39434F"));g.fillOval(x-11,148,22,22);
+            g.setStroke(Color.web("#626D79"));g.setLineWidth(2);
+            for(int blade=0;blade<8;blade++){double a=blade*Math.PI/4;g.strokeLine(x+12*Math.cos(a),159+12*Math.sin(a),x+26*Math.cos(a+.25),159+26*Math.sin(a+.25));}
+        }
+        g.setFill(Color.web("#C9AD67"));g.fillRect(79,218,169,8);g.restore();
+        g.setFill(Color.web("#525C67"));g.fillRoundRect(159,250,91,49,5,5);
+        g.setFill(Color.web("#C8CDD2"));g.fillRoundRect(169,258,71,33,3,3);
+        g.setFill(Color.web("#E65436"));g.fillRect(190,268,29,3);
+    }
+    private void laptop(GraphicsContext g) {
+        screen(g,80,58,260,184);
+        g.setFill(gradient("#C8CCD2","#717B87"));
+        g.fillPolygon(new double[]{80,340,388,32},new double[]{241,241,286,286},4);
+        g.setFill(Color.web("#333B46"));g.fillPolygon(new double[]{93,327,350,70},new double[]{248,248,270,270},4);
+        g.setFill(Color.web("#A8AFB8"));g.fillRoundRect(166,272,91,12,4,4);
+        g.setFill(Color.web("#5A626D"));g.fillRoundRect(33,286,354,7,3,3);
+    }
+    private void mobile(GraphicsContext g) {
+        screen(g,76,46,213,248);g.setFill(Color.web("#626A76"));g.fillOval(178,53,6,6);
+        g.save();g.translate(282,178);g.rotate(10);g.translate(-282,-178);
+        screen(g,236,87,108,212);g.setFill(Color.web("#10141B"));g.fillRoundRect(269,94,40,8,4,4);
+        g.setFill(Color.web("#D9DEE5"));g.fillRoundRect(270,287,38,3,2,2);g.restore();
+    }
+    private void speaker(GraphicsContext g) {
+        for(int i=0;i<2;i++){
+            double x=96+i*126;g.setFill(gradient("#3C424B","#171D26"));g.fillRoundRect(x,60,105,224,14,14);
+            g.setFill(Color.web("#10151D"));g.fillOval(x+17,141,72,72);g.fillOval(x+34,81,38,38);
+            g.setStroke(Color.web("#596573"));g.setLineWidth(3);g.strokeOval(x+22,146,62,62);
+            g.setFill(Color.web("#2D3745"));g.fillOval(x+34,158,38,38);
+            g.setFill(Color.web("#E65436"));g.fillRoundRect(x+34,243,37,4,2,2);
+        }
     }
 
     private void tee(GraphicsContext g) {

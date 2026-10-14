@@ -129,19 +129,20 @@ public final class ShopWindow {
             Button all=Ui.button("Shop all",()->category(0));navButtons.add(all);
             HBox categories=new HBox(6,all);categories.setAlignment(Pos.CENTER_LEFT);
             categories.getStyleClass().addAll("category-nav","integrated-categories");
-            for(Category c:Category.values()){
-                Button b=Ui.button(Ui.category(c),()->category(c.ordinal()+1));navButtons.add(b);categories.getChildren().add(b);
+            for(Category c:Category.shopping()){
+                Button b=Ui.button(Ui.category(c),()->category(c.shoppingIndex()));navButtons.add(b);categories.getChildren().add(b);
             }
             Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
             javafx.scene.control.MenuButton menu=new javafx.scene.control.MenuButton("Shop");menu.setId("compact-shop-menu");menu.getStyleClass().add("compact-menu");
             javafx.scene.control.MenuItem allItem=new javafx.scene.control.MenuItem("Shop all");allItem.setOnAction(e->category(0));menu.getItems().add(allItem);
-            for(Category c:Category.values()){javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(c));item.setOnAction(e->category(c.ordinal()+1));menu.getItems().add(item);}
-            HBox header=new HBox(16,logo,categories,menu,spacer,right);
-            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(user instanceof Guest?1200:1340));categories.managedProperty().bind(categories.visibleProperty());
+            for(Category c:Category.shopping()){javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(c));item.setOnAction(e->category(c.shoppingIndex()));menu.getItems().add(item);}
+            HBox header=new HBox(16,logo,menu,spacer,right);
+            categories.setId("tech-category-nav");categories.setAlignment(Pos.CENTER);categories.getStyleClass().add("tech-category-nav");
+            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(1100));categories.managedProperty().bind(categories.visibleProperty());
             menu.visibleProperty().bind(categories.visibleProperty().not());menu.managedProperty().bind(menu.visibleProperty());
             header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
             Label announcement=Ui.label("GOOD FINDS. ZERO SHIPPING FEES.  /  Free shipping on every demo order","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
-            shell.setTop(new VBox(announcement,header,operation));updateCart();
+            shell.setTop(new VBox(announcement,header,categories,operation));updateCart();
         }
         // Footer: two real labels pushed apart, instead of one label padded with spaces.
         Region footerSpace=new Region();HBox.setHgrow(footerSpace,Priority.ALWAYS);

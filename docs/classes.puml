@@ -42,9 +42,18 @@ class Admin {
   +getRole() : String
 }
 enum Category {
+  PC_SETS
+  PC_PARTS
+  LAPTOPS
+  PHONES_TABLETS
+  PERIPHERALS
   ELECTRONICS
   CLOTHING
   HOME
+  + label() : String
+  + isRetired() : boolean
+  {static} + shopping() : List<Category>
+  + shoppingIndex() : int
 }
 class Product {
   -id : long

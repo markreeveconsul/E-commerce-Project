@@ -41,7 +41,7 @@ public final class CatalogView extends VBox {
     private final ComboBox<String> category=new ComboBox<>(),sort=new ComboBox<>(),budget=new ComboBox<>();
     private final CheckBox available=new CheckBox("In stock only");
     // Sentence case reads calmer and more modern than ALL CAPS; the hero stays uppercase as the one brand moment.
-    private final Label feedback=Ui.feedback("catalog-feedback"),result=Ui.label("","muted"),title=Ui.label("The everyday edit","collection-title");
+    private final Label feedback=Ui.feedback("catalog-feedback"),result=Ui.label("","muted"),title=Ui.label("The tech edit","collection-title");
     private final FlowPane chips=new FlowPane(8,8);
     private final VBox results=new VBox(16);
     private final ScrollPane scroll;
@@ -62,7 +62,7 @@ public final class CatalogView extends VBox {
         this.user=user;this.cart=cart;this.products=products;this.carts=carts;this.changed=changed;
         this.details=details;this.search=search;this.state=state;this.toast=toast;this.navSync=navSync;
         getStyleClass().add("page");setSpacing(16);
-        category.getItems().add("All categories");for(Category c:Category.values())category.getItems().add(Ui.category(c));
+        category.getItems().add("All categories");for(Category c:Category.shopping())category.getItems().add(Ui.category(c));
         category.getSelectionModel().select(state.getCategoryIndex());category.setId("category");category.setAccessibleText("Filter by category");
         sort.getItems().addAll("Name: A–Z","Price: low to high","Price: high to low","Name: Z–A");sort.getSelectionModel().select(state.getSortIndex());
         sort.setId("sort");sort.setAccessibleText("Sort products");
@@ -78,7 +78,7 @@ public final class CatalogView extends VBox {
         VBox collectionTitle=new VBox(6,Ui.label("CURATED FOR YOUR EVERYDAY","eyebrow"),title,result);
         collectionTitle.setMinWidth(0);
         Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
-        search.setPromptText("Search products by name — headphones, tees, home…");
+        search.setPromptText("Search laptops, phones, parts and more…");
         search.setMinWidth(0);search.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(search,Priority.ALWAYS);
         if(!search.getStyleClass().contains("catalog-search-input"))search.getStyleClass().add("catalog-search-input");
         Button clearSearch=Ui.button("×",()->{search.clear();state.setScrollPosition(0);refresh();search.requestFocus();});
@@ -120,8 +120,8 @@ public final class CatalogView extends VBox {
             content.applyCss();content.layout();
             double range=content.getHeight()-scrollViewportHeight();
             scrollTo(range<=0?0:collection.getBoundsInParent().getMinY()/range);
-        },()->browseCategory(Category.ELECTRONICS.ordinal()+1),()->{
-            clearing=true;category.getSelectionModel().select(Category.ELECTRONICS.ordinal()+1);search.setText("headphones");
+        },()->browseCategory(Category.PERIPHERALS.shoppingIndex()),()->{
+            clearing=true;category.getSelectionModel().select(Category.PERIPHERALS.shoppingIndex());search.setText("headphones");
             clearing=false;filterChanged();
         });
         hero.visibleProperty().bind(search.textProperty().isEmpty().and(category.getSelectionModel().selectedIndexProperty().isEqualTo(0))
@@ -167,28 +167,32 @@ public final class CatalogView extends VBox {
     private void scrollTo(double value) { scroll.setVvalue(Math.max(0,Math.min(1,value))); }
     private VBox collections() {
         FlowPane tiles=new FlowPane(18,18);tiles.setId("collection-links");
-        String[] subjects={"Wireless headphones","Everyday cotton tee","Ceramic mug"};
-        String[] headlines={"Find your focus.","Wear your everyday.","Make yourself at home."};
-        for(Category c:Category.values()) {
-            int i=c.ordinal();CollectionArtwork art=new CollectionArtwork(subjects[i]);art.setPrefSize(130,135);art.setMaxWidth(130);
+        for(Category c:Category.shopping()) {
+            int i=c.shoppingIndex()-1;
+            String subject=switch(c){case PC_SETS->"PC set";case PC_PARTS->"PC parts";case LAPTOPS->"Laptop";case PHONES_TABLETS->"Phone and tablet";case PERIPHERALS->"Mechanical keyboard";case ELECTRONICS->"Desktop speaker";default->throw new IllegalStateException("Retired category");};
+            String headline=switch(c){case PC_SETS->"Power your setup.";case PC_PARTS->"Build it your way.";case LAPTOPS->"Take power with you.";case PHONES_TABLETS->"Stay connected.";case PERIPHERALS->"Complete your desk.";case ELECTRONICS->"Discover more tech.";default->throw new IllegalStateException("Retired category");};
+            CollectionArtwork art=new CollectionArtwork(subject);art.setPrefSize(110,135);art.setMaxWidth(110);
             VBox copy=new VBox(8,Ui.label("0"+(i+1)+" / "+Ui.category(c).toUpperCase(java.util.Locale.ROOT),"eyebrow"),
-                Ui.label(headlines[i],"section-title"),Ui.label("Shop "+Ui.category(c).toLowerCase(java.util.Locale.ROOT)+"  →","collection-link"));
+                Ui.label(headline,"section-title"),Ui.label("Shop "+Ui.category(c).toLowerCase(java.util.Locale.ROOT)+"  →","collection-link"));
             copy.setMinWidth(0);HBox.setHgrow(copy,Priority.ALWAYS);
             HBox graphic=new HBox(8,copy,art);graphic.setAlignment(Pos.CENTER_LEFT);graphic.getStyleClass().add("collection-tile-content");
             graphic.setMinHeight(0);graphic.setPrefHeight(135);graphic.setMaxHeight(135);
             Button tile=Ui.button("",()->browseCategory(i+1));
             tile.setId("collection-"+c.name().toLowerCase(java.util.Locale.ROOT));tile.setGraphic(graphic);
             tile.setAccessibleText("Shop "+Ui.category(c));tile.getStyleClass().add("collection-tile");
-            tile.setPrefWidth(365);graphic.prefWidthProperty().bind(tile.widthProperty().subtract(36));
+            tile.prefWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(()->{
+                int columns=Math.max(1,Math.min(3,(int)((tiles.getWidth()+18)/330)));
+                return Math.max(260,Math.floor((tiles.getWidth()-18*(columns-1))/columns));
+            },tiles.widthProperty()));graphic.prefWidthProperty().bind(tile.widthProperty().subtract(36));
             tile.setMinHeight(171);tile.setPrefHeight(171);tile.setMaxHeight(171);
             tile.setMinWidth(260);tiles.getChildren().add(tile);
         }
-        VBox section=new VBox(22,Ui.label("A LITTLE MORE YOU.","collection-title"),tiles);
+        VBox section=new VBox(22,Ui.label("FIND YOUR NEXT UPGRADE.","collection-title"),Ui.label("From complete setups to the parts that make them yours.","muted"),tiles);
         section.getStyleClass().add("discovery-section");return section;
     }
     private VBox closing() {
         VBox end=new VBox(12,Ui.label("GOOD THINGS.\nEVERY DAY.","closing-title"),
-            Ui.label("For the way you listen, dress, and live.","closing-sub"));
+            Ui.label("For the way you work, play, and connect.","closing-sub"));
         end.setAlignment(Pos.CENTER);end.getStyleClass().add("closing-section");return end;
     }
     private void filterChanged() { if(clearing)return;state.setScrollPosition(0);refresh(); }
@@ -202,7 +206,7 @@ public final class CatalogView extends VBox {
     private void refresh() {
         if(clearing||(getScene()!=null&&getScene().getRoot().isDisabled()))return;
         String query=search.getText();int index=category.getSelectionModel().getSelectedIndex(),ordering=sort.getSelectionModel().getSelectedIndex(),cap=budget.getSelectionModel().getSelectedIndex();
-        Category group=index==0?null:Category.values()[index-1];
+        Category group=index==0?null:Category.shopping().get(index-1);
         BigDecimal capPrice=cap==0?null:BigDecimal.valueOf(new int[]{0,25,50,100}[cap]);
         if(!validRange())return;
         BigDecimal lower=parseRange(minimum.getText()),upper=parseRange(maximum.getText());
@@ -222,7 +226,7 @@ public final class CatalogView extends VBox {
             if(ordering==2)sorted.sort(Comparator.comparing(Product::getPrice).reversed());
             restoring=true;grid.getChildren().clear();
             for(Product p:sorted){ProductCard card=new ProductCard(p,()->add(p),()->details.accept(p));if(saved!=null)card.enableSavedItems(saved);grid.getChildren().add(card);}
-            title.setText(!query.isBlank()?"Search results":index==0?"The everyday edit":Ui.category(group));
+            title.setText(!query.isBlank()?"Search results":index==0?"The tech edit":Ui.category(group));
             result.setText(sorted.size()+(sorted.size()==1?" item":" items")+" · USD");feedback.setText("");
             results.getChildren().setAll(sorted.isEmpty()?Ui.empty("No products found","Try a different search or remove a filter.","Clear filters",this::clear):grid);
             chips.getChildren().clear();

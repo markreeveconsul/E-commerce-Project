@@ -15,6 +15,7 @@ public final class ProductService {
         String term = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
         try (Connection c = database.open()) {
             return products.list(c, user.canManageProducts()).stream()
+                .filter(p -> user.canManageProducts()||!p.getCategory().isRetired())
                 .filter(p -> p.getName().toLowerCase(Locale.ROOT).contains(term))
                 .filter(p -> category == null || p.getCategory() == category).toList();
         } catch (SQLException e) { throw new StorageException(e); }
@@ -49,6 +50,7 @@ public final class ProductService {
     public void save(User actor,long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
                      byte[] photo,List<byte[]> additionalPhotos,String specifications,PhotoFrame frame) {
         if(actor==null||!actor.canManageProducts())throw new ValidationException("Administrator access is required.");
+        if(category!=null&&category.isRetired()&&(active||id==0))throw new ValidationException("Choose a tech category before offering this product. Retired inventory can stay inactive until you replace it.");
         byte[] snapshot = photo == null ? null : photo.clone();
         ProductPhotos.validate(snapshot);
         Product product = new Product(id, name, category, price, stock, active, description, snapshot,additionalPhotos,specifications,frame);

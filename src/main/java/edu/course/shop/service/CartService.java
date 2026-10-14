@@ -22,7 +22,7 @@ public final class CartService {
     public String review(Cart cart) {
         for (CartItem item : cart.getItems()) {
             Product latest = products.get(item.getProduct().getId());
-            if (!latest.isActive() || latest.getStock() < item.getQuantity() ||
+            if (!latest.isActive() || latest.getCategory().isRetired() || latest.getStock() < item.getQuantity() ||
                 latest.getPrice().compareTo(item.getProduct().getPrice()) != 0)
                 return "A product changed while you were shopping. Review its availability and update or remove it before checkout.";
         }
@@ -43,7 +43,7 @@ public final class CartService {
         for(OrderItem item:order.items()) {
             Product product=products.get(item.productId());
             int existing=cart.getItems().stream().filter(row->row.getProduct().getId()==product.getId()).mapToInt(CartItem::getQuantity).sum();
-            if(!product.isActive()||product.getStock()-existing<item.quantity())unavailable.add(item.productName()+" — unavailable in the requested quantity");
+            if(!product.isActive()||product.getCategory().isRetired()||product.getStock()-existing<item.quantity())unavailable.add(item.productName()+" — unavailable in the requested quantity");
             else lines.add(new RepeatLine(product,item.quantity()));
         }return new RepeatPlan(lines,unavailable);
     }

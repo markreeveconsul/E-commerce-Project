@@ -50,8 +50,7 @@ public final class Ui {
     }
 
     public static String category(Category category) {
-        String value = category.name().toLowerCase(Locale.ROOT);
-        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+        return category.label();
     }
 
     public static Button button(String text, Runnable action) {

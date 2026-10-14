@@ -57,7 +57,7 @@ public final class BannerMotionSmoke {
                 Motion.reducedProperty().set(false);
                 hero=new EditorialHeader(()->{},()->{},()->{});
                 probe=Ui.primary("Hover feedback",()->{});probe.setId("hover-probe");
-                card=new ProductCard(new Product(10,"Canvas tote",Category.CLOTHING,new BigDecimal("12.90"),3,true),()->{},()->{});
+                card=new ProductCard(new Product(10,"Mechanical keyboard",Category.PERIPHERALS,new BigDecimal("12.90"),3,true),()->{},()->{});
                 card.setMaxWidth(280);
                 root=new VBox(12,hero,probe,card);root.setFocusTraversable(true);Scene scene=new Scene(root,1280,830);
                 scene.getStylesheets().add(BannerMotionSmoke.class.getResource("/shop.css").toExternalForm());

@@ -286,3 +286,11 @@
 .image-viewer-surface, .image-viewer-viewport, .image-viewer-viewport > .viewport { -fx-background-color: #F5F5F3; }
 .image-viewer-viewport { -fx-border-color: #E4E4E4; -fx-padding: 0; }
 .image-viewer-tools { -fx-padding: 4 0; }
+
+/* Tech collections keep the orange accent and charcoal hardware illustrations. */
+.tech-category-nav { -fx-padding: 6 24 10 24; -fx-background-color: white; -fx-border-color: transparent transparent -line transparent; }
+.tech-category-nav .button { -fx-padding: 10 14; }
+.product-art.pc_sets, .product-art.pc_parts { -fx-background-color: #ECEEF1; }
+.product-art.laptops { -fx-background-color: #F0ECE7; }
+.product-art.phones_tablets { -fx-background-color: #EAEFF0; }
+.product-art.peripherals { -fx-background-color: #F0EFEB; }
