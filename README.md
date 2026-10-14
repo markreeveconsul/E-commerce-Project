@@ -64,6 +64,8 @@ All Java paths above are under `src/main/java/edu/course/shop`.
 
 ## Deliverables
 
+- [Nike-inspired design elevation](docs/DESIGN-ELEVATION.md)
+
 - [Storefront and admin photo guide](docs/STOREFRONT-UPDATE.md)
 - [UI refresh and reference research](docs/UX-REFRESH.md)
 - [Ten-section project guide](docs/PROJECT-GUIDE.md)

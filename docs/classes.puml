@@ -218,8 +218,14 @@ package "GUI" {
     +getPhoto() : byte[]
   }
   class EditorialHeader {
-    +EditorialHeader()
-    +setProducts(products : List<Product>) : void
+    +EditorialHeader(shop : Runnable, electronics : Runnable)
+  }
+  class CollectionArtwork {
+    +CollectionArtwork(subject : String)
+    +supports(name : String) : boolean
+  }
+  class StoreIcon {
+    +of(name : String) : Group
   }
   class CatalogView
   class CartView
@@ -358,7 +364,11 @@ ShopWindow ..> Guest
 ShopWindow ..> ProductDetailView
 CatalogView --> CatalogState
 CatalogView *-- EditorialHeader
-EditorialHeader ..> ProductArtwork
+EditorialHeader *-- CollectionArtwork
+ProductArtwork *-- CollectionArtwork
+CatalogView *-- CollectionArtwork
+ShopWindow ..> StoreIcon
+CatalogView ..> StoreIcon
 ProductDetailView ..> ProductArtwork
 ProductDetailView ..> CartService
 AdminView ..> ProductPhotoEditor

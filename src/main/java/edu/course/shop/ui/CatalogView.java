@@ -35,7 +35,7 @@ public final class CatalogView extends VBox {
     private final ComboBox<String> category=new ComboBox<>(),sort=new ComboBox<>(),budget=new ComboBox<>();
     private final CheckBox available=new CheckBox("In stock only");
     // Sentence case reads calmer and more modern than ALL CAPS; the hero stays uppercase as the one brand moment.
-    private final Label feedback=Ui.feedback("catalog-feedback"),result=Ui.label("","muted"),title=Ui.label("All products","collection-title");
+    private final Label feedback=Ui.feedback("catalog-feedback"),result=Ui.label("","muted"),title=Ui.label("The everyday edit","collection-title");
     private final FlowPane chips=new FlowPane(8,8);
     private final VBox results=new VBox(16);
     private final ScrollPane scroll;
@@ -68,30 +68,75 @@ public final class CatalogView extends VBox {
             grid.setPrefTileWidth(Math.max(180,Math.floor((b.doubleValue()-20*(columns-1))/columns)-2));
         });
 
-        // Slim hero: one headline, one line of support, one badge. Products now start much higher on screen.
-        VBox words=new VBox(4,Ui.label("GOOD THINGS. EVERY DAY.","hero-title"),
-            Ui.label("Find your next favorite for home, work, and everywhere.","muted"));
-        HBox.setHgrow(words,Priority.ALWAYS);
-        // The old "MAKE IT YOURS ↗" badge had no action and got clipped; this one states a real benefit.
-        VBox sticker=new VBox(0,Ui.label("Free shipping","section-title"),Ui.label("on every order","muted"));
-        sticker.getStyleClass().add("hero-sticker");sticker.setAlignment(Pos.CENTER);sticker.setMaxHeight(USE_PREF_SIZE);
-        HBox hero=new HBox(24,words,sticker);hero.setAlignment(Pos.CENTER_LEFT);hero.getStyleClass().add("hero");
-        hero.visibleProperty().bind(heightProperty().greaterThan(600));hero.managedProperty().bind(hero.visibleProperty());
-
-        // Category tiles removed: the header nav and the "All categories" filter already do this job.
-
+        HBox heading=new HBox(12,title,result);heading.setAlignment(Pos.CENTER_LEFT);
+        VBox collectionTitle=new VBox(6,Ui.label("CURATED FOR YOUR EVERYDAY","eyebrow"),heading);
         Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
-        HBox heading=new HBox(12,title,spacer,result);heading.setAlignment(Pos.CENTER_LEFT);
-        FlowPane filters=new FlowPane(10,10,category,budget,available,sort,Ui.button("Clear filters",this::clear));filters.getStyleClass().add("filter-bar");
-        filters.setAlignment(Pos.CENTER_LEFT);
+        search.setPrefWidth(230);search.setMinWidth(160);
+        Button find=Ui.button("Search",()->{state.setScrollPosition(0);refresh();});find.setId("catalog-search");
+        find.setGraphic(StoreIcon.of("search"));find.getStyleClass().add("search-button");
+        search.setOnAction(e->find.fire());
+        HBox searchRow=new HBox(8,search,find);searchRow.setAlignment(Pos.CENTER_RIGHT);
+        Button toggle=Ui.button("Filters +",()->{});toggle.setId("toggle-filters");
+        FlowPane filters=new FlowPane(12,12,category,budget,available,Ui.button("Clear filters",this::clear));
+        filters.setId("catalog-filters");filters.getStyleClass().add("filter-bar");filters.setAlignment(Pos.CENTER_LEFT);
+        filters.setVisible(state.isFiltersExpanded());filters.managedProperty().bind(filters.visibleProperty());
+        Runnable syncToggle=()->{toggle.setText(filters.isVisible()?"Filters −":"Filters +");
+            toggle.setAccessibleText(filters.isVisible()?"Hide product filters":"Show product filters");};
+        syncToggle.run();
+        toggle.setOnAction(e->{filters.setVisible(!filters.isVisible());state.setFiltersExpanded(filters.isVisible());syncToggle.run();});
+        HBox tools=new HBox(10,toggle,sort);tools.setAlignment(Pos.CENTER_RIGHT);
+        VBox controls=new VBox(10,searchRow,tools);
+        HBox toolbar=new HBox(20,collectionTitle,spacer,controls);toolbar.setAlignment(Pos.CENTER_LEFT);
+        toolbar.getStyleClass().add("catalog-toolbar");
         chips.setId("filter-chips");chips.managedProperty().bind(chips.visibleProperty());
         results.getChildren().add(grid);
-        VBox content=new VBox(14,hero,heading,filters,chips,feedback,results);
-        scroll=Ui.scroll(content);scroll.setId("catalog-scroll");getChildren().add(scroll);
+        VBox collection=new VBox(16,toolbar,filters,chips,feedback,results);collection.getStyleClass().add("collection-section");
+        VBox content=new VBox(0);
+        EditorialHeader hero=new EditorialHeader(()->{
+            content.applyCss();content.layout();
+            double range=content.getHeight()-scrollViewportHeight();
+            scrollTo(range<=0?0:collection.getBoundsInParent().getMinY()/range);
+        },()->browseCategory(Category.ELECTRONICS.ordinal()+1));
+        hero.visibleProperty().bind(search.textProperty().isEmpty().and(category.getSelectionModel().selectedIndexProperty().isEqualTo(0))
+            .and(budget.getSelectionModel().selectedIndexProperty().isEqualTo(0)).and(available.selectedProperty().not()));
+        hero.managedProperty().bind(hero.visibleProperty());
+        content.getChildren().addAll(hero,collection,collections(),closing());
+        scroll=Ui.scroll(content);scroll.setId("catalog-scroll");getStyleClass().add("catalog-page");getChildren().add(scroll);
         scroll.vvalueProperty().addListener((o,a,b)->{if(!restoring)state.setScrollPosition(b.doubleValue());});
         Platform.runLater(this::refresh);
     }
+    private double scrollViewportHeight() { return scroll.getViewportBounds().getHeight(); }
+    private void scrollTo(double value) { scroll.setVvalue(Math.max(0,Math.min(1,value))); }
+    private VBox collections() {
+        FlowPane tiles=new FlowPane(18,18);tiles.setId("collection-links");
+        String[] subjects={"Wireless headphones","Everyday cotton tee","Ceramic mug"};
+        String[] headlines={"Find your focus.","Wear your everyday.","Make yourself at home."};
+        for(Category c:Category.values()) {
+            int i=c.ordinal();CollectionArtwork art=new CollectionArtwork(subjects[i]);art.setPrefSize(130,135);art.setMaxWidth(130);
+            VBox copy=new VBox(8,Ui.label("0"+(i+1)+" / "+Ui.category(c).toUpperCase(java.util.Locale.ROOT),"eyebrow"),
+                Ui.label(headlines[i],"section-title"),Ui.label("Shop "+Ui.category(c).toLowerCase(java.util.Locale.ROOT)+"  →","collection-link"));
+            copy.setMinWidth(0);HBox.setHgrow(copy,Priority.ALWAYS);
+            HBox graphic=new HBox(8,copy,art);graphic.setAlignment(Pos.CENTER_LEFT);graphic.getStyleClass().add("collection-tile-content");
+            graphic.setMinHeight(0);graphic.setPrefHeight(135);graphic.setMaxHeight(135);
+            Button tile=Ui.button("",()->browseCategory(i+1));
+            tile.setId("collection-"+c.name().toLowerCase(java.util.Locale.ROOT));tile.setGraphic(graphic);
+            tile.setAccessibleText("Shop "+Ui.category(c));tile.getStyleClass().add("collection-tile");
+            tile.setPrefWidth(365);graphic.prefWidthProperty().bind(tile.widthProperty().subtract(36));
+            tile.setMinHeight(171);tile.setPrefHeight(171);tile.setMaxHeight(171);
+            tile.setMinWidth(260);tiles.getChildren().add(tile);
+        }
+        VBox section=new VBox(22,Ui.label("A LITTLE MORE YOU.","collection-title"),tiles);
+        section.getStyleClass().add("discovery-section");return section;
+    }
+    private VBox closing() {
+        VBox end=new VBox(12,Ui.label("GOOD THINGS.\nEVERY DAY.","closing-title"),
+            Ui.label("For the way you listen, dress, and live.","closing-sub"));
+        end.setAlignment(Pos.CENTER);end.getStyleClass().add("closing-section");return end;
+    }
     private void filterChanged() { if(clearing)return;state.setScrollPosition(0);refresh(); }
+    private void browseCategory(int index) {
+        clearing=true;search.clear();category.getSelectionModel().select(index);clearing=false;filterChanged();
+    }
     private void clear() {
         clearing=true;search.clear();category.getSelectionModel().selectFirst();sort.getSelectionModel().selectFirst();
         budget.getSelectionModel().selectFirst();available.setSelected(false);clearing=false;filterChanged();
@@ -110,7 +155,7 @@ public final class CatalogView extends VBox {
             if(ordering==2)sorted.sort(Comparator.comparing(Product::getPrice).reversed());
             restoring=true;grid.getChildren().clear();
             for(Product p:sorted)grid.getChildren().add(new ProductCard(p,()->add(p),()->details.accept(p)));
-            title.setText(!query.isBlank()?"Search results":index==0?"All products":Ui.category(group));
+            title.setText(!query.isBlank()?"Search results":index==0?"The everyday edit":Ui.category(group));
             result.setText(sorted.size()+(sorted.size()==1?" item":" items")+" · USD");feedback.setText("");
             results.getChildren().setAll(sorted.isEmpty()?Ui.empty("No products found","Try a different search or remove a filter.","Reset search & filters",this::clear):grid);
             chips.getChildren().clear();

@@ -17,8 +17,8 @@ public final class ProductCard extends VBox {
         setId("product-"+product.getId());getStyleClass().add("product-card");setSpacing(0);setMinWidth(0);setMaxWidth(Double.MAX_VALUE);
 
         // Photo: same box for every product, with rounded corners that match the card.
-        ProductArtwork photo=new ProductArtwork(product,180);
-        Rectangle clip=new Rectangle();clip.setArcWidth(24);clip.setArcHeight(24);
+        ProductArtwork photo=new ProductArtwork(product,230);
+        Rectangle clip=new Rectangle();clip.setArcWidth(4);clip.setArcHeight(4);
         photo.layoutBoundsProperty().addListener((o,a,b)->{clip.setWidth(b.getWidth());clip.setHeight(b.getHeight());});
         photo.setClip(clip);
         Button visual=Ui.button("",details);visual.setGraphic(photo);visual.setMaxWidth(Double.MAX_VALUE);
@@ -27,7 +27,7 @@ public final class ProductCard extends VBox {
 
         // Name: always two lines tall so every card lines up; longer names end in an ellipsis.
         Label name=Ui.label(product.getName(),"product-name");
-        name.setMinHeight(44);name.setPrefHeight(44);name.setMaxHeight(44);name.setMaxWidth(Double.MAX_VALUE);
+        name.setMinHeight(42);name.setPrefHeight(42);name.setMaxHeight(42);name.setMaxWidth(Double.MAX_VALUE);
         name.setTextOverrun(OverrunStyle.ELLIPSIS);
 
         // Price is the biggest thing in the body; stock is a small badge beside it (text, not color alone).

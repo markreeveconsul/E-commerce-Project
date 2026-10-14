@@ -70,11 +70,39 @@ public final class GuiSmoke {
                 stage.setScene(scene);new ShopWindow(stage,services).showLogin();return null;
             });
             screenshot("01-login.png",1280,860);
+            screenshot("24-login-compact.png",960,680);screenshot("01-login.png",1280,860);
             press("login");check(!label("username-error").isBlank(),"Missing username needs field error");
             login("customer","incorrect");idle();check(label("login-feedback").contains("Incorrect"),"Wrong password needs inline error");
             click("← Continue browsing");catalog();
             check(fx(()->((Button)scene.lookup("#account")).getText()).equals("Sign in"),"Guests browse without login");
+            check(fx(()->scene.lookup("#search").isVisible()&&scene.lookup("#catalog-search")!=null),"Catalog search is reachable");
+            check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=300,"Campaign artwork fills the hero height");
+            check(fx(()->scene.lookup("#product-4").lookup(".collection-artwork")!=null),"Seed product renders original offline artwork");
+            press("hero-shop");
+            check(fx(()->((ScrollPane)scene.lookup("#catalog-scroll")).getVvalue()>0),"Hero shopping action scrolls to products");
+            screenshot("22-product-collection.png",1280,860);
+            fx(()->{((ScrollPane)scene.lookup("#catalog-scroll")).setVvalue(0);return null;});
             screenshot("13-guest-storefront.png",1280,860);
+            screenshot("21-storefront-compact.png",960,680);screenshot("13-guest-storefront.png",1280,860);
+            fx(()->{
+                ScrollPane scroll=(ScrollPane)scene.lookup("#catalog-scroll");
+                double start=scene.lookup("#collection-links").getParent().getBoundsInParent().getMinY();
+                scroll.setVvalue(start/(scroll.getContent().getLayoutBounds().getHeight()-scroll.getViewportBounds().getHeight()));return null;
+            });
+            screenshot("23-collection-discovery.png",1280,860);
+            check(fx(()->scene.lookup("#collection-home").getLayoutBounds().getHeight())<=200,"Collection tiles stay compact");
+            fx(()->{((ScrollPane)scene.lookup("#catalog-scroll")).setVvalue(0);return null;});
+            press("hero-electronics");catalog();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2,"Campaign action opens electronics");
+            check(fx(()->!scene.lookup("#editorial-hero").isManaged()),"Campaign hides while browsing a category");
+            press("collection-home");catalog();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2&&
+                fx(()->((ComboBox<?>)scene.lookup("#category")).getSelectionModel().getSelectedIndex())==3,"Collection shortcut opens home products");
+            text("search","mug");click("Search");catalog();
+            press("collection-home");catalog();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2&&
+                fx(()->((TextField)scene.lookup("#search")).getText()).isEmpty(),"Same-category shortcut refreshes after clearing search");
+            click("Shop all");catalog();
             fx(()->{var card=scene.lookup("#product-4");((Button)card.lookupAll(".button").stream().filter(n->n instanceof Button b&&b.getText().equals("View product")).findFirst().orElseThrow()).fire();return null;});
             waitFor(()->scene.lookup("#product-detail")!=null&&!scene.getRoot().isDisabled());idle();screenshot("14-product-detail.png",1280,860);
             screenshot("15-product-detail-compact.png",960,680);screenshot("14-product-detail.png",1280,860);
@@ -224,7 +252,7 @@ public final class GuiSmoke {
             check(fx(()->((TableView<?>)scene.lookup("#admin-table")).getItems().size())==6,"Active filter hides deactivated item");
             screenshot("06-admin.png",1280,860);screenshot("12-admin-compact.png",960,680);
             check(services.products().search(services.auth().login("customer","customer123"),"GUI smoke",null).isEmpty(),"Inactive hidden from customer");
-            System.out.println("GUI SMOKE PASS: "+checks+" assertions; catalog, filters, sold-out state, cart edits, draft retention, declined/approved payment, confirmation, history, admin create/edit/filter; 20 snapshots.");
+            System.out.println("GUI SMOKE PASS: "+checks+" assertions; editorial actions, artwork, catalog, filters, sold-out state, cart edits, draft retention, declined/approved payment, confirmation, history, admin create/edit/filter; 24 snapshots.");
         }finally{Platform.exit();}
     }
 }

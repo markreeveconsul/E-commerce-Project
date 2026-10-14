@@ -36,10 +36,18 @@ public final class LoginView extends StackPane {
         VBox form=new VBox(16,Ui.label("Welcome back.","page-title"),Ui.label("Sign in to check out or manage your store.","muted"),
             Ui.field("Username",username,usernameError),Ui.field("Password",password,passwordError),feedback,status,login,demo);
         form.getStyleClass().add("login-card"); form.setPrefWidth(480); form.setMaxWidth(480);
+        form.setMaxHeight(Region.USE_PREF_SIZE);
 
+        CollectionArtwork campaign=new CollectionArtwork("Wireless headphones");
+        campaign.setPrefHeight(200);campaign.setMaxHeight(200);campaign.getStyleClass().add("login-art");
         VBox intro=new VBox(24,Ui.label("MARKET","brand"),Ui.label("GOOD TO\nSEE YOU.","hero-title"),
-            Ui.label("Your favorites. Your cart.\nYour next good find.","muted"),Ui.label("Course demo · All payments are simulated","muted"));
+            Ui.label("Your favorites. Your cart.\nYour next good find.","muted"),campaign,Ui.label("Course demo · All payments are simulated","muted"));
         intro.getStyleClass().add("login-intro");
+        intro.widthProperty().addListener((o,a,b)->{
+            boolean compact=b.doubleValue()<540;
+            intro.getStyleClass().remove("login-compact");if(compact)intro.getStyleClass().add("login-compact");
+            campaign.setPrefHeight(compact?140:200);campaign.setMaxHeight(compact?140:200);
+        });
 
         // Full-bleed split: the form is centered in the right half, and both halves share the window width equally.
         StackPane formPane=new StackPane(form); formPane.getStyleClass().add("login-form-pane");

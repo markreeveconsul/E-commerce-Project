@@ -25,6 +25,14 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
 public final class Ui {
+    static {
+        // Bundled under the SIL Open Font License; no network or installed font required.
+        try (var font = Ui.class.getResourceAsStream("/fonts/ArchivoBlack-Regular.ttf")) {
+            if (font != null) javafx.scene.text.Font.loadFont(font, 14);
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
     private Ui() {
     }
 
@@ -123,6 +131,8 @@ public final class Ui {
     public static ScrollPane scroll(Node content) {
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
+        scroll.setMinHeight(0);
+        scroll.setMinWidth(0);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.getStyleClass().add("clean-scroll");
         VBox.setVgrow(scroll, Priority.ALWAYS);

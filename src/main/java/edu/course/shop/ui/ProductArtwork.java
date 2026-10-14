@@ -5,9 +5,16 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import java.io.ByteArrayInputStream;
 
-/** Displays the admin's photo with its aspect ratio intact, or a neutral placeholder. */
+/** Uploaded photos take priority; known demo items otherwise use clearly identified illustrations. */
 public final class ProductArtwork extends StackPane {
-    public ProductArtwork(Product product, double height) { this(product.getPhoto(), product.getName(), height); getStyleClass().add(product.getCategory().name().toLowerCase()); }
+    public ProductArtwork(Product product, double height) {
+        this(product.getPhoto(), product.getName(), height);
+        getStyleClass().add(product.getCategory().name().toLowerCase(java.util.Locale.ROOT));
+        if (product.getPhoto() == null && CollectionArtwork.supports(product.getName())) {
+            getChildren().setAll(new CollectionArtwork(product.getName()));
+            setAccessibleText("Illustration of " + product.getName() + "; actual product may vary");
+        }
+    }
     public ProductArtwork(byte[] photo, String name, double height) {
         setMinHeight(height); setPrefHeight(height); setMaxHeight(height);
         setMinWidth(0); setPrefWidth(height * 1.35); getStyleClass().add("product-art");
