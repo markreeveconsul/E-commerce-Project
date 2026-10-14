@@ -21,12 +21,17 @@ public final class CartView extends VBox {
     private final CartService carts;
     private final Runnable changed, checkout, browse;
     private final Label feedback=Ui.feedback("cart-feedback");
+    private edu.course.shop.model.CartItem removed;
+    private final javafx.animation.PauseTransition undoTimeout=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(6));
+    private final Button undo=Ui.link("Undo removal",this::undoRemoval);
+    private final HBox undoBar=new HBox(12,Ui.label("Item removed from cart.","muted"),undo);
     private final VBox body=new VBox(18);
     public CartView(User user, Cart cart, CartService carts, Runnable changed, Runnable checkout, Runnable browse) {
         this.user=user; this.cart=cart; this.carts=carts; this.changed=changed; this.checkout=checkout; this.browse=browse;
         getStyleClass().add("page"); setSpacing(16);
+        undo.setId("undo-cart-removal");undoBar.setId("undo-removal-bar");undoBar.getStyleClass().add("notice");undoBar.setVisible(false);undoBar.managedProperty().bind(undoBar.visibleProperty());undoTimeout.setOnFinished(e->{removed=null;undoBar.setVisible(false);});sceneProperty().addListener((o,a,b)->{if(b==null){undoTimeout.stop();removed=null;undoBar.setVisible(false);}});
         getChildren().addAll(Ui.label("Your cart", "page-title"),
-            Ui.label("Review your items, adjust quantities, then make them yours.", "muted"),feedback,Ui.scroll(body)); refresh();
+            Ui.label("Review your items, adjust quantities, then make them yours.", "muted"),feedback,undoBar,Ui.scroll(body)); refresh();
     }
     private void refresh() {
         body.getChildren().clear();
@@ -67,7 +72,7 @@ public final class CartView extends VBox {
         plus.setAccessibleText("Increase quantity of "+p.getName());
         minus.getStyleClass().add("stepper-button"); plus.getStyleClass().add("stepper-button");
         HBox stepper=new HBox(2,minus,quantity,plus); stepper.getStyleClass().add("stepper"); stepper.setAlignment(Pos.CENTER);
-        Button remove=Ui.button("Remove",()-> { cart.remove(p.getId()); changed.run(); refresh(); Ui.success(feedback,p.getName()+" removed."); });
+        Button remove=Ui.button("Remove",()-> { removed=new edu.course.shop.model.CartItem(p,item.getQuantity());cart.remove(p.getId()); changed.run(); refresh();undoBar.setVisible(true);undo.requestFocus();undoTimeout.playFromStart();Ui.success(feedback,p.getName()+" removed."); });
         remove.getStyleClass().add("text-button"); remove.setId("remove-"+p.getId());
         // Typed quantities commit on Enter or Update; +/- buttons commit immediately.
         Region gap=new Region(); HBox.setHgrow(gap,Priority.ALWAYS);
@@ -76,7 +81,11 @@ public final class CartView extends VBox {
     }
     private void update(Product p,int count) {
         Ui.async(this,"Updating cart…",()-> { carts.update(user,cart,p.getId(),count); return true; },done-> {
-            changed.run(); refresh(); Ui.success(feedback,"Quantity updated. Your total is ready.");
+            changed.run(); refresh();Motion.reveal(body);Ui.success(feedback,"Quantity updated. Your total is ready.");
         },error->Ui.failure(feedback,error));
+    }
+    private void undoRemoval() {
+        if(removed==null)return;var item=removed;
+        Ui.async(this,"Restoring item…",()->{carts.add(user,cart,item.getProduct().getId(),item.getQuantity());return true;},done->{undoTimeout.stop();removed=null;undoBar.setVisible(false);changed.run();refresh();Ui.success(feedback,"Item restored at its current price.");},error->Ui.failure(feedback,error));
     }
 }

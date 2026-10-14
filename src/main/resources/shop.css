@@ -250,3 +250,22 @@
 .toast .label { -fx-text-fill: white; }
 .button.toast-action { -fx-text-fill: white; -fx-background-color: transparent; -fx-border-color: #77777A; -fx-font-size: 12px; -fx-min-height: 34; -fx-padding: 6 12; }
 .button.toast-action:focused { -fx-border-color: #F08B63; }
+
+/* Approved next UI: shared shopping surfaces. Campaign and login artwork rules remain intact. */
+.breadcrumb { -fx-font-size: 12px; -fx-text-fill: -ink-muted; }
+.save-heart { -fx-padding: 0; -fx-min-width: 40; -fx-max-width: 40; -fx-min-height: 40; -fx-max-height: 40; -fx-font-size: 23px; -fx-background-color: rgba(255,255,255,.94); -fx-border-color: #DEDEDB; }
+.save-heart:selected { -fx-text-fill: #C43D25; -fx-border-color: #E65436; }
+.product-card { -fx-background-radius: 8; }
+.skeleton-block { -fx-background-color: #ECECE8; -fx-background-radius: 6; }
+.order-card, .address-card { -fx-background-color: -surface; -fx-padding: 22; -fx-border-color: -line; -fx-border-radius: 10; -fx-background-radius: 10; }
+.order-selected { -fx-border-color: #E65436; -fx-border-width: 2; }
+.address-card { -fx-background-color: -tint; -fx-padding: 16; }
+.payment-choice { -fx-background-color: -surface; -fx-text-fill: -ink; -fx-border-color: #D5D5D5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 16 18; -fx-cursor: hand; -fx-font-weight: bold; }
+.payment-choice:selected { -fx-background-color: #FFF1EB; -fx-border-color: #C43D25; -fx-border-width: 2; }
+.payment-choice:focused { -fx-effect: dropshadow(gaussian, rgba(216,57,33,.3), 6, .3, 0, 0); }
+.compact-menu { -fx-background-color: -surface; -fx-border-color: -line; -fx-border-radius: 24; -fx-background-radius: 24; -fx-padding: 8 12; }
+.compact-menu:focused { -fx-border-color: -signal; }
+.context-menu { -fx-background-color: -surface; -fx-border-color: -line; -fx-background-radius: 8; -fx-padding: 8; }
+.menu-item { -fx-padding: 12 18; }
+.menu-item:focused { -fx-background-color: -tint; }
+.menu-item:focused .label { -fx-text-fill: -ink; }

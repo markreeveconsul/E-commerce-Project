@@ -55,8 +55,9 @@ public final class LoginView extends StackPane {
         javafx.beans.InvalidationListener motionSync=o->motion.setSelected(Motion.isReduced());
         Motion.reducedProperty().addListener(new javafx.beans.WeakInvalidationListener(motionSync));
         motion.getProperties().put("market.motionSync",motionSync);
+        TitledPane demoPanel=new TitledPane("Demo accounts",demo);demoPanel.setExpanded(false);demoPanel.setAnimated(false);demoPanel.setId("demo-accounts");
         VBox form=new VBox(16,Ui.label("Welcome back.","page-title"),Ui.label("Sign in to check out or manage your store.","muted"),
-            Ui.field("Username",username,usernameError),new VBox(6,passwordLabel,passwordRow,passwordError),feedback,status,login,demo,motion);
+            Ui.field("Username",username,usernameError),new VBox(6,passwordLabel,passwordRow,passwordError),feedback,status,login,demoPanel,motion);
         form.getStyleClass().add("login-card"); form.setPrefWidth(480); form.setMaxWidth(480);
         form.setMaxHeight(Region.USE_PREF_SIZE);
 

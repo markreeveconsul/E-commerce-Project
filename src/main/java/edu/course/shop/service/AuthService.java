@@ -8,6 +8,7 @@ public final class AuthService {
     private final DatabaseManager database;
     private final UserRepository users;
     public AuthService(DatabaseManager database, UserRepository users) { this.database = database; this.users = users; }
+    public AccountService accounts() { return new AccountService(database); }
     public User login(String username, String password) {
         if (username == null || username.isBlank() || password == null || password.isBlank())
             throw new ValidationException("Username and password are required.");

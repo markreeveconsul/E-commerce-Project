@@ -1,3 +1,9 @@
+# Next UI verification — October 14, 2026
+
+**40 backend tests, 124 GUI assertions (89 existing + 35 new) and 30 motion assertions passed.** New service checks cover saved-item persistence/privacy, role checks, address ownership/defaults/limits/rollback, framing preservation, reviewed current-price repeat plans and atomic cart changes. NextUiSmoke exercises the new screens on a shown window and exports nine screenshots; existing GuiSmoke exports 26 shopping screenshots. Tests use fresh synthetic SQLite databases and gallery fixtures, never the user's store data. Source comparison confirms unchanged EditorialHeader, campaign assets and original CSS rules.
+
+An initial quantity-control GUI check exposed a read-loading race: related products temporarily disabled purchase controls. Secondary recommendations now load without disabling the page, and the final pass covers the stepper. Initial test-harness compile/startup mistakes were corrected before these final results. Native chooser, drag gestures and presentation-machine display/GPU checks remain manual. See [Next UI](NEXT-UI.md) for commands and scope.
+
 # Approved wireframe verification — October 14, 2026
 
 Latest refinement: **31 backend tests, 89 shopping GUI assertions and 30 motion assertions passed**. The backend suite covers additive migration, gallery persistence, unauthorized/invalid updates, defensive photo copies and rollback of product/gallery writes. The shown-window GUI checks cover larger PC framing, real gallery selection, specifications, cancel/removal, Added feedback, actionable toast, drawer focus, stock limits, retained checkout inputs and compact stacked layouts. The motion pass verifies the unchanged storefront hero and proportional oversized account crop.

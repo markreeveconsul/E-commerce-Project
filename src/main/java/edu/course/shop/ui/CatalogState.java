@@ -1,6 +1,10 @@
 package edu.course.shop.ui;
 /** Retains the shopper's filters between screens. */
 public final class CatalogState {
+    private String minimumPrice="",maximumPrice="";
+    public String getMinimumPrice(){return minimumPrice;}
+    public String getMaximumPrice(){return maximumPrice;}
+    public void setPriceRange(String minimum,String maximum){minimumPrice=minimum;maximumPrice=maximum;}
     private int categoryIndex, sortIndex, budgetIndex;
     private boolean inStockOnly, filtersExpanded;
     private double scrollPosition;

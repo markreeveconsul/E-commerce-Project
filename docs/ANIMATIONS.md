@@ -39,3 +39,8 @@ The regular `GuiSmoke` exercises the headphone action, motion toggle, navigation
 The account PC campaign reuses EditorialHeader's float, glow, entrance, pointer and window/detach lifecycle in a vertical composition. A login Reduce motion control updates the same session preference as the storefront footer. The logo glow is static. Photo zoom is clipped to the square catalog frame; image fitting does not stretch uploaded photos.
 
 Catalog Add buttons hold an Added confirmation for 2.5 seconds, canceling the timer when detached. The cart confirmation toast offers Review cart and holds for four seconds; it is cleared on navigation and when opening the drawer. The approved larger PC uses the same existing drift/glow/parallax lifecycle with a proportional, clipped crop. Storefront hero animation settings remain unchanged.
+
+
+## Next UI implementation
+
+See [Approved next UI](NEXT-UI.md) for saved items/profile/address persistence, search suggestions, range filters, gallery zoom, order cards, Buy again, Undo, responsive layouts, photo framing and motion. Both existing campaign artworks/designs are retained.

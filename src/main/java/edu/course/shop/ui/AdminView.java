@@ -27,6 +27,7 @@ public final class AdminView extends VBox {
         table.getColumns().add(Ui.column("Price",p->Money.format(p.getPrice())));
         table.getColumns().add(Ui.column("Stock",p->Integer.toString(p.getStock())));
         table.getColumns().add(Ui.column("Status",p->p.isActive()?"Active":"Inactive"));
+        table.getColumns().add(Ui.column("Content",p->(p.getPhoto()==null?"Photo · ":"")+(p.getDescription().isBlank()?"Description · ":"")+(p.getSpecifications().isBlank()?"Specs":"")));
         search.setPromptText("Find a product"); search.setId("admin-search"); search.setAccessibleText("Search inventory"); HBox.setHgrow(search,Priority.ALWAYS);
         status.getItems().addAll("All statuses","Active","Inactive"); status.getSelectionModel().selectFirst(); status.setId("admin-status"); status.setAccessibleText("Filter by status");
         filterCategory.getItems().add("All categories");
@@ -35,8 +36,7 @@ public final class AdminView extends VBox {
         search.textProperty().addListener((o,a,b)->filter()); status.setOnAction(e->filter()); filterCategory.setOnAction(e->filter());
         TextArea description=new TextArea(); description.setId("product-description"); description.setPrefRowCount(3); description.setWrapText(true);
         description.setPromptText("Describe the product's materials, purpose, or features (up to 1,000 characters).");
-        TextArea specifications=new TextArea();specifications.setId("product-specifications-input");specifications.setPrefRowCount(3);specifications.setWrapText(true);
-        specifications.setPromptText("Optional: one real specification per line, e.g. Material: Cotton (up to 1,000 characters).");
+        SpecificationsEditor specifications=new SpecificationsEditor();
         ProductPhotoEditor photos=new ProductPhotoEditor();
         TextField name=new TextField(),price=new TextField(),stock=new TextField();
         name.setId("product-name"); price.setId("product-price"); stock.setId("product-stock");
@@ -57,14 +57,14 @@ public final class AdminView extends VBox {
         Runnable clearErrors=()-> { nameError.setText(""); priceError.setText(""); stockError.setText(""); categoryError.setText(""); };
         Runnable refresh=()->Ui.async(this,"Loading inventory…",()->products.search(admin,"",null),rows->{all=rows;filter();},error->Ui.failure(feedback,error));
         Runnable create=()-> {
-            photos.setPhotos(null,List.of()); description.clear();specifications.clear();
+            photos.setPhotos(null,List.of());photos.setFraming(PhotoFrame.AUTO); description.clear();specifications.clear();
             clearErrors.run(); editingId=0; name.clear(); price.clear(); stock.setText("0"); category.getSelectionModel().selectFirst(); active.setSelected(true);
             title.setText("New product"); form.setVisible(true); name.requestFocus();
         };
         Runnable edit=()-> {
             Product p=table.getSelectionModel().getSelectedItem();
             if(p==null){feedback.setText("Select the product you want to edit.");return;}
-            photos.setPhotos(p.getPhoto(),p.getAdditionalPhotos()); description.setText(p.getDescription());specifications.setText(p.getSpecifications());
+            photos.setPhotos(p.getPhoto(),p.getAdditionalPhotos());photos.setFraming(p.getPhotoFrame()); description.setText(p.getDescription());specifications.setText(p.getSpecifications());
             clearErrors.run(); editingId=p.getId(); name.setText(p.getName()); price.setText(p.getPrice().toPlainString());
             stock.setText(Integer.toString(p.getStock())); category.setValue(p.getCategory()); active.setSelected(p.isActive());
             title.setText("Edit product #"+editingId); form.setVisible(true); name.requestFocus();
@@ -88,8 +88,8 @@ public final class AdminView extends VBox {
             if(category.getValue()==null){categoryError.setText("Choose a category.");valid=false;}
             if(!valid)return;
             long id=editingId;String value=name.getText();Category group=category.getValue();BigDecimal cost=amount;int qty=quantity;boolean enabled=active.isSelected();
-            String details=description.getText(),specs=specifications.getText();byte[] selectedPhoto=photos.getPhoto();List<byte[]> angles=photos.getAdditionalPhotos();
-            Ui.async(this,"Saving product…",()->{products.save(admin,id,value,group,cost,qty,enabled,details,selectedPhoto,angles,specs);return true;},done-> {
+            String details=description.getText(),specs=specifications.getText();byte[] selectedPhoto=photos.getPhoto();List<byte[]> angles=photos.getAdditionalPhotos();PhotoFrame frame=photos.getFraming();
+            Ui.async(this,"Saving product…",()->{products.save(admin,id,value,group,cost,qty,enabled,details,selectedPhoto,angles,specs,frame);return true;},done-> {
                 form.setVisible(false);Ui.success(feedback,"✓ "+value.trim()+" saved.");refresh.run();
             },error->Ui.failure(feedback,error));
         });
@@ -99,12 +99,20 @@ public final class AdminView extends VBox {
         fields.getColumnConstraints().addAll(left,right);
         fields.add(Ui.field("Product name",name,nameError),0,0);fields.add(Ui.field("Category",category,categoryError),1,0);
         fields.add(Ui.field("Price (USD)",price,priceError),0,1);fields.add(Ui.field("Stock quantity",stock,stockError),1,1);
-        VBox information=new VBox(14,fields,Ui.field("Description",description,Ui.feedback("description-error")),Ui.field("Specifications (optional)",specifications,Ui.feedback("specifications-error")),active,
+        VBox information=new VBox(14,fields,Ui.field("Description",description,Ui.feedback("description-error")),new VBox(6,Ui.label("Specifications (optional)","field-label"),specifications),active,
             Ui.label("Deactivating a product hides it from the store and preserves existing receipts.","muted"));
         information.setMinWidth(0);HBox.setHgrow(information,Priority.ALWAYS);
         photos.setPrefWidth(240);photos.setMinWidth(210);photos.setMaxWidth(240);
-        form.getChildren().addAll(title,new HBox(20,information,photos),
-            new HBox(12,save,Ui.button("Cancel",()->form.setVisible(false))));
+        Button preview=Ui.button("Preview product",()->{
+            try {
+                Product candidate=new Product(editingId,name.getText(),category.getValue(),Money.parse(price.getText()),Ui.integer(stock.getText()),active.isSelected(),description.getText(),photos.getPhoto(),photos.getAdditionalPhotos(),specifications.getText(),photos.getFraming());
+                Dialog<Void> dialog=new Dialog<>();dialog.setTitle("Product preview · Unsaved draft");dialog.initOwner(getScene().getWindow());dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+                VBox content=new VBox(16,Ui.label(candidate.getName(),"page-title"),new ProductGallery(candidate),Ui.label(Money.format(candidate.getPrice()),"total"),Ui.label(candidate.getDescription(),"product-description"),Ui.label(candidate.getSpecifications(),"muted"));
+                javafx.scene.control.ScrollPane scroll=Ui.scroll(content);scroll.setPrefViewportWidth(650);scroll.setPrefViewportHeight(500);dialog.getDialogPane().setContent(scroll);dialog.showAndWait();
+            }catch(RuntimeException error){Ui.failure(feedback,error);}
+        });preview.setId("preview-product");
+        form.getChildren().addAll(title,Ui.responsiveColumns(information,photos,800,20),
+            new HBox(12,preview,save,Ui.button("Cancel",()->form.setVisible(false))));
         HBox stats=new HBox(36,activeCount,lowCount,photoCount);stats.getStyleClass().add("admin-stats");
         stats.visibleProperty().bind(form.visibleProperty().not());stats.managedProperty().bind(stats.visibleProperty());
         count.visibleProperty().bind(form.visibleProperty().not());count.managedProperty().bind(count.visibleProperty());
@@ -124,7 +132,7 @@ public final class AdminView extends VBox {
             .filter(p->state==0||(state==1)==p.isActive()).toList();
         activeCount.setText(all.stream().filter(Product::isActive).count()+" ACTIVE");
         lowCount.setText(all.stream().filter(p->p.isActive()&&p.getStock()<=5).count()+" LOW STOCK");
-        photoCount.setText(all.stream().filter(p->p.getPhoto()==null).count()+" NEED PHOTOS");
+        photoCount.setText(all.stream().filter(p->p.getPhoto()==null||p.getDescription().isBlank()||p.getSpecifications().isBlank()).count()+" NEED CONTENT");
         table.setItems(FXCollections.observableArrayList(rows));count.setText(rows.size()+(rows.size()==1?" product · ":" products · ")+all.stream().filter(p->p.isActive()&&p.getStock()<=5).count()+" active products low on stock (5 or fewer)");
     }
 }

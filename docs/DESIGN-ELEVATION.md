@@ -44,3 +44,8 @@ The MARKET navigation mark uses a 2 px orange pill outline with a soft stationar
 - Drawer focus cycles within the overlay and returns to the trigger, or the cart control when the toast trigger has disappeared. Existing reduced-motion, confirmation and order history behavior is retained.
 
 Actual catalog photo assignments remain administrator-controlled. Correct photography and real additional angles/specifications must be uploaded for the relevant products; the existing offline demo illustrations remain available.
+
+
+## Next UI implementation
+
+See [Approved next UI](NEXT-UI.md) for saved items/profile/address persistence, search suggestions, range filters, gallery zoom, order cards, Buy again, Undo, responsive layouts, photo framing and motion. Both existing campaign artworks/designs are retained.

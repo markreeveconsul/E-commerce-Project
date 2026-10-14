@@ -41,6 +41,7 @@ import javafx.util.Duration;
 /** Navigation and transient session state, never SQL or pricing rules. */
 public final class ShopWindow {
     private final Stage stage;private final Services services;
+    private final SavedItems saved;
     private final CatalogState catalogState=new CatalogState();
     private final TextField search=new TextField();
     private User user=new Guest();private Cart cart=new Cart(0),pendingGuestCart;
@@ -57,7 +58,7 @@ public final class ShopWindow {
     private Region drawerScrim;
     private boolean drawerClosing;
 
-    public ShopWindow(Stage stage,Services services){this.stage=stage;this.services=services;search.setId("search");}
+    public ShopWindow(Stage stage,Services services){this.stage=stage;this.services=services;this.saved=new SavedItems(services.accounts());search.setId("search");}
     public void showStorefront(){buildShell();showCatalog();}
     public void showLogin(){
         dismissDrawer();stopFeedbackAnimations();
@@ -66,6 +67,16 @@ public final class ShopWindow {
         HBox back=new HBox(browse);back.getStyleClass().add("store-footer");login.setBottom(back);stage.getScene().setRoot(login);
     }
     private void signedIn(User signedIn){
+        if(signedIn.canManageProducts()){saved.reset();completeSignIn(signedIn);return;}
+        java.util.Set<Long> guestSaved=saved.snapshot();
+        Ui.async(stage.getScene().getRoot(),"Loading saved items…",()->{
+            java.util.Set<Long> ids=new java.util.HashSet<>(services.accounts().saved(signedIn));
+            java.util.Set<Long> available=services.products().search(signedIn,"",null).stream().map(Product::getId).collect(java.util.stream.Collectors.toSet());
+            for(long id:guestSaved)if(available.contains(id)){services.accounts().saveItem(signedIn,id,true);ids.add(id);}
+            return ids;
+        },ids->{saved.signedIn(signedIn,ids);completeSignIn(signedIn);},Ui::error);
+    }
+    private void completeSignIn(User signedIn){
         CartService carts=new CartService(services.products());Cart previous=cart;
         if(signedIn.canManageProducts()){
             pendingGuestCart=previous.getCustomerId()==0?previous:null;user=signedIn;cart=new Cart(user.getId());buildShell();showAdmin();return;
@@ -82,7 +93,7 @@ public final class ShopWindow {
             Alert confirm=new Alert(Alert.AlertType.CONFIRMATION,"Sign out and discard this cart?",ButtonType.YES,ButtonType.NO);
             confirm.initOwner(stage);if(confirm.showAndWait().orElse(ButtonType.NO)!=ButtonType.YES)return;
         }
-        user=new Guest();cart=pendingGuestCart==null?new Cart(0):pendingGuestCart;pendingGuestCart=null;draft.clear();showStorefront();
+        user=new Guest();cart=pendingGuestCart==null?new Cart(0):pendingGuestCart;pendingGuestCart=null;draft.clear();saved.reset();showStorefront();
     }
     private Button link(String text,Runnable action){Button b=Ui.button(text,action);b.getStyleClass().add("header-link");return b;}
     private void buildShell(){
@@ -112,8 +123,9 @@ public final class ShopWindow {
             cartButton.setGraphic(StoreIcon.of("bag"));cartButton.getStyleClass().add("cart-button");
             Button account=link(user instanceof Guest?"Sign in":"My orders",user instanceof Guest?this::showLogin:this::showOrders);account.setId("account");
             account.setGraphic(StoreIcon.of("account"));
-            HBox right=new HBox(4,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);
-            if(!(user instanceof Guest))right.getChildren().add(link("Sign out",this::signOut));
+            Button favorites=link("",this::showSaved);favorites.setGraphic(StoreIcon.of("heart"));favorites.setId("nav-saved");favorites.setAccessibleText("Saved items");
+            HBox right=new HBox(4,favorites,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);
+            if(!(user instanceof Guest)){Button profile=link("Profile",this::showAccount);profile.setId("nav-profile");right.getChildren().addAll(profile,link("Sign out",this::signOut));}
             Button all=Ui.button("Shop all",()->category(0));navButtons.add(all);
             HBox categories=new HBox(6,all);categories.setAlignment(Pos.CENTER_LEFT);
             categories.getStyleClass().addAll("category-nav","integrated-categories");
@@ -121,7 +133,12 @@ public final class ShopWindow {
                 Button b=Ui.button(Ui.category(c),()->category(c.ordinal()+1));navButtons.add(b);categories.getChildren().add(b);
             }
             Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
-            HBox header=new HBox(20,logo,categories,spacer,right);
+            javafx.scene.control.MenuButton menu=new javafx.scene.control.MenuButton("Shop");menu.setId("compact-shop-menu");menu.getStyleClass().add("compact-menu");
+            javafx.scene.control.MenuItem allItem=new javafx.scene.control.MenuItem("Shop all");allItem.setOnAction(e->category(0));menu.getItems().add(allItem);
+            for(Category c:Category.values()){javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(c));item.setOnAction(e->category(c.ordinal()+1));menu.getItems().add(item);}
+            HBox header=new HBox(16,logo,categories,menu,spacer,right);
+            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(user instanceof Guest?1120:1200));categories.managedProperty().bind(categories.visibleProperty());
+            menu.visibleProperty().bind(categories.visibleProperty().not());menu.managedProperty().bind(menu.visibleProperty());
             header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
             Label announcement=Ui.label("GOOD FINDS. ZERO SHIPPING FEES.  /  Free shipping on every demo order","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
             shell.setTop(new VBox(announcement,header,operation));updateCart();
@@ -139,7 +156,7 @@ public final class ShopWindow {
         info.initOwner(stage);info.setTitle("About Market");info.setHeaderText("A small shop. Good things.");info.showAndWait();
     }
     private void category(int index){catalogState.setCategoryIndex(index);catalogState.setScrollPosition(0);search.clear();showCatalog();}
-    private void show(Node page){dismissDrawer();stopFeedbackAnimations();shell.setCenter(page);updateNav();}
+    private void show(Node page){dismissDrawer();stopFeedbackAnimations();shell.setCenter(page);if(!(page instanceof CatalogView))Motion.reveal(page);updateNav();}
 
     /** Highlights the header button for the current category, only while the storefront is showing. */
     private void updateNav(){
@@ -182,11 +199,11 @@ public final class ShopWindow {
         if(cartPulse!=null){cartPulse.stop();cartPulse=null;}
         if(cartButton!=null){cartButton.setScaleX(1);cartButton.setScaleY(1);}
     }
-    public void showCatalog(){show(new CatalogView(user,cart,services.products(),new CartService(services.products()),(Runnable)this::updateCart,(Runnable)this::showCartDrawer,(java.util.function.Consumer<Product>)this::showDetails,search,catalogState,(java.util.function.Consumer<String>)this::showToast,(Runnable)this::updateNav));}
+    public void showCatalog(){CatalogView catalog=new CatalogView(user,cart,services.products(),new CartService(services.products()),(Runnable)this::updateCart,(Runnable)this::showCartDrawer,(java.util.function.Consumer<Product>)this::showDetails,search,catalogState,(java.util.function.Consumer<String>)this::showToast,(Runnable)this::updateNav);catalog.enableSavedItems(saved);show(catalog);}
     private void showDetails(Product product){
         dismissDrawer();Ui.async(shell,"Opening product…",()->services.products().get(product.getId()),latest->{
             if(!latest.isActive()){showCatalog();return;}
-            show(new ProductDetailView(latest,user,cart,new CartService(services.products()),services.products(),this::updateCart,this::showCatalog,this::showCartDrawer,this::showDetails));
+            show(new ProductDetailView(latest,user,cart,new CartService(services.products()),services.products(),this::updateCart,this::showCatalog,this::showCartDrawer,this::showDetails,saved,this::showToast));
         },Ui::error);
     }
     public void showCartDrawer(){
@@ -258,8 +275,23 @@ public final class ShopWindow {
     public void showCheckout(){
         dismissDrawer();if(user instanceof Guest){showLogin();return;}
         if(cart.getItems().isEmpty()){showCart();return;}
-        show(new CheckoutView(user,cart,services.checkout(),draft,order->{updateCart();show(new ConfirmationView(order,this::showOrders,this::showCatalog));},this::showCart));
+        show(new CheckoutView(user,cart,services.checkout(),services.accounts(),draft,order->{updateCart();show(new ConfirmationView(order,this::showOrders,this::showCatalog));},this::showCart));
     }
-    public void showOrders(){show(new OrdersView(user,services.orders(),this::showCatalog));}
+    public void showOrders(){show(new OrdersView(user,services.orders(),services.products(),this::showCatalog,this::repeatOrder));}
     public void showAdmin(){show(new AdminView(user,services.products()));}
+    private void showSaved(){show(new SavedItemsView(user,cart,services.products(),saved,this::updateCart,this::showCatalog,this::showDetails,this::showToast));}
+    private void showAccount(){if(user instanceof Guest){showLogin();return;}show(new AccountView(user,services.accounts(),this::showSaved,this::showOrders));}
+    private void repeatOrder(edu.course.shop.model.Order order) {
+        CartService carts=new CartService(services.products());
+        Ui.async(shell,"Checking current availability…",()->carts.prepareRepeat(user,cart,order),plan->{
+            StringBuilder message=new StringBuilder("Current catalog prices:\n");
+            for(var line:plan.lines())message.append(line.quantity()).append(" × ").append(line.product().getName()).append(" · ").append(edu.course.shop.model.Money.format(line.product().getPrice())).append(" each\n");
+            if(!plan.unavailable().isEmpty())message.append("\nNot added:\n").append(String.join("\n",plan.unavailable()));
+            if(plan.lines().isEmpty()){Ui.info(message.toString());return;}
+            message.append("\nAdd available items to your cart? Existing quantities combine at the shown price.");
+            Alert confirm=new Alert(Alert.AlertType.CONFIRMATION,message.toString(),ButtonType.YES,ButtonType.NO);confirm.initOwner(stage);confirm.setHeaderText("Review Buy again");
+            if(confirm.showAndWait().orElse(ButtonType.NO)==ButtonType.YES)
+                Ui.async(shell,"Adding available items…",()->{carts.applyRepeat(user,cart,plan);return true;},done->{updateCart();showCart();},Ui::error);
+        },Ui::error);
+    }
 }

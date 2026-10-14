@@ -2,6 +2,7 @@ package edu.course.shop.ui;
 import edu.course.shop.model.*;
 import edu.course.shop.payment.*;
 import edu.course.shop.service.CheckoutService;
+import edu.course.shop.service.AccountService;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -9,6 +10,9 @@ import java.util.function.Consumer;
 
 public final class CheckoutView extends VBox {
     public CheckoutView(User user, Cart cart, CheckoutService checkout, CheckoutDraft draft, Consumer<Order> placed, Runnable back) {
+        this(user,cart,checkout,null,draft,placed,back);
+    }
+    public CheckoutView(User user,Cart cart,CheckoutService checkout,AccountService accounts,CheckoutDraft draft,Consumer<Order> placed,Runnable back) {
         getStyleClass().add("page"); setSpacing(18);
         TextArea address=new TextArea(draft.getAddress()); address.setWrapText(true);
         address.setPromptText("Street, building, unit or apartment"); address.setPrefRowCount(2); address.setId("address");
@@ -59,7 +63,16 @@ public final class CheckoutView extends VBox {
         VBox deliveryCard=new VBox(14,Ui.label("Delivery details","section-title"),Ui.field("Recipient name",recipient,recipientError),
             Ui.field("Street address",address,addressError),new HBox(14,cityField,postalField));
         deliveryCard.getStyleClass().add("card");
-        VBox paymentCard=new VBox(14,Ui.label("Payment","section-title"),Ui.field("Payment method",payment,paymentError),explanation,
+        if(accounts!=null) {
+            ComboBox<AccountService.SavedAddress> addresses=new ComboBox<>();addresses.setId("checkout-saved-address");addresses.setPromptText("Use a saved address");addresses.setMaxWidth(Double.MAX_VALUE);addresses.setAccessibleText("Use a saved delivery address");addresses.setVisible(false);addresses.managedProperty().bind(addresses.visibleProperty());
+            addresses.setOnAction(e->{if(addresses.getValue()!=null){DeliveryAddress value=addresses.getValue().address();recipient.setText(value.recipient());address.setText(value.street());city.setText(value.city());postal.setText(value.postalCode());}});
+            deliveryCard.getChildren().add(1,addresses);
+            javafx.application.Platform.runLater(()->Ui.async(this,"Loading saved addresses…",()->accounts.addresses(user),rows->{addresses.getItems().setAll(rows);addresses.setVisible(!rows.isEmpty());},error->Ui.failure(feedback,error)));
+        }
+        javafx.scene.control.ToggleGroup paymentGroup=new javafx.scene.control.ToggleGroup();FlowPane paymentChoices=new FlowPane(12,12);
+        for(int i=0;i<2;i++) {int index=i;ToggleButton choice=new ToggleButton(i==0?"Cash on delivery":"Simulated wallet");choice.setId(i==0?"payment-cash":"payment-wallet");choice.getStyleClass().add("payment-choice");choice.setToggleGroup(paymentGroup);choice.setSelected(payment.getSelectionModel().getSelectedIndex()==i);choice.setOnAction(e->{payment.getSelectionModel().select(index);choice.setSelected(true);});paymentChoices.getChildren().add(choice);}
+        payment.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->{for(int i=0;i<2;i++)((ToggleButton)paymentChoices.getChildren().get(i)).setSelected(b.intValue()==i);});
+        VBox paymentCard=new VBox(14,Ui.label("Payment","section-title"),paymentChoices,Ui.field("Payment method",payment,paymentError),explanation,
             Ui.label("Course demo · Payments are simulated.","notice"));
         paymentCard.getStyleClass().add("card");
         VBox form=new VBox(16,deliveryCard,paymentCard,feedback); form.setMinWidth(0); HBox.setHgrow(form,Priority.ALWAYS);

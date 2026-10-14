@@ -30,6 +30,9 @@ public final class CatalogView extends VBox {
     private boolean clearing, restoring;
     private final TilePane grid=new TilePane(20,24);
     private final TextField search;
+    private final TextField minimum=new TextField(),maximum=new TextField();
+    private SavedItems saved;
+    public void enableSavedItems(SavedItems saved){this.saved=saved;}
     private final CatalogState state;
     private final Consumer<Product> details;
     private final ComboBox<String> category=new ComboBox<>(),sort=new ComboBox<>(),budget=new ComboBox<>();
@@ -78,8 +81,11 @@ public final class CatalogView extends VBox {
         search.setOnAction(e->find.fire());
         HBox searchRow=new HBox(8,search,find);searchRow.setAlignment(Pos.CENTER_RIGHT);
         Button toggle=Ui.button("Filters +",()->{});toggle.setId("toggle-filters");
+        minimum.setText(state.getMinimumPrice());maximum.setText(state.getMaximumPrice());minimum.setPromptText("Min USD");maximum.setPromptText("Max USD");minimum.setId("minimum-price");maximum.setId("maximum-price");minimum.setPrefWidth(100);maximum.setPrefWidth(100);minimum.setAccessibleText("Minimum price in USD");maximum.setAccessibleText("Maximum price in USD");
+        Button applyRange=Ui.button("Apply price",this::filterChanged);applyRange.setId("apply-price-range");minimum.setOnAction(e->filterChanged());maximum.setOnAction(e->filterChanged());
+        new SearchSuggestions(search,user,products,details,()->{state.setScrollPosition(0);refresh();});
         Button clearFilters=Ui.button("Clear filters",this::clear);clearFilters.setId("clear-filters");
-        FlowPane filters=new FlowPane(12,12,category,budget,available,clearFilters);
+        FlowPane filters=new FlowPane(12,12,category,budget,minimum,maximum,applyRange,available,clearFilters);
         filters.setId("catalog-filters");filters.getStyleClass().add("filter-bar");filters.setAlignment(Pos.CENTER_LEFT);
         filters.setVisible(state.isFiltersExpanded());filters.managedProperty().bind(filters.visibleProperty());
         Runnable syncToggle=()->{toggle.setText(filters.isVisible()?"Filters −":"Filters +");
@@ -92,6 +98,7 @@ public final class CatalogView extends VBox {
         toolbar.getStyleClass().add("catalog-toolbar");
         chips.setId("filter-chips");chips.managedProperty().bind(chips.visibleProperty());
         results.getChildren().add(grid);
+
         VBox collection=new VBox(16,toolbar,filters,chips,feedback,results);collection.getStyleClass().add("collection-section");
         VBox content=new VBox(0);
         hero=new EditorialHeader(()->{
@@ -151,22 +158,29 @@ public final class CatalogView extends VBox {
     }
     private void clear() {
         clearing=true;search.clear();category.getSelectionModel().selectFirst();sort.getSelectionModel().selectFirst();
-        budget.getSelectionModel().selectFirst();available.setSelected(false);clearing=false;filterChanged();
+        budget.getSelectionModel().selectFirst();minimum.clear();maximum.clear();state.setPriceRange("","");available.setSelected(false);clearing=false;filterChanged();
     }
     private void refresh() {
         if(clearing||(getScene()!=null&&getScene().getRoot().isDisabled()))return;
         String query=search.getText();int index=category.getSelectionModel().getSelectedIndex(),ordering=sort.getSelectionModel().getSelectedIndex(),cap=budget.getSelectionModel().getSelectedIndex();
         Category group=index==0?null:Category.values()[index-1];
-        BigDecimal maximum=cap==0?null:BigDecimal.valueOf(new int[]{0,25,50,100}[cap]);
+        BigDecimal capPrice=cap==0?null:BigDecimal.valueOf(new int[]{0,25,50,100}[cap]);
+        BigDecimal lower,upper;
+        try {lower=parseRange(minimum.getText());upper=parseRange(maximum.getText());if(lower!=null&&upper!=null&&lower.compareTo(upper)>0)throw new IllegalArgumentException();Ui.flag(minimum,false);Ui.flag(maximum,false);}
+        catch(RuntimeException e){Ui.flag(minimum,true);Ui.flag(maximum,true);Ui.failure(feedback,new edu.course.shop.exception.ValidationException("Enter a valid price range (minimum cannot exceed maximum)."));return;}
+        state.setPriceRange(minimum.getText(),maximum.getText());
         boolean inStock=available.isSelected();double previousScroll=state.getScrollPosition();
         state.setCategoryIndex(index);state.setSortIndex(ordering);state.setBudgetIndex(cap);state.setInStockOnly(inStock);
         if(navSync!=null)navSync.run(); // header highlights the category chosen via the filter dropdown too
-        Ui.async(this,"Finding products…",()->products.search(user,query,group,inStock,maximum),rows->{
-            List<Product> sorted=new ArrayList<>(rows);
+        javafx.animation.PauseTransition loadingDelay=new javafx.animation.PauseTransition(javafx.util.Duration.millis(250));
+        loadingDelay.setOnFinished(e->results.getChildren().setAll(Ui.skeleton()));loadingDelay.play();
+        sceneProperty().addListener((o,a,b)->{if(b==null)loadingDelay.stop();});
+        Ui.async(this,"Finding products…",()->products.search(user,query,group,inStock,capPrice).stream().filter(p->lower==null||p.getPrice().compareTo(lower)>=0).filter(p->upper==null||p.getPrice().compareTo(upper)<=0).toList(),rows->{
+            loadingDelay.stop();List<Product> sorted=new ArrayList<>(rows);
             if(ordering==1)sorted.sort(Comparator.comparing(Product::getPrice));
             if(ordering==2)sorted.sort(Comparator.comparing(Product::getPrice).reversed());
             restoring=true;grid.getChildren().clear();
-            for(Product p:sorted)grid.getChildren().add(new ProductCard(p,()->add(p),()->details.accept(p)));
+            for(Product p:sorted){ProductCard card=new ProductCard(p,()->add(p),()->details.accept(p));if(saved!=null)card.enableSavedItems(saved);grid.getChildren().add(card);}
             title.setText(!query.isBlank()?"Search results":index==0?"The everyday edit":Ui.category(group));
             result.setText(sorted.size()+(sorted.size()==1?" item":" items")+" · USD");feedback.setText("");
             results.getChildren().setAll(sorted.isEmpty()?Ui.empty("No products found","Try a different search or remove a filter.","Clear filters",this::clear):grid);
@@ -174,13 +188,14 @@ public final class CatalogView extends VBox {
             if(!query.isBlank())chip("Search: "+query,()->{search.clear();filterChanged();});
             if(index>0)chip(Ui.category(group),()->category.getSelectionModel().selectFirst());
             if(cap>0)chip(budget.getValue(),()->budget.getSelectionModel().selectFirst());
+            if(lower!=null||upper!=null)chip("Price: "+(lower==null?"0":lower)+"–"+(upper==null?"any":upper),()->{minimum.clear();maximum.clear();filterChanged();});
             if(inStock)chip("In stock",()->{available.setSelected(false);filterChanged();});
             if(!chips.getChildren().isEmpty()) {
                 Button clear=Ui.link("Clear filters",this::clear);clear.setId("clear-active-filters");chips.getChildren().add(clear);
             }
             chips.setVisible(!chips.getChildren().isEmpty());
             Platform.runLater(()->{scroll.setVvalue(previousScroll);restoring=false;});
-        },error->Ui.failure(feedback,error));
+        },error->{loadingDelay.stop();results.getChildren().setAll(Ui.empty("Could not load products","Your search is kept. Try again.","Retry",this::refresh));Ui.failure(feedback,error);});
     }
     private void chip(String text,Runnable remove) { Button b=Ui.button(text+"  ×",remove);b.getStyleClass().add("filter-chip");b.setAccessibleText("Remove "+text+" filter");chips.getChildren().add(b); }
     private void add(Product product) {
@@ -191,5 +206,9 @@ public final class CatalogView extends VBox {
             if(toast!=null)toast.accept("✓ "+product.getName()+" added to cart");
             else Ui.success(feedback,"✓ "+product.getName()+" added. Open your cart whenever you're ready.");
         },error->Ui.failure(feedback,error));
+    }
+    private static BigDecimal parseRange(String value) {
+        if(value.isBlank())return null;BigDecimal price=new BigDecimal(value.trim());
+        if(price.signum()<0||price.scale()>2||price.compareTo(new BigDecimal("1000000"))>0)throw new IllegalArgumentException();return price;
     }
 }

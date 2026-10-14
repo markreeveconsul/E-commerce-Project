@@ -14,6 +14,8 @@ public final class Product {
     private final byte[] photo;
     private final java.util.List<byte[]> additionalPhotos;
     private final String specifications;
+    private final PhotoFrame photoFrame;
+    public PhotoFrame getPhotoFrame() { return photoFrame; }
     public Product(long id, String name, Category category, BigDecimal price, int stock, boolean active) {
         this(id, name, category, price, stock, active, "", null);
     }
@@ -22,6 +24,12 @@ public final class Product {
     }
     public Product(long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
                    byte[] photo,java.util.List<byte[]> additionalPhotos,String specifications) {
+        this(id,name,category,price,stock,active,description,photo,additionalPhotos,specifications,PhotoFrame.AUTO);
+    }
+    public Product(long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
+                   byte[] photo,java.util.List<byte[]> additionalPhotos,String specifications,PhotoFrame frame) {
+        if(frame==null)throw new ValidationException("Choose photo framing.");
+        this.photoFrame=frame;
         if(additionalPhotos==null||additionalPhotos.size()>4)throw new ValidationException("Add at most four additional photos.");
         if(photo==null&&!additionalPhotos.isEmpty())throw new ValidationException("Choose a main photo before adding gallery photos.");
         if(specifications==null||specifications.length()>1000)throw new ValidationException("Specifications must be at most 1,000 characters.");
