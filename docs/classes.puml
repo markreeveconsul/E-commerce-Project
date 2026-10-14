@@ -55,10 +55,14 @@ class Product {
   -active : boolean
   -description : String
   -photo : byte[]
+  -additionalPhotos : List<byte[]>
+  -specifications : String
   +Product(id, name, category, price, stock, active)
   +Product(id, name, category, price, stock, active, description, photo)
   +getDescription() : String
   +getPhoto() : byte[]
+  +getAdditionalPhotos() : List<byte[]>
+  +getSpecifications() : String
   +getId() : long
   +getName() : String
   +getCategory() : Category
@@ -380,6 +384,8 @@ ProductArtwork *-- CollectionArtwork
 CatalogView *-- CollectionArtwork
 ShopWindow ..> StoreIcon
 CatalogView ..> StoreIcon
+ProductDetailView *-- ProductGallery
+ProductGallery ..> ProductArtwork
 ProductDetailView ..> ProductArtwork
 ProductDetailView ..> CartService
 AdminView ..> ProductPhotoEditor

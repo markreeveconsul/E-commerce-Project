@@ -32,3 +32,15 @@ Login uses the supplied PC cutout with “POWER UP. STAND OUT.” on a full-heig
 Catalog frames are square. Opaque uploads fill with a centered, proportional crop; transparent cutouts have alpha margins removed and fit within 88% of the frame, retaining the complete subject. Details and photo editor retain the full-image view. Center cropping can hide edges of unusually tall/wide opaque photos; use transparent product cutouts when the complete silhouette is essential. Image assignment remains controlled by the administrator: a headphone photo attached to “Mechanical keyboard” must be replaced with the correct product photo.
 
 The MARKET navigation mark uses a 2 px orange pill outline with a soft stationary glow, slightly brighter on hover.
+
+## Approved wireframe implementation
+
+- The storefront headset hero is preserved. Only the login variant now fills 98% of its panel width with the supplied PC, clipped proportionally below the copy for the approved oversized composition.
+- Product details show a larger full-image gallery, thumbnails only for actual uploaded angles, short description preview and optional real specifications. No alternate angles or hardware claims are fabricated.
+- Admin editing supports four additional photos alongside the main photo and specifications (up to 1,000 characters). PNG/JPEG image validation applies to every gallery upload.
+- Catalog quick-add confirms success briefly; a window-level toast includes Review cart. Active chips include Clear filters, and empty results offer the same recovery action.
+- Larger cart item imagery, line amounts, stronger totals and orange purchase actions establish purchase hierarchy. Stock-limit plus controls disable in the cart and drawer; services still revalidate stock.
+- Compact cart/checkout stack their columns and share one outer scroller. Checkout retains field values and focuses the first invalid field. The order action includes the actual total.
+- Drawer focus cycles within the overlay and returns to the trigger, or the cart control when the toast trigger has disappeared. Existing reduced-motion, confirmation and order history behavior is retained.
+
+Actual catalog photo assignments remain administrator-controlled. Correct photography and real additional angles/specifications must be uploaded for the relevant products; the existing offline demo illustrations remain available.

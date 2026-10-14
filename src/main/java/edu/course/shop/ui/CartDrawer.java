@@ -37,7 +37,7 @@ public final class CartDrawer extends VBox {
 
             // Quantity stepper: one pill holding − qty +, instead of three loose buttons.
             Button minus=Ui.button("−",()->update(p,item.getQuantity()-1));minus.setDisable(item.getQuantity()<=1);minus.setId("drawer-minus-"+p.getId());
-            Button plus=Ui.button("+",()->update(p,item.getQuantity()+1));plus.setId("drawer-plus-"+p.getId());
+            Button plus=Ui.button("+",()->update(p,item.getQuantity()+1));plus.setId("drawer-plus-"+p.getId());plus.setDisable(item.getQuantity()>=p.getStock());
             minus.getStyleClass().add("stepper-button");plus.getStyleClass().add("stepper-button");
             minus.setAccessibleText("Decrease "+p.getName());plus.setAccessibleText("Increase "+p.getName());
             Label quantity=Ui.label(Integer.toString(item.getQuantity()),"field-label");
@@ -56,7 +56,7 @@ public final class CartDrawer extends VBox {
         VBox totalBox=new VBox(6,Ui.label("Subtotal","field-label"),Ui.label(Money.format(cart.getTotal()),"total"),
             Ui.label("USD · Free shipping · No taxes in this demo","muted"));totalBox.getStyleClass().add("drawer-total");
         Button pay=Ui.primary(user instanceof Guest?"Sign in to checkout":"Checkout",checkout);pay.setId("drawer-checkout");
-        pay.setMaxWidth(Double.MAX_VALUE);pay.getStyleClass().add("cta");
+        pay.setMaxWidth(Double.MAX_VALUE);pay.getStyleClass().addAll("cta","purchase-action");
         Button reviewButton=Ui.button("Review cart",review);reviewButton.setId("drawer-review");reviewButton.setMaxWidth(Double.MAX_VALUE);
         Button keepBrowsing=Ui.link("Keep browsing",close);keepBrowsing.setMaxWidth(Double.MAX_VALUE);
         bottom.getChildren().addAll(totalBox,pay,reviewButton,keepBrowsing);

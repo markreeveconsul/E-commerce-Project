@@ -35,6 +35,8 @@ public final class AdminView extends VBox {
         search.textProperty().addListener((o,a,b)->filter()); status.setOnAction(e->filter()); filterCategory.setOnAction(e->filter());
         TextArea description=new TextArea(); description.setId("product-description"); description.setPrefRowCount(3); description.setWrapText(true);
         description.setPromptText("Describe the product's materials, purpose, or features (up to 1,000 characters).");
+        TextArea specifications=new TextArea();specifications.setId("product-specifications-input");specifications.setPrefRowCount(3);specifications.setWrapText(true);
+        specifications.setPromptText("Optional: one real specification per line, e.g. Material: Cotton (up to 1,000 characters).");
         ProductPhotoEditor photos=new ProductPhotoEditor();
         TextField name=new TextField(),price=new TextField(),stock=new TextField();
         name.setId("product-name"); price.setId("product-price"); stock.setId("product-stock");
@@ -55,14 +57,14 @@ public final class AdminView extends VBox {
         Runnable clearErrors=()-> { nameError.setText(""); priceError.setText(""); stockError.setText(""); categoryError.setText(""); };
         Runnable refresh=()->Ui.async(this,"Loading inventory…",()->products.search(admin,"",null),rows->{all=rows;filter();},error->Ui.failure(feedback,error));
         Runnable create=()-> {
-            photos.setPhoto(null); description.clear();
+            photos.setPhotos(null,List.of()); description.clear();specifications.clear();
             clearErrors.run(); editingId=0; name.clear(); price.clear(); stock.setText("0"); category.getSelectionModel().selectFirst(); active.setSelected(true);
             title.setText("New product"); form.setVisible(true); name.requestFocus();
         };
         Runnable edit=()-> {
             Product p=table.getSelectionModel().getSelectedItem();
             if(p==null){feedback.setText("Select the product you want to edit.");return;}
-            photos.setPhoto(p.getPhoto()); description.setText(p.getDescription());
+            photos.setPhotos(p.getPhoto(),p.getAdditionalPhotos()); description.setText(p.getDescription());specifications.setText(p.getSpecifications());
             clearErrors.run(); editingId=p.getId(); name.setText(p.getName()); price.setText(p.getPrice().toPlainString());
             stock.setText(Integer.toString(p.getStock())); category.setValue(p.getCategory()); active.setSelected(p.isActive());
             title.setText("Edit product #"+editingId); form.setVisible(true); name.requestFocus();
@@ -86,8 +88,8 @@ public final class AdminView extends VBox {
             if(category.getValue()==null){categoryError.setText("Choose a category.");valid=false;}
             if(!valid)return;
             long id=editingId;String value=name.getText();Category group=category.getValue();BigDecimal cost=amount;int qty=quantity;boolean enabled=active.isSelected();
-            String details=description.getText();byte[] selectedPhoto=photos.getPhoto();
-            Ui.async(this,"Saving product…",()->{products.save(admin,id,value,group,cost,qty,enabled,details,selectedPhoto);return true;},done-> {
+            String details=description.getText(),specs=specifications.getText();byte[] selectedPhoto=photos.getPhoto();List<byte[]> angles=photos.getAdditionalPhotos();
+            Ui.async(this,"Saving product…",()->{products.save(admin,id,value,group,cost,qty,enabled,details,selectedPhoto,angles,specs);return true;},done-> {
                 form.setVisible(false);Ui.success(feedback,"✓ "+value.trim()+" saved.");refresh.run();
             },error->Ui.failure(feedback,error));
         });
@@ -97,7 +99,7 @@ public final class AdminView extends VBox {
         fields.getColumnConstraints().addAll(left,right);
         fields.add(Ui.field("Product name",name,nameError),0,0);fields.add(Ui.field("Category",category,categoryError),1,0);
         fields.add(Ui.field("Price (USD)",price,priceError),0,1);fields.add(Ui.field("Stock quantity",stock,stockError),1,1);
-        VBox information=new VBox(14,fields,Ui.field("Description",description,Ui.feedback("description-error")),active,
+        VBox information=new VBox(14,fields,Ui.field("Description",description,Ui.feedback("description-error")),Ui.field("Specifications (optional)",specifications,Ui.feedback("specifications-error")),active,
             Ui.label("Deactivating a product hides it from the store and preserves existing receipts.","muted"));
         information.setMinWidth(0);HBox.setHgrow(information,Priority.ALWAYS);
         photos.setPrefWidth(240);photos.setMinWidth(210);photos.setMaxWidth(240);

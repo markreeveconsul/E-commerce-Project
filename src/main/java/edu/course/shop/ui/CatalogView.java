@@ -78,7 +78,8 @@ public final class CatalogView extends VBox {
         search.setOnAction(e->find.fire());
         HBox searchRow=new HBox(8,search,find);searchRow.setAlignment(Pos.CENTER_RIGHT);
         Button toggle=Ui.button("Filters +",()->{});toggle.setId("toggle-filters");
-        FlowPane filters=new FlowPane(12,12,category,budget,available,Ui.button("Clear filters",this::clear));
+        Button clearFilters=Ui.button("Clear filters",this::clear);clearFilters.setId("clear-filters");
+        FlowPane filters=new FlowPane(12,12,category,budget,available,clearFilters);
         filters.setId("catalog-filters");filters.getStyleClass().add("filter-bar");filters.setAlignment(Pos.CENTER_LEFT);
         filters.setVisible(state.isFiltersExpanded());filters.managedProperty().bind(filters.visibleProperty());
         Runnable syncToggle=()->{toggle.setText(filters.isVisible()?"Filters −":"Filters +");
@@ -168,12 +169,15 @@ public final class CatalogView extends VBox {
             for(Product p:sorted)grid.getChildren().add(new ProductCard(p,()->add(p),()->details.accept(p)));
             title.setText(!query.isBlank()?"Search results":index==0?"The everyday edit":Ui.category(group));
             result.setText(sorted.size()+(sorted.size()==1?" item":" items")+" · USD");feedback.setText("");
-            results.getChildren().setAll(sorted.isEmpty()?Ui.empty("No products found","Try a different search or remove a filter.","Reset search & filters",this::clear):grid);
+            results.getChildren().setAll(sorted.isEmpty()?Ui.empty("No products found","Try a different search or remove a filter.","Clear filters",this::clear):grid);
             chips.getChildren().clear();
             if(!query.isBlank())chip("Search: "+query,()->{search.clear();filterChanged();});
             if(index>0)chip(Ui.category(group),()->category.getSelectionModel().selectFirst());
             if(cap>0)chip(budget.getValue(),()->budget.getSelectionModel().selectFirst());
             if(inStock)chip("In stock",()->{available.setSelected(false);filterChanged();});
+            if(!chips.getChildren().isEmpty()) {
+                Button clear=Ui.link("Clear filters",this::clear);clear.setId("clear-active-filters");chips.getChildren().add(clear);
+            }
             chips.setVisible(!chips.getChildren().isEmpty());
             Platform.runLater(()->{scroll.setVvalue(previousScroll);restoring=false;});
         },error->Ui.failure(feedback,error));
@@ -182,6 +186,7 @@ public final class CatalogView extends VBox {
     private void add(Product product) {
         Ui.async(this,"Adding to cart…",()->{carts.add(user,cart,product.getId(),1);return true;},done->{
             changed.run();
+            if(grid.lookup("#product-"+product.getId()) instanceof ProductCard card)card.confirmAdded();
             // A floating toast is visible wherever the user has scrolled; the inline label can be off-screen.
             if(toast!=null)toast.accept("✓ "+product.getName()+" added to cart");
             else Ui.success(feedback,"✓ "+product.getName()+" added. Open your cart whenever you're ready.");

@@ -14,12 +14,12 @@ public final class ProductDetailView extends VBox {
         Label feedback=Ui.feedback("detail-feedback");
         Spinner<Integer> quantity=new Spinner<>(1,Math.max(1,product.getStock()),1);quantity.setId("detail-quantity");
         quantity.setAccessibleText("Quantity");quantity.setPrefWidth(100);
-        // One dominant action: the price is part of the button, so the decision is made in one place.
-        Button add=Ui.primary("Add to cart · "+Money.format(product.getPrice()),()->Ui.async(this,"Adding to cart…",()->{
+        // One dominant purchase action beside the price and stock status.
+        Button add=Ui.primary(product.getStock()==0?"Sold out":"Add to cart",()->Ui.async(this,"Adding to cart…",()->{
             carts.add(user,cart,product.getId(),quantity.getValue());return true;
         },done->{changed.run();Ui.success(feedback,"✓ Added to your cart.");},error->Ui.failure(feedback,error)));
         add.setId("detail-add");add.setDisable(!product.isActive()||product.getStock()==0);add.setMaxWidth(Double.MAX_VALUE);
-        add.getStyleClass().add("cta");
+        add.getStyleClass().addAll("cta","purchase-action");
         quantity.setDisable(product.getStock()==0);
         TitledPane description=section("Product details",product.getDescription().isBlank()?
             "The seller has not added a description yet.":product.getDescription());description.setExpanded(true);description.setId("product-details-panel");
@@ -34,19 +34,14 @@ public final class ProductDetailView extends VBox {
         Button viewCart=Ui.link("View cart",openCart);viewCart.setId("detail-view-cart");
 
         // Reading order: category, name, price + stock, quantity, Add to cart, then the fine print.
+        String details=product.getDescription();
+        Label preview=Ui.label(details.length()>160?details.substring(0,160)+"…":details,"product-description");
+        preview.setVisible(!details.isBlank());preview.managedProperty().bind(preview.visibleProperty());
         VBox info=new VBox(14,Ui.label(Ui.category(product.getCategory())+" · #"+product.getId(),"eyebrow"),
-            Ui.label(product.getName(),"page-title"),priceRow,quantityRow,add,feedback,viewCart,description,delivery,stock);
-        info.getStyleClass().add("detail-info");info.setMinWidth(320);info.setPrefWidth(390);info.setMaxWidth(440);
+            Ui.label(product.getName(),"page-title"),priceRow,preview,quantityRow,add,feedback,viewCart,description,specifications(product),delivery,stock);
+        info.getStyleClass().add("detail-info");info.setMinWidth(300);info.setPrefWidth(420);info.setMaxWidth(460);
 
-        ProductArtwork art=new ProductArtwork(product,420);HBox.setHgrow(art,Priority.ALWAYS);
-        Button photo=Ui.button("",()->{
-            Dialog<Void> zoom=new Dialog<>();zoom.setTitle(product.getName());zoom.initOwner(getScene().getWindow());
-            zoom.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);zoom.getDialogPane().setContent(new ProductArtwork(product,520));zoom.showAndWait();
-        });photo.setGraphic(art);photo.getStyleClass().add("photo-button");photo.setId("zoom-photo");photo.setAccessibleText("Enlarge product photo");
-        art.prefWidthProperty().bind(photo.widthProperty().subtract(4));photo.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(photo,Priority.ALWAYS);
-        String caption=product.getPhoto()!=null?"Select photo to enlarge.":CollectionArtwork.supports(product.getName())?
-            "Product illustration · Actual product may vary.":"Photo not available yet.";
-        VBox gallery=new VBox(12,photo,Ui.label(caption,"muted"));gallery.setMinWidth(0);HBox.setHgrow(gallery,Priority.ALWAYS);
+        ProductGallery gallery=new ProductGallery(product);HBox.setHgrow(gallery,Priority.ALWAYS);
         HBox columns=new HBox(32,gallery,info);columns.setAlignment(Pos.TOP_LEFT);
 
         // Related products reuse ProductCard, so they look and behave exactly like the storefront grid.
@@ -59,12 +54,26 @@ public final class ProductDetailView extends VBox {
             for(Product p:rows.stream().filter(p->p.getId()!=product.getId()).limit(4).toList()){
                 ProductCard card=new ProductCard(p,()->Ui.async(this,"Adding to cart…",()->{
                     carts.add(user,cart,p.getId(),1);return true;
-                },done->{changed.run();Ui.success(feedback,"✓ "+p.getName()+" added to your cart.");},error->Ui.failure(feedback,error)),
+                },done->{changed.run();if(suggestions.lookup("#product-"+p.getId()) instanceof ProductCard added)added.confirmAdded();Ui.success(feedback,"✓ "+p.getName()+" added to your cart.");},error->Ui.failure(feedback,error)),
                     ()->openProduct.accept(p));
                 card.setPrefWidth(220);suggestions.getChildren().add(card);
             }
             related.setVisible(!suggestions.getChildren().isEmpty());
         },error->Ui.failure(feedback,error)));
+    }
+    private TitledPane specifications(Product product) {
+        VBox values=new VBox(12);
+        values.getChildren().addAll(Ui.row("Category",Ui.category(product.getCategory()),"muted","field-label"),
+            Ui.row("Product ID",Long.toString(product.getId()),"muted","field-label"));
+        for(String line:product.getSpecifications().lines().filter(s->!s.isBlank()).toList()) {
+            int separator=line.indexOf(':');
+            if(separator>0) {
+                Label key=Ui.label(line.substring(0,separator).trim(),"muted"),value=Ui.label(line.substring(separator+1).trim(),"field-label");
+                key.setMinWidth(0);value.setMinWidth(0);key.setPrefWidth(130);value.setPrefWidth(180);
+                HBox.setHgrow(value,Priority.ALWAYS);values.getChildren().add(new HBox(16,key,value));
+            } else values.getChildren().add(Ui.label(line,"product-description"));
+        }
+        TitledPane pane=new TitledPane("Specifications",values);pane.setId("product-specifications");pane.setAnimated(false);pane.setExpanded(true);return pane;
     }
     private TitledPane section(String title,String text) {
         TitledPane pane=new TitledPane(title,Ui.label(text,"product-description"));pane.setExpanded(false);pane.setAnimated(false);return pane;

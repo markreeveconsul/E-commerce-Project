@@ -38,7 +38,7 @@ public final class LoginView extends StackPane {
             Ui.async(this,"Signing you in…",()->auth.login(name,secret),user->{ password.clear(); signedIn.accept(user); },
                 error->Ui.failure(feedback,error));
         });
-        login.setId("login"); login.setDefaultButton(true); login.setMaxWidth(Double.MAX_VALUE); login.getStyleClass().add("cta");
+        login.setId("login"); login.setDefaultButton(true); login.setMaxWidth(Double.MAX_VALUE); login.getStyleClass().addAll("cta","purchase-action");
 
         // Demo shortcuts: handy for the project defense, and they only fill the fields (the user still signs in).
         // Remove this block before treating the app as a real store.

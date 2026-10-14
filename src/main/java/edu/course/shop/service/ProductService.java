@@ -36,10 +36,22 @@ public final class ProductService {
     }
     public void save(User actor, long id, String name, Category category, BigDecimal price, int stock, boolean active, String description, byte[] photo) {
         if (actor == null || !actor.canManageProducts()) throw new ValidationException("Administrator access is required.");
+        Product existing=id==0?null:get(id);
+        save(actor,id,name,category,price,stock,active,description,photo,
+            photo==null||existing==null?List.of():existing.getAdditionalPhotos(),existing==null?"":existing.getSpecifications());
+    }
+    public void save(User actor,long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
+                     byte[] photo,List<byte[]> additionalPhotos,String specifications) {
+        if(actor==null||!actor.canManageProducts())throw new ValidationException("Administrator access is required.");
         byte[] snapshot = photo == null ? null : photo.clone();
         ProductPhotos.validate(snapshot);
-        Product product = new Product(id, name, category, price, stock, active, description, snapshot);
-        try (Connection c = database.open()) { products.save(c, product); }
+        Product product = new Product(id, name, category, price, stock, active, description, snapshot,additionalPhotos,specifications);
+        for(byte[] bytes:product.getAdditionalPhotos())ProductPhotos.validate(bytes);
+        try (Connection c = database.open()) {
+            c.setAutoCommit(false);
+            try {products.save(c,product);c.commit();}
+            catch(SQLException|RuntimeException error){c.rollback();throw error;}
+        }
         catch (SQLException e) { throw new StorageException(e); }
     }
 }

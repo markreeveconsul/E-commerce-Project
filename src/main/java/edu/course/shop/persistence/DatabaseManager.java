@@ -34,6 +34,8 @@ public final class DatabaseManager {
             try (ResultSet r = s.executeQuery("PRAGMA table_info(products)")) { while (r.next()) columns.add(r.getString("name")); }
             if (!columns.contains("description")) s.executeUpdate("ALTER TABLE products ADD COLUMN description TEXT NOT NULL DEFAULT ''");
             if (!columns.contains("photo")) s.executeUpdate("ALTER TABLE products ADD COLUMN photo BLOB");
+            if (!columns.contains("specifications")) s.executeUpdate("ALTER TABLE products ADD COLUMN specifications TEXT NOT NULL DEFAULT ''");
+            s.executeUpdate("CREATE TABLE IF NOT EXISTS product_photos (product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE, position INTEGER NOT NULL CHECK(position BETWEEN 0 AND 3), photo BLOB NOT NULL, PRIMARY KEY(product_id,position))");
             int userCount;
             try (ResultSet r = s.executeQuery("SELECT COUNT(*) FROM users")) { r.next(); userCount = r.getInt(1); }
             if (userCount == 0) {

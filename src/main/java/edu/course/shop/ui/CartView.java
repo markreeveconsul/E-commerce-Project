@@ -36,17 +36,17 @@ public final class CartView extends VBox {
         VBox lines=new VBox(12); lines.setId("cart-items"); lines.setMinWidth(0); HBox.setHgrow(lines,Priority.ALWAYS);
         for(CartItem item:cart.getItems()) lines.getChildren().add(line(item));
         Button next=Ui.primary(user instanceof Guest?"Sign in to checkout":"Continue to checkout",checkout); next.setId("checkout");
-        next.setMaxWidth(Double.MAX_VALUE); next.getStyleClass().add("cta");
-        HBox split=new HBox(20,lines,new OrderSummary(cart,next)); split.setAlignment(Pos.TOP_LEFT);
+        next.setMaxWidth(Double.MAX_VALUE); next.getStyleClass().addAll("cta","purchase-action");
+        VBox split=Ui.purchaseColumns(lines,new OrderSummary(cart,next));split.setId("cart-columns");
         Button keepShopping=Ui.link("← Continue shopping",browse); keepShopping.setMaxWidth(Region.USE_PREF_SIZE);
         body.getChildren().addAll(split,keepShopping);
     }
     private VBox line(CartItem item) {
         Product p=item.getProduct();
-        VBox title=new VBox(4,Ui.label(p.getName(),"product-name"),Ui.label(Money.format(p.getPrice())+" each","muted"));
+        VBox title=new VBox(4,Ui.label(p.getName(),"product-name"),Ui.label(Money.format(p.getPrice())+" each","muted"),Ui.label(p.getStock()==0?"Currently sold out":p.getStock()+" available","muted"));
         title.setMinWidth(0); HBox.setHgrow(title,Priority.ALWAYS);
         Label subtotal=Ui.label(Money.format(item.getSubtotal()),"price");
-        ProductArtwork art=new ProductArtwork(p,72); Ui.round(art,16);
+        ProductArtwork art=new ProductArtwork(p,120);art.setPrefWidth(150);art.setMaxWidth(150); Ui.round(art,4);
         HBox header=new HBox(14,art,title,subtotal); header.setAlignment(Pos.CENTER_LEFT);
 
         // Same pill stepper as the cart drawer; the number is still typeable.
@@ -63,7 +63,7 @@ public final class CartView extends VBox {
         quantity.setOnAction(e->update.fire());
         Button minus=Ui.button("−",()->update(p,item.getQuantity()-1)); minus.setDisable(item.getQuantity()<=1);
         minus.setAccessibleText("Decrease quantity of "+p.getName()); minus.setId("minus-"+p.getId());
-        Button plus=Ui.button("+",()->update(p,item.getQuantity()+1)); plus.setId("plus-"+p.getId());
+        Button plus=Ui.button("+",()->update(p,item.getQuantity()+1)); plus.setId("plus-"+p.getId());plus.setDisable(item.getQuantity()>=p.getStock());
         plus.setAccessibleText("Increase quantity of "+p.getName());
         minus.getStyleClass().add("stepper-button"); plus.getStyleClass().add("stepper-button");
         HBox stepper=new HBox(2,minus,quantity,plus); stepper.getStyleClass().add("stepper"); stepper.setAlignment(Pos.CENTER);
@@ -72,7 +72,7 @@ public final class CartView extends VBox {
         // Typed quantities commit on Enter or Update; +/- buttons commit immediately.
         Region gap=new Region(); HBox.setHgrow(gap,Priority.ALWAYS);
         HBox actions=new HBox(10,stepper,update,gap,remove); actions.setAlignment(Pos.CENTER_LEFT);
-        VBox row=new VBox(14,header,actions); row.getStyleClass().add("cart-row"); row.setId("cart-line-"+p.getId()); return row;
+        VBox row=new VBox(14,header,actions); row.getStyleClass().addAll("cart-row","cart-item"); row.setId("cart-line-"+p.getId()); return row;
     }
     private void update(Product p,int count) {
         Ui.async(this,"Updating cart…",()-> { carts.update(user,cart,p.getId(),count); return true; },done-> {

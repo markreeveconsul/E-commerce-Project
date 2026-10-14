@@ -27,7 +27,7 @@ These are public demonstration credentials. Password hashes, rather than plainte
 
 - Role-based login and service-level permission checks.
 - Guest storefront, product details, name search, category filtering, and price sorting.
-- Admin photo uploads with preview, replacement/removal, and persistent descriptions.
+- Admin main-photo and gallery uploads (up to five photos), preview, replacement/removal, persistent descriptions and optional specifications.
 - Admin create/edit, stock adjustments, and product deactivation.
 - Per-item cart controls, live cart counts, removal, and shared order summaries.
 - Cash on delivery and simulated wallet approval/decline.

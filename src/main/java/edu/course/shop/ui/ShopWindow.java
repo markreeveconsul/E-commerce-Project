@@ -50,7 +50,7 @@ public final class ShopWindow {
     // Header selection and brief action-feedback animations.
     private final List<Button> navButtons=new ArrayList<>();
     private int lastCartCount=-1;
-    private Label toast;private SequentialTransition toastAnimation;
+    private Label toast;private HBox toastBar;private SequentialTransition toastAnimation;
     private ScaleTransition cartPulse;
     private ParallelTransition drawerAnimation;
     private CartDrawer activeDrawer;
@@ -89,9 +89,13 @@ public final class ShopWindow {
         dismissDrawer();stopFeedbackAnimations();
         shell=new BorderPane();
         // The toast sits in the window stack, above the page and below the cart drawer.
-        toast=new Label();toast.getStyleClass().add("toast");toast.setOpacity(0);toast.setMouseTransparent(true);
-        StackPane.setAlignment(toast,Pos.BOTTOM_CENTER);StackPane.setMargin(toast,new Insets(0,0,64,0));
-        window=new StackPane(shell,toast);overlay=null;navButtons.clear();lastCartCount=-1;
+        toast=new Label();toast.setId("cart-toast-message");toast.setWrapText(true);toast.setMinWidth(0);HBox.setHgrow(toast,Priority.ALWAYS);
+        Button review=Ui.button("Review cart →",this::showCartDrawer);review.setId("toast-review-cart");review.getStyleClass().add("toast-action");
+        toastBar=new HBox(16,toast,review);toastBar.setId("cart-toast");toastBar.getStyleClass().add("toast");toastBar.setAlignment(Pos.CENTER);
+        toastBar.setMinWidth(0);toastBar.setMaxWidth(720);toastBar.setMaxHeight(Region.USE_PREF_SIZE);toastBar.setOpacity(0);
+        toastBar.visibleProperty().bind(toastBar.opacityProperty().greaterThan(0));
+        StackPane.setAlignment(toastBar,Pos.BOTTOM_CENTER);StackPane.setMargin(toastBar,new Insets(0,24,64,24));
+        window=new StackPane(shell,toastBar);overlay=null;navButtons.clear();lastCartCount=-1;
         Label operation=Ui.feedback("operation-status");operation.getStyleClass().add("operation");
         if(user.canManageProducts()){
             Button inventory=Ui.button("Inventory",this::showAdmin);inventory.setId("nav-inventory");
@@ -166,15 +170,15 @@ public final class ShopWindow {
     private void showToast(String message){
         if(toast==null)return;
         toast.setText(message);if(toastAnimation!=null)toastAnimation.stop();
-        FadeTransition in=new FadeTransition(Duration.millis(Motion.isReduced()?1:150),toast);in.setToValue(1);
-        PauseTransition hold=new PauseTransition(Duration.seconds(2.2));
-        FadeTransition out=new FadeTransition(Duration.millis(Motion.isReduced()?1:150),toast);out.setToValue(0);
+        FadeTransition in=new FadeTransition(Duration.millis(Motion.isReduced()?1:150),toastBar);in.setToValue(1);
+        PauseTransition hold=new PauseTransition(Duration.seconds(4));
+        FadeTransition out=new FadeTransition(Duration.millis(Motion.isReduced()?1:150),toastBar);out.setToValue(0);
         toastAnimation=new SequentialTransition(in,hold,out);toastAnimation.play();
     }
 
     private void stopFeedbackAnimations(){
         if(toastAnimation!=null){toastAnimation.stop();toastAnimation=null;}
-        if(toast!=null)toast.setOpacity(0);
+        if(toastBar!=null)toastBar.setOpacity(0);
         if(cartPulse!=null){cartPulse.stop();cartPulse=null;}
         if(cartButton!=null){cartButton.setScaleX(1);cartButton.setScaleY(1);}
     }
@@ -186,18 +190,35 @@ public final class ShopWindow {
         },Ui::error);
     }
     public void showCartDrawer(){
-        if(overlay!=null)return;previousFocus=stage.getScene().getFocusOwner();
+        if(overlay!=null)return;previousFocus=stage.getScene().getFocusOwner();stopFeedbackAnimations();
         drawerClosing=false;
         drawerScrim=new Region();drawerScrim.getStyleClass().add("drawer-scrim");
         drawerScrim.setOnMouseClicked(e->closeDrawer());drawerScrim.setOpacity(0);
         activeDrawer=new CartDrawer(user,cart,new CartService(services.products()),this::updateCart,this::closeDrawer,this::showCart,this::showCheckout);
         overlay=new StackPane(drawerScrim,activeDrawer);StackPane.setAlignment(activeDrawer,Pos.CENTER_RIGHT);
-        overlay.setOnKeyPressed(e->{if(e.getCode()==KeyCode.ESCAPE){closeDrawer();e.consume();}});
+        overlay.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,e->{
+            if(e.getCode()==KeyCode.ESCAPE){closeDrawer();e.consume();}
+            else if(e.getCode()==KeyCode.TAB) {
+                List<Node> focusable=new ArrayList<>();drawerFocusNodes(activeDrawer,focusable);
+                if(!focusable.isEmpty()) {
+                    int index=focusable.indexOf(stage.getScene().getFocusOwner());
+                    focusable.get(Math.floorMod(index+(e.isShiftDown()?-1:1),focusable.size())).requestFocus();
+                }
+                e.consume();
+            }
+        });
         shell.setDisable(true);window.getChildren().add(overlay);
         // Lay out first so the slide distance also works in a smaller window.
         window.applyCss();window.layout();activeDrawer.setTranslateX(activeDrawer.getWidth());
         animateDrawer(0,1,null);
         activeDrawer.lookup("#close-cart-drawer").requestFocus();
+    }
+    private static void drawerFocusNodes(Node node,List<Node> result) {
+        if(!node.isVisible()||node.isDisabled())return;
+        if(node.isFocusTraversable())result.add(node);
+        // Control skins have their own internal focus handling; visit layout containers only.
+        if(node instanceof javafx.scene.control.ScrollPane scroll)drawerFocusNodes(scroll.getContent(),result);
+        else if(node instanceof javafx.scene.layout.Pane pane)for(Node child:pane.getChildren())drawerFocusNodes(child,result);
     }
     private void animateDrawer(double x,double opacity,Runnable finished){
         if(drawerAnimation!=null)drawerAnimation.stop();
@@ -225,8 +246,13 @@ public final class ShopWindow {
             dismissDrawer();
             // Reflect drawer edits without losing the checkout draft.
             if(shell.getCenter() instanceof CartView)showCart();else if(shell.getCenter() instanceof CheckoutView)showCheckout();
-            if(previousFocus!=null&&previousFocus.getScene()==stage.getScene())previousFocus.requestFocus();
+            if(previousFocus!=null&&previousFocus.getScene()==stage.getScene()&&canFocus(previousFocus))previousFocus.requestFocus();
+            else if(cartButton!=null)cartButton.requestFocus();
         });
+    }
+    private static boolean canFocus(Node node) {
+        for(Node current=node;current!=null;current=current.getParent())if(!current.isVisible()||current.isDisabled())return false;
+        return true;
     }
     public void showCart(){show(new CartView(user,cart,new CartService(services.products()),this::updateCart,this::showCheckout,this::showCatalog));}
     public void showCheckout(){

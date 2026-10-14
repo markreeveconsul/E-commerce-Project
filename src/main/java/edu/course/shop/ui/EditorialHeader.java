@@ -85,9 +85,9 @@ public final class EditorialHeader extends StackPane {
             edition.getStyleClass().add("account-edition");
             StackPane artwork=new StackPane(productReveal);artwork.setMinSize(0,0);
             VBox.setVgrow(artwork,Priority.ALWAYS);
-            headset.fitHeightProperty().bind(javafx.beans.binding.Bindings.max(1,artwork.heightProperty().subtract(24)));
-            headset.fitWidthProperty().bind(javafx.beans.binding.Bindings.max(1,artwork.widthProperty().subtract(56)));
-            StackPane.setAlignment(headset,Pos.CENTER);
+            // Campaign crop: fill the panel width and clip the oversized case below the copy.
+            headset.fitWidthProperty().bind(javafx.beans.binding.Bindings.max(1,artwork.widthProperty().multiply(.98)));
+            StackPane.setAlignment(headset,Pos.TOP_CENTER);Ui.round(artwork,0);
             VBox content=new VBox(0,copy,artwork,edition);content.setMinSize(0,0);
             getChildren().addAll(glow,rings,new CircuitAccents(),content);
         } else {

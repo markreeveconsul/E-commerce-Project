@@ -140,6 +140,25 @@ public final class Ui {
         return scroll;
     }
 
+    /** Stack purchase columns in compact windows, sharing one outer scroll surface. */
+    public static VBox purchaseColumns(javafx.scene.layout.Region form,javafx.scene.layout.Region summary) {
+        VBox content=new VBox(24);content.setMinWidth(0);
+        HBox columns=new HBox(24);columns.setAlignment(Pos.TOP_LEFT);HBox.setHgrow(form,Priority.ALWAYS);
+        boolean[] stacked={false};columns.getChildren().addAll(form,summary);content.getChildren().add(columns);
+        content.widthProperty().addListener((o,a,b)->{
+            boolean compact=b.doubleValue()<920;if(stacked[0]==compact)return;stacked[0]=compact;
+            Node focus=content.getScene()==null?null:content.getScene().getFocusOwner();
+            boolean restore=false;
+            for(Node node=focus;node!=null;node=node.getParent())if(node==form||node==summary){restore=true;break;}
+            columns.getChildren().clear();content.getChildren().clear();
+            summary.setMaxWidth(compact?Double.MAX_VALUE:330);
+            if(compact)content.getChildren().addAll(form,summary);
+            else{columns.getChildren().addAll(form,summary);content.getChildren().add(columns);}
+            if(restore&&focus!=null)focus.requestFocus();
+        });
+        summary.setMaxWidth(330);return content;
+    }
+
     public static VBox empty(String title, String detail, String action, Runnable callback) {
         VBox box = new VBox(14, label(title, "section-title"), label(detail, "muted"), primary(action, callback));
         box.setAlignment(Pos.CENTER);

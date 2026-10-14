@@ -235,3 +235,18 @@
 .account-edition { -fx-padding: 12 32 24 32; -fx-text-fill: #F08B63; }
 .password-toggle { -fx-min-width: 48; -fx-text-fill: -signal; }
 .login-card .text-field:focused { -fx-effect: dropshadow(gaussian, rgba(230,84,54,.14), 5, .15, 0, 0); }
+
+/* Purchase hierarchy is scoped to shopping controls, leaving campaign styles intact. */
+.button.purchase-action, .button.added-confirmation {
+    -fx-background-color: #E65436; -fx-border-color: #E65436; -fx-text-fill: #171719;
+}
+.button.purchase-action:hover, .button.added-confirmation:hover { -fx-background-color: #F08B63; -fx-border-color: #F08B63; }
+.button.purchase-action:focused { -fx-border-color: #171719; -fx-border-width: 2; }
+.button.purchase-action:disabled { -fx-background-color: #E8E8E5; -fx-border-color: #E8E8E5; -fx-text-fill: -ink-muted; -fx-opacity: 1; }
+.button.gallery-thumbnail { -fx-padding: 3; -fx-min-height: 0; -fx-background-radius: 4; -fx-border-radius: 4; -fx-border-color: -line; }
+.button.gallery-selected { -fx-border-color: -signal; -fx-border-width: 2; }
+.button.gallery-thumbnail:focused { -fx-border-color: -ink; }
+.cart-row.cart-item { -fx-padding: 20 0; -fx-border-color: transparent transparent -line transparent; -fx-background-radius: 0; }
+.toast .label { -fx-text-fill: white; }
+.button.toast-action { -fx-text-fill: white; -fx-background-color: transparent; -fx-border-color: #77777A; -fx-font-size: 12px; -fx-min-height: 34; -fx-padding: 6 12; }
+.button.toast-action:focused { -fx-border-color: #F08B63; }

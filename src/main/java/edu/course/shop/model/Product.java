@@ -12,10 +12,24 @@ public final class Product {
     private final boolean active;
     private final String description;
     private final byte[] photo;
+    private final java.util.List<byte[]> additionalPhotos;
+    private final String specifications;
     public Product(long id, String name, Category category, BigDecimal price, int stock, boolean active) {
         this(id, name, category, price, stock, active, "", null);
     }
     public Product(long id, String name, Category category, BigDecimal price, int stock, boolean active, String description, byte[] photo) {
+        this(id,name,category,price,stock,active,description,photo,java.util.List.of(),"");
+    }
+    public Product(long id,String name,Category category,BigDecimal price,int stock,boolean active,String description,
+                   byte[] photo,java.util.List<byte[]> additionalPhotos,String specifications) {
+        if(additionalPhotos==null||additionalPhotos.size()>4)throw new ValidationException("Add at most four additional photos.");
+        if(photo==null&&!additionalPhotos.isEmpty())throw new ValidationException("Choose a main photo before adding gallery photos.");
+        if(specifications==null||specifications.length()>1000)throw new ValidationException("Specifications must be at most 1,000 characters.");
+        this.additionalPhotos=additionalPhotos.stream().map(bytes->{
+            if(bytes==null||bytes.length==0||bytes.length>5*1024*1024)throw new ValidationException("Choose a nonempty gallery photo smaller than 5 MB.");
+            return bytes.clone();
+        }).toList();
+        this.specifications=specifications.trim();
         if (description == null || description.length() > 1000) throw new ValidationException("Description must be at most 1,000 characters.");
         if (photo != null && photo.length > 5 * 1024 * 1024) throw new ValidationException("Photo must be smaller than 5 MB.");
         this.description = description.trim(); this.photo = photo == null ? null : photo.clone();
@@ -28,6 +42,8 @@ public final class Product {
     }
     public String getDescription() { return description; }
     public byte[] getPhoto() { return photo == null ? null : photo.clone(); }
+    public java.util.List<byte[]> getAdditionalPhotos() { return additionalPhotos.stream().map(byte[]::clone).toList(); }
+    public String getSpecifications() { return specifications; }
     public long getId() { return id; }
     public String getName() { return name; }
     public Category getCategory() { return category; }
