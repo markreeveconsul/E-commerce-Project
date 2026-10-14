@@ -27,7 +27,7 @@ public final class CheckoutView extends VBox {
         payment.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->draft.setPaymentIndex(b.intValue()));
         Label explanation=Ui.label(payment.getValue() instanceof CashOnDeliveryPayment ? "Pay when your order arrives. Payment stays pending." : "A simulated wallet payment. No real money is collected.", "muted");
         payment.setOnAction(e->{explanation.setText(payment.getValue() instanceof CashOnDeliveryPayment
-            ? "Pay when your order arrives. Payment stays pending." : "A simulated wallet payment. No real money is collected.");Ui.flag(payment,false);});
+            ? "Pay when your order arrives. Payment stays pending." : "A simulated wallet payment. No real money is collected.");paymentError.setText("");Ui.flag(payment,false);});
         Button place=Ui.primary("Place order",()-> {
             String delivery=address.getText(); PaymentMethod method=payment.getValue();
             addressError.setText(""); paymentError.setText(""); feedback.setText("");
@@ -60,11 +60,11 @@ public final class CheckoutView extends VBox {
             Ui.label("No real money is collected. The decline option lets you test a failed payment.","notice"));
         paymentCard.getStyleClass().add("card");
         VBox form=new VBox(16,deliveryCard,paymentCard,feedback); form.setMinWidth(0); HBox.setHgrow(form,Priority.ALWAYS);
-        ScrollPane formScroll=Ui.scroll(form);HBox.setHgrow(formScroll,Priority.ALWAYS);formScroll.setMinWidth(0);
-        HBox columns=new HBox(24,formScroll,new OrderSummary(cart,place));VBox.setVgrow(columns,Priority.ALWAYS);
+        // Scroll both columns together so the summary and payment remain reachable in short windows.
+        HBox columns=new HBox(24,form,new OrderSummary(cart,place));columns.setAlignment(Pos.TOP_LEFT);
 
         Button backLink=Ui.link("← Back to cart",back);backLink.setMaxWidth(Region.USE_PREF_SIZE);
-        getChildren().addAll(backLink,Ui.label("Checkout","page-title"),steps(),columns);
+        getChildren().addAll(backLink,Ui.label("Checkout","page-title"),steps(),Ui.scroll(columns));
     }
 
     /** Progress indicator: finished step, current step (filled pill), upcoming step. */

@@ -100,11 +100,13 @@ public final class ShopWindow {
             nav.getChildren().addAll(space,Ui.label(user.getUsername(),"account"),Ui.button("Sign out",this::signOut));
             nav.getStyleClass().add("sidebar");nav.setPrefWidth(190);shell.setLeft(nav);shell.setTop(operation);cartButton=null;
         }else{
-            search.setPromptText("Find something good…");search.setAccessibleText("Search products");search.setMinWidth(130);search.setPrefWidth(260);
+            search.setPromptText("Search the collection");search.setAccessibleText("Search products");search.setMinWidth(130);search.setPrefWidth(260);
             Runnable find=()->{catalogState.setScrollPosition(0);showCatalog();};search.setOnAction(e->find.run());
             Button logo=Ui.button("MARKET",()->category(0));logo.getStyleClass().add("brand-link");
             cartButton=link("Cart · 0",this::showCartDrawer);cartButton.setId("nav-cart");
+            cartButton.setGraphic(StoreIcon.of("bag"));cartButton.getStyleClass().add("cart-button");
             Button account=link(user instanceof Guest?"Sign in":"My orders",user instanceof Guest?this::showLogin:this::showOrders);account.setId("account");
+            account.setGraphic(StoreIcon.of("account"));
             HBox right=new HBox(4,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);
             if(!(user instanceof Guest))right.getChildren().add(link("Sign out",this::signOut));
             Button all=Ui.button("Shop all",()->category(0));navButtons.add(all);
@@ -116,7 +118,7 @@ public final class ShopWindow {
             Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
             HBox header=new HBox(20,logo,categories,spacer,right);
             header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
-            Label announcement=Ui.label("Free shipping on every order in this demo","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
+            Label announcement=Ui.label("GOOD FINDS. ZERO SHIPPING FEES.  /  Free shipping on every demo order","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
             shell.setTop(new VBox(announcement,header,operation));updateCart();
         }
         // Footer: two real labels pushed apart, instead of one label padded with spaces.

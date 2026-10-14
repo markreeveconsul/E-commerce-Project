@@ -1,3 +1,9 @@
+# Current design elevation verification — October 14, 2026
+
+Linux / Temurin 21.0.12.1 / Maven 3.9.9 / JavaFX 21.0.6: **26 backend tests passed** and **61 GUI assertions passed**, with 24 scene snapshots. The smoke harness uses Xvfb, software rendering and a fresh isolated SQLite database. New coverage includes campaign dimensions/actions, visible search, offline illustrations, collection shortcuts (including clearing a search in the same category), and compact collection tiles. An existing stale payment-validation error was found and fixed. Screens were inspected at 1280×860 and 960×680. Native file-picker and presentation-machine keyboard/display checks remain manual.
+
+See [Design elevation](DESIGN-ELEVATION.md) for the current direction. The following evidence describes the previous Windows verification.
+
 # Testing evidence
 
 Updated and verified on October 13, 2026 (Asia/Singapore), using Windows and JDK 26.0.1.

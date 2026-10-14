@@ -44,7 +44,9 @@ public final class ProductDetailView extends VBox {
             zoom.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);zoom.getDialogPane().setContent(new ProductArtwork(product,520));zoom.showAndWait();
         });photo.setGraphic(art);photo.getStyleClass().add("photo-button");photo.setId("zoom-photo");photo.setAccessibleText("Enlarge product photo");
         art.prefWidthProperty().bind(photo.widthProperty().subtract(4));photo.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(photo,Priority.ALWAYS);
-        VBox gallery=new VBox(8,photo,Ui.label(product.getPhoto()==null?"Photo not available yet.":"Select photo to enlarge.","muted"));gallery.setMinWidth(0);HBox.setHgrow(gallery,Priority.ALWAYS);
+        String caption=product.getPhoto()!=null?"Select photo to enlarge.":CollectionArtwork.supports(product.getName())?
+            "Product illustration · Actual product may vary.":"Photo not available yet.";
+        VBox gallery=new VBox(12,photo,Ui.label(caption,"muted"));gallery.setMinWidth(0);HBox.setHgrow(gallery,Priority.ALWAYS);
         HBox columns=new HBox(32,gallery,info);columns.setAlignment(Pos.TOP_LEFT);
 
         // Related products reuse ProductCard, so they look and behave exactly like the storefront grid.

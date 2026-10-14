@@ -1,384 +1,222 @@
-/* MARKET theme v3
-   Same class names as before, so your FXML and Java code need no changes.
-   Direction: Nike-style for electronics. Flat product cards, bold type, square hero,
-   near-black primary action, red (-signal) as the only loud color.
-   Palette is defined once on .root as looked-up colors. Change it there only. */
-
+/* MARKET / Everyday collection. Original Nike-inspired editorial direction.
+   Shared tokens keep the storefront, receipts, forms and inventory consistent. */
 .root {
-    /* palette C: Mono + Signal. Neutrals do 90% of the work; red is the only loud color. */
     -brand: #18181B;
-    -brand-dark: #000000;
-    -brand-soft: #F4F4F5;
     -ink: #18181B;
-    -ink-muted: #71717A;
-    -line: #E4E4E7;
-    -line-strong: #D4D4D8;
+    -ink-muted: #646467;
+    -line: #E4E4E4;
     -surface: #FFFFFF;
-    -canvas: #FAFAFA;
-    -tint: #F4F4F5;
-    -signal: #E5391C;
-    -success: #15803D;
-    -success-soft: #DCFCE7;
-    -danger: #B3261E;
-    -danger-soft: #FEE4E2;
-
-    /* focus ring: one consistent, visible ring everywhere */
-    -fx-focus-color: -brand;
-    -fx-faint-focus-color: transparent;
-
-    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -canvas: #FFFFFF;
+    -tint: #F5F5F3;
+    -signal: #D83921;
+    -danger: #A72820;
+    -fx-font-family: "System";
     -fx-font-size: 14px;
     -fx-background-color: -canvas;
     -fx-text-fill: -ink;
+    -fx-focus-color: -signal;
+    -fx-faint-focus-color: transparent;
 }
-
-/* ---------- Typography (scale: 12 / 14 / 16 / 20 / 28 / 36 / 64) ---------- */
 .label { -fx-text-fill: -ink; }
-.page { -fx-padding: 28 32; }
-.page-title { -fx-font-size: 32px; -fx-font-weight: bold; }
-.hero-title { -fx-font-size: 36px; -fx-font-weight: bold; }
+.page { -fx-padding: 32 40; }
+.page-title, .collection-title, .hero-title, .hero-headline, .closing-title, .brand, .brand-link { -fx-font-family: "Archivo Black"; }
+.page-title { -fx-font-size: 34px; }
+.collection-title { -fx-font-size: 28px; }
 .section-title { -fx-font-size: 20px; -fx-font-weight: bold; }
-.collection-title { -fx-font-size: 28px; -fx-font-weight: bold; }
-.brand { -fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: -brand; }
-.eyebrow { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ink-muted; }
+.hero-title { -fx-font-size: 46px; }
+.brand { -fx-font-size: 30px; }
+.eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ink-muted; }
 .muted { -fx-text-fill: -ink-muted; -fx-font-size: 13px; }
 .account, .field-label { -fx-font-weight: bold; }
-.total { -fx-font-size: 28px; -fx-font-weight: bold; }
-.price { -fx-font-size: 20px; -fx-font-weight: bold; }
+.total { -fx-font-size: 30px; -fx-font-weight: bold; }
+.price { -fx-font-size: 18px; -fx-font-weight: bold; }
 
-/* Heavy display font for headlines (optional).
-   1) Put a font file (e.g. ArchivoBlack-Regular.ttf) in resources/fonts/
-   2) In ShopApp.start(): Font.loadFont(getClass().getResourceAsStream("/fonts/ArchivoBlack-Regular.ttf"), 14);
-   3) Uncomment the rule below (use the family name Font.loadFont reports).
-   Only enable it after the font loads, otherwise JavaFX falls back to its default font.
-.hero-title, .page-title, .collection-title { -fx-font-family: "Archivo Black"; }
-*/
-
-/* ---------- Buttons: primary / secondary / text ---------- */
+/* Actions and visible keyboard focus. */
 .button {
-    -fx-background-color: -surface;
-    -fx-text-fill: -ink;
-    -fx-padding: 9 18;
-    -fx-background-radius: 20;
-    -fx-border-radius: 20;
-    -fx-border-color: -line-strong;
-    -fx-border-width: 1;
-    -fx-cursor: hand;
-    -fx-font-weight: bold;
-    -fx-min-height: 40;
+    -fx-background-color: -surface; -fx-text-fill: -ink; -fx-padding: 10 20;
+    -fx-background-radius: 24; -fx-border-radius: 24; -fx-border-color: #D5D5D5;
+    -fx-border-width: 1; -fx-cursor: hand; -fx-font-weight: bold; -fx-min-height: 42;
 }
-.button:hover { -fx-background-color: -brand-soft; -fx-border-color: -brand; }
-.button:pressed { -fx-background-color: #E4E4E7; -fx-translate-y: 1; }
-.button:focused { -fx-border-color: -brand; -fx-border-width: 2; -fx-effect: dropshadow(gaussian, rgba(24,24,27,0.30), 6, 0.4, 0, 0); }
-.button:disabled { -fx-opacity: 0.45; }
+.button:hover { -fx-background-color: #EFEFED; -fx-border-color: -ink; }
+.button:pressed { -fx-background-color: #E5E5E3; }
+.button:focused { -fx-border-color: -signal; -fx-effect: dropshadow(gaussian, rgba(216,57,33,0.30), 6, 0.4, 0, 0); }
+.button:disabled { -fx-opacity: .45; }
+.button.primary, .quick-add { -fx-background-color: -brand; -fx-text-fill: white; -fx-border-color: -brand; }
+.button.primary:hover, .quick-add:hover { -fx-background-color: #3C3C3F; -fx-border-color: #3C3C3F; }
+.cta { -fx-min-height: 52; -fx-font-size: 15px; }
+.text-button, .link-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-effect: null; -fx-padding: 8 2; -fx-min-height: 34; -fx-font-weight: normal; -fx-text-fill: -ink-muted; }
+.text-button { -fx-text-fill: -danger; -fx-underline: true; }
+.text-button:hover, .link-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -ink; -fx-underline: true; }
+.link-button:focused, .text-button:focused { -fx-border-color: -signal; }
+.icon-button { -fx-padding: 0; -fx-min-width: 40; -fx-pref-width: 40; -fx-font-size: 24px; }
 
-.button.primary {
-    -fx-background-color: -brand;
-    -fx-text-fill: white;
-    -fx-border-color: -brand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 8, 0.2, 0, 2);
-}
-.button.primary:hover { -fx-background-color: -brand-dark; -fx-border-color: -brand-dark; }
-.button.primary:pressed { -fx-background-color: #27272A; }
-.button.primary:focused { -fx-border-color: -signal; -fx-border-width: 2; }
-
-.text-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: -danger;
-    -fx-underline: true;
-    -fx-padding: 6 4;
-    -fx-effect: null;
-}
-.text-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #8A1C14; }
-
-/* ---------- Inputs ---------- */
+/* Inputs. */
 .text-field, .text-area, .combo-box, .spinner {
-    -fx-background-color: -surface;
-    -fx-border-color: -line-strong;
-    -fx-border-width: 1;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 9 12;
-    -fx-prompt-text-fill: -ink-muted;
+    -fx-background-color: -surface; -fx-border-color: #D5D5D5; -fx-border-width: 1;
+    -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10 12; -fx-prompt-text-fill: -ink-muted;
 }
-.text-field:hover, .text-area:hover, .combo-box:hover { -fx-border-color: -ink-muted; }
-.text-field:focused, .text-area:focused, .combo-box:focused, .spinner:focused {
-    -fx-border-color: -brand;
-    -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, rgba(24,24,27,0.12), 6, 0.3, 0, 0);
-}
-.text-area .content { -fx-background-color: -surface; -fx-background-radius: 10; }
+.text-field:hover, .text-area:hover, .combo-box:hover { -fx-border-color: #8A8A8A; }
+.text-field:focused, .text-area:focused, .combo-box:focused, .spinner:focused { -fx-border-color: -signal; }
+.text-area .content { -fx-background-color: -surface; -fx-background-radius: 4; }
 .spinner { -fx-padding: 0; }
-.spinner .text-field { -fx-border-color: transparent; -fx-effect: null; }
-.combo-box { -fx-padding: 3 6; }
-.combo-box .list-cell { -fx-text-fill: -ink; -fx-padding: 6 8; }
-.combo-box-popup .list-view { -fx-background-color: -surface; -fx-border-color: -line; -fx-background-radius: 10; -fx-border-radius: 10; }
-.combo-box-popup .list-cell:hover { -fx-background-color: -brand-soft; }
+.spinner .text-field { -fx-border-color: transparent; }
+.combo-box { -fx-padding: 4 6; }
+.combo-box .list-cell { -fx-text-fill: -ink; -fx-padding: 7 8; }
+.combo-box-popup .list-view { -fx-background-color: -surface; -fx-border-color: -line; }
+.combo-box-popup .list-cell:hover { -fx-background-color: -tint; }
 .combo-box-popup .list-cell:selected { -fx-background-color: -brand; -fx-text-fill: white; }
 .check-box { -fx-text-fill: -ink; }
-.check-box .box { -fx-background-color: -surface; -fx-border-color: -line-strong; -fx-border-radius: 5; -fx-background-radius: 5; }
+.check-box .box { -fx-background-color: -surface; -fx-border-color: #B5B5B5; -fx-border-radius: 3; -fx-background-radius: 3; }
 .check-box:selected .box { -fx-background-color: -brand; -fx-border-color: -brand; }
 .check-box:selected .mark { -fx-background-color: white; }
+.invalid { -fx-border-color: -danger; }
 
-/* ---------- Surfaces ---------- */
-.card, .login-card, .summary, .cart-row {
-    -fx-background-color: -surface;
-    -fx-padding: 22;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-    -fx-border-color: -line;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 16, 0.1, 0, 4);
-}
-.summary { -fx-background-color: -tint; -fx-border-color: -line; -fx-padding: 18; }
-.summary .section-title { -fx-font-size: 18px; }
-.summary-value { -fx-font-weight: bold; -fx-font-size: 16px; }
-.summary-item { -fx-font-size: 14px; }
+/* Store navigation. */
+.store-announcement { -fx-background-color: -tint; -fx-text-fill: -ink; -fx-padding: 9 24; -fx-font-size: 11px; -fx-alignment: center; }
+.store-header { -fx-padding: 17 32; -fx-background-color: -surface; -fx-border-color: transparent transparent -line transparent; }
+.brand-link { -fx-background-color: transparent; -fx-font-size: 29px; -fx-padding: 0 4; -fx-border-color: transparent; -fx-effect: null; }
+.brand-link:hover { -fx-background-color: transparent; -fx-border-color: transparent; }
+.header-link { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 9 12; -fx-effect: null; -fx-font-weight: normal; -fx-graphic-text-gap: 10; }
+.header-link:hover { -fx-background-color: -tint; -fx-border-color: transparent; }
+.button.cart-button { -fx-background-color: -brand; -fx-text-fill: white; -fx-border-color: -brand; -fx-padding: 10 18; }
+.button.cart-button:hover { -fx-background-color: #3C3C3F; -fx-border-color: #3C3C3F; }
+.cart-button .store-icon { -fx-stroke: white; }
+.category-nav { -fx-padding: 0; }
+.category-nav .button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 10 12; -fx-background-radius: 0; -fx-border-radius: 0; -fx-font-size: 13px; }
+.category-nav .button:hover { -fx-border-color: transparent transparent #AAAAAA transparent; }
+.category-nav .category-active, .category-nav .category-active:hover { -fx-border-color: transparent transparent -ink transparent; -fx-border-width: 0 0 2 0; }
+.store-footer { -fx-padding: 8 32; -fx-background-color: -surface; -fx-border-color: -line transparent transparent transparent; }
+.store-footer .muted { -fx-font-size: 11px; }
 
-/* ---------- Hero: full-bleed, square, ready for an image ----------
-   To add your banner:  -fx-background-image: url("/images/hero.jpg");
-   For the dark gradient, put a Region with style class "hero-shade" above the image in a StackPane
-   (JavaFX CSS cannot draw a gradient over a background image on the same node). */
-.hero {
-    -fx-background-color: -brand;
-    -fx-padding: 56 48;
-    -fx-background-radius: 0;
-    -fx-min-height: 420;
-    -fx-background-size: cover;
-    -fx-background-position: center right;
-}
-.hero .label { -fx-text-fill: #FFFFFF; }
-.hero .hero-title { -fx-font-size: 64px; }
-.hero-shade { -fx-background-color: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 75%); }
-.hero-sticker { -fx-background-color: -signal; -fx-padding: 10 18; -fx-rotate: -4; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: transparent; }
-.hero-sticker .label { -fx-text-fill: #FFFFFF; -fx-font-weight: bold; }
+/* Campaign. */
+.catalog-page { -fx-padding: 0; }
+.editorial-header { -fx-background-color: #171719; -fx-pref-height: 340; -fx-min-height: 340; -fx-max-height: 340; }
+.hero-copy { -fx-padding: 30 40; }
+.hero-eyebrow { -fx-text-fill: #D3D3D1; -fx-font-size: 10px; -fx-font-weight: bold; }
+.hero-headline { -fx-text-fill: white; -fx-font-size: 60px; -fx-line-spacing: -8; }
+.hero-sub { -fx-text-fill: #D3D3D1; -fx-font-size: 14px; }
+.hero-compact .hero-headline { -fx-font-size: 46px; }
+.hero-compact .hero-copy { -fx-padding: 28 32; }
+.button.hero-solid { -fx-background-color: white; -fx-text-fill: -ink; -fx-border-color: white; -fx-padding: 12 24; -fx-min-height: 46; }
+.button.hero-solid:hover { -fx-background-color: #E5E5E2; -fx-border-color: #E5E5E2; }
+.hero-visual { -fx-background-color: linear-gradient(to bottom right, #F08B63, #E65436 55%, #D83921); }
+.button.hero-art-button { -fx-padding: 0; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0; -fx-background-radius: 0; -fx-border-radius: 0; }
+.button.hero-art-button:hover { -fx-opacity: .94; }
+.button.hero-art-button:focused { -fx-effect: innershadow(gaussian, white, 10, .8, 0, 0); }
+.campaign-caption { -fx-padding: 0 28 22 28; }
+.campaign-kicker { -fx-text-fill: #291F1B; -fx-font-size: 10px; -fx-font-weight: bold; }
+.campaign-link { -fx-text-fill: #291F1B; -fx-font-size: 14px; -fx-font-weight: bold; }
 
-/* ---------- Editorial header (home hero), used by EditorialHeader.java ----------
-   Layers: .hero-image (bottom) -> .hero-shade (gradient) -> .hero-content (text).
-   When your banner is ready, add this line inside .hero-image:
-       -fx-background-image: url("/images/hero.jpg");                                */
-.editorial-header { -fx-min-height: 420; -fx-pref-height: 420; -fx-background-color: -brand; }
-.hero-image { -fx-background-color: -brand; -fx-background-size: cover; -fx-background-position: center right; }
-.hero-content { -fx-padding: 56 48; }
-.hero-eyebrow { -fx-text-fill: #E4E4E7; -fx-font-size: 13px; -fx-font-weight: bold; }
-.hero-headline { -fx-text-fill: white; -fx-font-size: 64px; -fx-font-weight: bold; }
-.hero-sub { -fx-text-fill: #E4E4E7; -fx-font-size: 18px; }
-.button.hero-solid { -fx-background-color: white; -fx-text-fill: -ink; -fx-border-color: white; -fx-min-height: 48; -fx-padding: 0 28; }
-.button.hero-solid:hover { -fx-background-color: #E4E4E7; -fx-border-color: #E4E4E7; }
-.button.hero-outline { -fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: white; -fx-border-width: 2; -fx-min-height: 48; -fx-padding: 0 26; }
-.button.hero-outline:hover { -fx-background-color: rgba(255,255,255,0.15); -fx-border-color: white; }
-.button.hero-solid:focused, .button.hero-outline:focused { -fx-border-color: -signal; -fx-border-width: 2; }
-
-/* ---------- Category tiles (compact; ideally replaced by chips) ---------- */
-.category-tile {
-    -fx-padding: 12 16;
-    -fx-alignment: center-left;
-    -fx-border-color: transparent;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-    -fx-background-color: -tint;
-    -fx-min-height: 48;
-    -fx-cursor: hand;
-}
-.category-tile:hover { -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 10, 0.1, 0, 3); -fx-translate-y: -1; }
-.category-tile.electronics { -fx-background-color: -brand-soft; }
-.category-tile.clothing { -fx-background-color: -tint; }
-.category-tile.home { -fx-background-color: -tint; }
-
-/* ---------- Filters ---------- */
-.filter-bar { -fx-padding: 14 0; -fx-border-color: -line transparent -line transparent; }
-.filter-chip {
-    -fx-background-color: -brand-soft;
-    -fx-text-fill: -ink;
-    -fx-font-size: 12px;
-    -fx-padding: 5 12;
-    -fx-min-height: 30;
-    -fx-border-color: transparent;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-}
-.filter-chip:hover { -fx-background-color: #E4E4E7; }
-.catalog-toolbar { -fx-padding: 0 0 18 0; -fx-border-color: transparent transparent -line transparent; }
-
-/* ---------- Login: full-bleed split (intro left, form right) ---------- */
-.login-background { -fx-background-color: -surface; -fx-padding: 0; }
-.login-intro {
-    -fx-background-color: -brand;
-    -fx-padding: 56;
-    -fx-min-height: 440;
-    -fx-background-radius: 0;
-}
-.login-intro .label { -fx-text-fill: #FFFFFF; }
-.login-intro .muted { -fx-text-fill: #D4D4D8; }
-.login-intro .hero-title { -fx-font-size: 56px; }
-.login-form-pane { -fx-background-color: -surface; }
-.login-card {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-effect: null;
-    -fx-background-radius: 0;
-    -fx-border-radius: 0;
-    -fx-padding: 24 32;
-}
-
-/* ---------- Feedback / messages ---------- */
-.feedback { -fx-background-color: -brand-soft; -fx-text-fill: -ink; -fx-padding: 10 14; -fx-background-radius: 10; }
-.error-feedback { -fx-background-color: -danger-soft; -fx-text-fill: -danger; }
-.field-error { -fx-background-color: transparent; -fx-text-fill: -danger; -fx-padding: 0; -fx-font-size: 12px; }
-.notice { -fx-background-color: -tint; -fx-padding: 12; -fx-text-fill: -ink; -fx-font-size: 13px; -fx-background-radius: 10; }
-.operation { -fx-padding: 7 24; -fx-background-color: -tint; -fx-font-weight: bold; -fx-background-radius: 10; }
-.empty-state { -fx-padding: 48 28; -fx-background-color: -tint; -fx-border-color: transparent; -fx-background-radius: 16; }
-
-/* ---------- Product card: flat, image + text straight on the page ---------- */
-.product-card {
-    -fx-background-color: transparent;
-    -fx-padding: 0 0 14 0;
-    -fx-background-radius: 0;
-    -fx-border-radius: 0;
-    -fx-border-color: transparent;
-    -fx-effect: null;
-}
-.product-card:hover {
-    -fx-border-color: transparent;
-    -fx-translate-y: 0;
-    -fx-effect: null;
-}
-.product-card:hover .product-name { -fx-underline: true; }
-.product-body { -fx-padding: 12 4 0 4; }
-.product-name { -fx-font-size: 16px; -fx-font-weight: bold; }
+/* Catalog and collection discovery. */
+.collection-section { -fx-padding: 28 40 20 40; }
+.catalog-toolbar { -fx-padding: 0 0 8 0; }
+.search-button { -fx-padding: 10 16; -fx-graphic-text-gap: 8; }
+.filter-bar { -fx-padding: 16 0; -fx-border-color: -line transparent -line transparent; }
+.filter-chip { -fx-background-color: -tint; -fx-border-color: transparent; -fx-font-size: 12px; -fx-padding: 6 12; -fx-min-height: 32; }
+.filter-chip:hover { -fx-background-color: #E9E9E6; -fx-border-color: transparent; }
+.product-card { -fx-background-color: transparent; -fx-padding: 0 0 14 0; }
+.product-body { -fx-padding: 14 0 0 0; }
+.product-name { -fx-font-size: 15px; -fx-font-weight: bold; }
 .product-description { -fx-font-size: 14px; -fx-line-spacing: 5; -fx-text-fill: -ink-muted; }
-.product-art { -fx-background-color: #F4F4F5; -fx-background-radius: 4; }
-.product-art.electronics { -fx-background-color: #F1F2F4; }
-.product-art.clothing { -fx-background-color: #F5F3F1; }
-.product-art.home { -fx-background-color: #F2F3F0; }
-.photo-button { -fx-padding: 0; -fx-border-color: transparent; -fx-background-color: transparent; -fx-background-radius: 4; -fx-effect: null; }
-.photo-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; }
-.photo-placeholder { -fx-text-fill: #71717A; -fx-font-size: 12px; }
-.placeholder-symbol { -fx-font-size: 32px; -fx-text-fill: -brand; -fx-font-weight: bold; }
+.product-art { -fx-background-color: #F2F2EF; -fx-background-radius: 2; }
+.product-art.electronics { -fx-background-color: #EDEEEF; }
+.product-art.clothing { -fx-background-color: #F0ECE6; }
+.product-art.home { -fx-background-color: #EBEEE8; }
+.photo-button { -fx-padding: 0; -fx-border-color: transparent; -fx-background-color: transparent; -fx-background-radius: 2; -fx-border-radius: 2; -fx-effect: null; }
+.photo-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-opacity: .90; }
+.photo-button:focused { -fx-border-color: -signal; }
+.photo-placeholder { -fx-text-fill: -ink-muted; -fx-font-size: 11px; }
+.quick-add { -fx-padding: 7 18; -fx-min-height: 36; -fx-font-size: 12px; }
+.quick-add:disabled { -fx-background-color: #E8E8E5; -fx-border-color: #E8E8E5; -fx-text-fill: -ink-muted; -fx-opacity: 1; }
+.stock, .stock-out, .badge-neutral { -fx-background-radius: 3; -fx-padding: 3 7; -fx-font-size: 10px; -fx-font-weight: bold; }
+.stock { -fx-text-fill: #2E6744; -fx-background-color: #ECF3EC; }
+.stock-out { -fx-text-fill: -danger; -fx-background-color: #FBECE8; }
+.badge-neutral { -fx-text-fill: -ink-muted; -fx-background-color: -tint; }
+.discovery-section { -fx-padding: 32 40 40 40; -fx-border-color: -line transparent transparent transparent; }
+.collection-tile { -fx-background-color: -tint; -fx-border-color: transparent; -fx-background-radius: 2; -fx-border-radius: 2; -fx-padding: 18; }
+.collection-tile:hover { -fx-background-color: #EAEAE6; -fx-border-color: transparent; }
+.collection-tile:focused { -fx-border-color: -signal; }
+.collection-tile-content .section-title { -fx-font-size: 19px; }
+.collection-link { -fx-font-size: 12px; -fx-font-weight: bold; }
+.closing-section { -fx-background-color: -brand; -fx-padding: 44 40; }
+.closing-title { -fx-font-size: 44px; -fx-text-fill: white; -fx-text-alignment: center; }
+.closing-sub { -fx-font-size: 14px; -fx-text-fill: #BFBFBB; }
 
-/* stock shown as small badges, never color alone: text says it too */
-.stock { -fx-text-fill: -success; -fx-background-color: -success-soft; -fx-background-radius: 10; -fx-padding: 2 9; -fx-font-size: 12px; -fx-font-weight: bold; }
-.stock-out { -fx-text-fill: -danger; -fx-background-color: -danger-soft; -fx-background-radius: 10; -fx-padding: 2 9; -fx-font-size: 12px; -fx-font-weight: bold; }
-
-/* "+ Add" is the main action on a card */
-.quick-add { -fx-background-color: -brand; -fx-text-fill: white; -fx-border-color: transparent; -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 8 20; }
-.quick-add:hover { -fx-background-color: -signal; -fx-text-fill: white; -fx-border-color: transparent; }
-.quick-add:pressed { -fx-background-color: #C42D14; -fx-translate-y: 1; }
-.quick-add:disabled { -fx-background-color: -line; -fx-text-fill: -ink-muted; -fx-opacity: 1; }
-
-/* quiet text-only button (Ui.link), e.g. "View product" */
-.link-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -ink-muted; -fx-font-weight: normal; -fx-padding: 8 4; -fx-effect: null; -fx-min-height: 36; }
-.link-button:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -ink; -fx-underline: true; }
-.link-button:focused { -fx-border-color: transparent; -fx-effect: null; -fx-underline: true; -fx-text-fill: -ink; }
-
-/* ---------- Scrolling ---------- */
-.clean-scroll, .clean-scroll > .viewport { -fx-background-color: transparent; }
-.clean-scroll { -fx-padding: 0; -fx-background-insets: 0; }
-.scroll-bar:vertical { -fx-pref-width: 10; -fx-background-color: transparent; }
-.scroll-bar:horizontal { -fx-pref-height: 10; -fx-background-color: transparent; }
-.scroll-bar .thumb { -fx-background-color: #D4D4D8; -fx-background-radius: 8; }
-.scroll-bar .thumb:hover { -fx-background-color: #A1A1AA; }
-.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
-.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-padding: 0; }
-
-/* ---------- Tables (admin) ---------- */
-.table-view { -fx-background-color: -surface; -fx-border-color: -line; -fx-background-radius: 12; -fx-border-radius: 12; -fx-fixed-cell-size: 48; }
-.table-view .column-header-background { -fx-background-color: -brand-soft; -fx-background-radius: 12 12 0 0; }
-.table-view .column-header { -fx-background-color: transparent; -fx-size: 42; }
-.table-view .column-header .label { -fx-text-fill: -ink; -fx-font-size: 13px; -fx-font-weight: bold; -fx-alignment: center-left; -fx-padding: 0 10; }
-.table-cell { -fx-alignment: center-left; -fx-padding: 0 10; -fx-border-color: transparent; -fx-font-size: 14px; }
-.table-row-cell { -fx-background-color: -surface; -fx-border-color: transparent transparent -line transparent; }
-.table-row-cell:odd { -fx-background-color: #FAFAFA; }
-.table-row-cell:hover { -fx-background-color: -brand-soft; }
-.table-row-cell:selected { -fx-background-color: #E4E4E7; }
-.table-row-cell:selected .text { -fx-fill: -ink; }
-
-/* ---------- Store chrome ---------- */
-.store-announcement { -fx-background-color: -brand; -fx-text-fill: white; -fx-padding: 6 20; -fx-font-size: 12px; -fx-alignment: center; }
-.store-header { -fx-padding: 12 32; -fx-background-color: -surface; -fx-border-color: transparent transparent -line transparent; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.1, 0, 2); }
-.brand-link { -fx-background-color: transparent; -fx-font-size: 30px; -fx-text-fill: -brand; -fx-padding: 0 14; -fx-border-color: transparent; -fx-effect: null; }
-.brand-link:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -brand-dark; }
-.header-link { -fx-border-color: transparent; -fx-background-color: transparent; -fx-padding: 8 12; -fx-effect: null; -fx-font-weight: normal; }
-.header-link:hover { -fx-background-color: -brand-soft; -fx-border-color: transparent; }
-
-/* Cart is the main header action: a solid pill (class added in ShopWindow.buildShell) */
-.button.cart-button { -fx-background-color: -brand; -fx-text-fill: white; -fx-border-color: -brand; -fx-padding: 8 18; -fx-font-weight: bold; }
-.button.cart-button:hover { -fx-background-color: -brand-dark; -fx-border-color: -brand-dark; }
-.button.cart-button:focused { -fx-border-color: -signal; }
-
-/* category nav: the active category is an underline, not a filled pill (a pill reads like a button) */
-.category-nav { -fx-padding: 8 32; -fx-background-color: -surface; -fx-border-color: transparent transparent -line transparent; }
-.category-nav .button { -fx-background-color: transparent; -fx-font-size: 13px; -fx-padding: 6 14; -fx-border-color: transparent; -fx-min-height: 34; }
-.category-nav .button:hover { -fx-background-color: -brand-soft; -fx-border-color: transparent; }
-.category-nav .category-active {
-    -fx-background-color: transparent;
-    -fx-text-fill: -ink;
-    -fx-border-color: transparent transparent -brand transparent;
-    -fx-border-width: 0 0 2 0;
-    -fx-border-radius: 0;
-    -fx-background-radius: 0;
-}
-.category-nav .category-active:hover { -fx-border-color: transparent transparent -brand transparent; }
-
-.store-footer { -fx-padding: 12 32; -fx-font-size: 12px; -fx-text-fill: -ink-muted; -fx-background-color: -surface; -fx-border-color: -line transparent transparent transparent; }
-
-/* ---------- Admin sidebar ---------- */
-.sidebar { -fx-padding: 26 18; -fx-background-color: #09090B; }
-.sidebar .label { -fx-text-fill: #E4E4E7; }
-.sidebar .brand { -fx-font-size: 26px; -fx-text-fill: white; }
-.sidebar .button { -fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #3F3F46; }
-.sidebar .button:focused { -fx-border-color: #FFFFFF; -fx-border-width: 2; }
-.sidebar .button:hover { -fx-background-color: #27272A; -fx-border-color: #71717A; }
-.admin-stats { -fx-background-color: -tint; -fx-padding: 16 22; -fx-background-radius: 14; -fx-border-color: transparent; }
-
-/* ---------- Product details ---------- */
-.titled-pane > .title { -fx-background-color: transparent; -fx-padding: 14 0; -fx-border-color: -line transparent transparent transparent; }
-.titled-pane > .content { -fx-background-color: transparent; -fx-padding: 6 0 16 0; -fx-border-color: transparent; }
+/* Forms, totals and receipts. */
+.card, .login-card, .summary, .cart-row { -fx-background-color: -surface; -fx-padding: 24; -fx-background-radius: 4; -fx-border-radius: 4; -fx-border-color: -line; }
+.summary { -fx-background-color: -tint; -fx-border-color: transparent; -fx-padding: 24; -fx-spacing: 16; }
+.summary .section-title { -fx-font-size: 20px; }
+.summary-value { -fx-font-weight: bold; -fx-font-size: 14px; }
+.summary-item { -fx-font-size: 13px; }
+.cart-row { -fx-padding: 20; }
+.stepper { -fx-border-color: #D5D5D5; -fx-border-radius: 20; -fx-background-radius: 20; -fx-background-color: -surface; }
+.stepper-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 3 10; -fx-min-height: 34; -fx-min-width: 34; }
+.stepper-input { -fx-border-color: transparent; -fx-background-color: transparent; -fx-padding: 4; }
+.stepper-input:focused { -fx-border-color: -signal; }
+.step-done { -fx-text-fill: #2E6744; -fx-font-size: 12px; -fx-font-weight: bold; }
+.step-now { -fx-background-color: -brand; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 9 16; -fx-font-size: 12px; -fx-font-weight: bold; }
+.step-next { -fx-text-fill: -ink-muted; -fx-font-size: 12px; }
+.step-line { -fx-background-color: -line; }
+.titled-pane > .title { -fx-background-color: transparent; -fx-padding: 17 0; -fx-border-color: -line transparent transparent transparent; }
+.titled-pane > .content { -fx-background-color: transparent; -fx-padding: 6 0 18 0; -fx-border-color: transparent; }
 .titled-pane { -fx-text-fill: -ink; -fx-font-weight: bold; }
 .titled-pane .content .label { -fx-font-weight: normal; }
-.detail-info { -fx-padding: 0 0 0 20; }
+.detail-info { -fx-padding: 0 0 0 12; }
 
-/* ---------- Cart drawer ---------- */
-.drawer-scrim { -fx-background-color: rgba(9,9,11,0.55); }
-.cart-drawer { -fx-background-color: -surface; -fx-padding: 24; -fx-border-color: transparent; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 24, 0.2, -6, 0); }
-.drawer-line { -fx-padding: 14 0; -fx-border-color: transparent transparent -line transparent; }
-.drawer-total { -fx-background-color: -tint; -fx-padding: 16; -fx-background-radius: 12; }
-.step-current { -fx-text-fill: -brand; -fx-font-weight: bold; }
+/* Account entrance shares the campaign's art direction. */
+.login-background { -fx-background-color: -surface; }
+.login-intro { -fx-background-color: -brand; -fx-padding: 48; -fx-alignment: center-left; }
+.login-intro .label { -fx-text-fill: white; }
+.login-intro .muted { -fx-text-fill: #C7C7C3; -fx-font-size: 15px; }
+.login-intro .hero-title { -fx-font-size: 54px; }
+.login-intro.login-compact { -fx-padding: 32; }
+.login-intro.login-compact .hero-title { -fx-font-size: 44px; }
+.login-form-pane { -fx-background-color: -surface; }
+.login-card { -fx-border-color: transparent; -fx-padding: 28 32; }
+.login-card .page-title { -fx-font-size: 30px; }
+.login-art { -fx-background-color: linear-gradient(to bottom right, #E97852, #D83921); -fx-background-radius: 2; }
 
-/* ---------- Order confirmation + orders ---------- */
-.confirmation-card { -fx-background-color: -surface; -fx-border-color: -line; -fx-border-width: 1; -fx-background-radius: 16; -fx-border-radius: 16; }
-.confirmation-card .hero-title { -fx-text-fill: -brand; }
-.success-mark { -fx-background-color: -success; -fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold; -fx-alignment: center; -fx-min-width: 56; -fx-min-height: 56; -fx-pref-width: 56; -fx-pref-height: 56; -fx-background-radius: 28; }
-.badge-neutral { -fx-text-fill: -ink-muted; -fx-background-color: -tint; -fx-background-radius: 10; -fx-padding: 2 9; -fx-font-size: 12px; -fx-font-weight: bold; }
+/* Feedback, drawers and empty states. */
+.feedback { -fx-background-color: -tint; -fx-text-fill: -ink; -fx-padding: 10 14; -fx-background-radius: 4; }
+.error-feedback { -fx-background-color: #FBECE8; -fx-text-fill: -danger; }
+.field-error { -fx-background-color: transparent; -fx-text-fill: -danger; -fx-padding: 0; -fx-font-size: 12px; }
+.notice { -fx-background-color: -tint; -fx-padding: 14; -fx-font-size: 12px; -fx-background-radius: 4; }
+.operation { -fx-padding: 8 32; -fx-background-color: -tint; -fx-font-size: 12px; }
+.empty-state { -fx-padding: 52 28; -fx-background-color: -tint; -fx-background-radius: 4; }
+.toast { -fx-background-color: -brand; -fx-text-fill: white; -fx-padding: 14 24; -fx-background-radius: 28; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(0,0,0,.18), 16, .1, 0, 4); }
+.drawer-scrim { -fx-background-color: rgba(9,9,11,.55); }
+.cart-drawer { -fx-background-color: -surface; -fx-padding: 28; -fx-effect: dropshadow(gaussian, rgba(0,0,0,.20), 24, .2, -6, 0); }
+.drawer-line { -fx-padding: 18 0; -fx-border-color: transparent transparent -line transparent; }
+.drawer-total { -fx-background-color: -tint; -fx-padding: 18; -fx-background-radius: 4; }
+.confirmation-card { -fx-border-color: -line; }
+.confirmation-card .hero-title { -fx-font-size: 42px; }
+.success-mark { -fx-background-color: #2E6744; -fx-text-fill: white; -fx-font-size: 26px; -fx-alignment: center; -fx-min-width: 52; -fx-min-height: 52; -fx-background-radius: 26; }
 
-/* ---------- Toast (shown by ShopWindow.showToast) ---------- */
-.toast {
-    -fx-background-color: -ink;
-    -fx-text-fill: white;
-    -fx-padding: 12 22;
-    -fx-background-radius: 24;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.30), 16, 0.2, 0, 4);
-}
+/* Inventory and history. */
+.sidebar { -fx-padding: 30 20; -fx-background-color: -brand; }
+.sidebar .label { -fx-text-fill: #E7E7E3; }
+.sidebar .brand { -fx-font-size: 26px; -fx-text-fill: white; }
+.sidebar .eyebrow { -fx-font-size: 10px; }
+.sidebar .button { -fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #555557; }
+.sidebar .button:hover { -fx-background-color: #38383B; }
+.sidebar .button:focused { -fx-border-color: -signal; }
+.admin-stats { -fx-background-color: -tint; -fx-padding: 20 24; -fx-border-radius: 4; }
+.table-view { -fx-background-color: -surface; -fx-border-color: -line; -fx-fixed-cell-size: 48; }
+.table-view .column-header-background { -fx-background-color: -tint; }
+.table-view .column-header { -fx-background-color: transparent; -fx-size: 42; }
+.table-view .column-header .label { -fx-font-size: 12px; -fx-font-weight: bold; -fx-alignment: center-left; -fx-padding: 0 12; }
+.table-cell { -fx-alignment: center-left; -fx-padding: 0 12; -fx-border-color: transparent; -fx-font-size: 13px; }
+.table-row-cell { -fx-background-color: -surface; -fx-border-color: transparent transparent -line transparent; }
+.table-row-cell:hover { -fx-background-color: -tint; }
+.table-row-cell:selected { -fx-background-color: #E6E6E1; }
+.table-row-cell:selected .text { -fx-fill: -ink; }
 
-/* ---------- Cart / detail additions ---------- */
-.icon-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-min-width: 36; -fx-min-height: 36; -fx-pref-width: 36; -fx-pref-height: 36; -fx-padding: 0; -fx-background-radius: 18; -fx-font-size: 20px; -fx-effect: null; }
-.icon-button:hover { -fx-background-color: -tint; -fx-border-color: transparent; }
-
-.stepper { -fx-background-color: -surface; -fx-border-color: -line-strong; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 2; }
-.stepper-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-min-width: 32; -fx-min-height: 32; -fx-pref-width: 32; -fx-padding: 0; -fx-background-radius: 16; -fx-font-size: 16px; -fx-effect: null; }
-.stepper-button:hover { -fx-background-color: -tint; -fx-border-color: transparent; }
-
-.button.cta { -fx-min-height: 48; -fx-font-size: 15px; -fx-background-radius: 24; -fx-border-radius: 24; }
-
-/* ---------- Checkout: step indicator + invalid fields ---------- */
-.step-now { -fx-background-color: -brand; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 14; -fx-background-radius: 16; }
-.step-done { -fx-text-fill: -ink-muted; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 4; }
-.step-next { -fx-text-fill: -ink-muted; -fx-font-size: 13px; -fx-padding: 6 4; }
-.step-line { -fx-background-color: -line-strong; }
-
-.invalid { -fx-border-color: -danger; -fx-border-width: 2; }
-
-/* ---------- Typed quantity inside the pill stepper ---------- */
-.text-field.stepper-input, .text-field.stepper-input:hover { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-effect: null; -fx-font-weight: bold; }
-.text-field.stepper-input:focused { -fx-background-color: -tint; -fx-border-color: transparent; -fx-background-radius: 8; -fx-effect: null; }
+/* Quiet scrollbars retain scrolling and keyboard access. */
+.clean-scroll, .clean-scroll > .viewport { -fx-background-color: transparent; }
+.clean-scroll { -fx-padding: 0; -fx-background-insets: 0; }
+.scroll-bar:vertical { -fx-pref-width: 8; -fx-background-color: transparent; }
+.scroll-bar:horizontal { -fx-pref-height: 8; -fx-background-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: #CBCBC7; -fx-background-radius: 6; }
+.scroll-bar .thumb:hover { -fx-background-color: #999994; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-padding: 0; }
