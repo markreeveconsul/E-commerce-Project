@@ -41,13 +41,21 @@ public final class AdminView extends VBox {
         TextField name=new TextField(),price=new TextField(),stock=new TextField();
         name.setId("product-name"); price.setId("product-price"); stock.setId("product-stock");
         price.setPromptText("19.99"); stock.setPromptText("0");
-        ComboBox<Category> category=new ComboBox<>(FXCollections.observableArrayList(Category.values())); category.setId("product-category"); category.setMaxWidth(Double.MAX_VALUE);
+        ComboBox<Category> category=new ComboBox<>(FXCollections.observableArrayList(Category.shopping())); category.setId("product-category");category.setPromptText("Choose a tech category"); category.setMaxWidth(Double.MAX_VALUE);
         category.setConverter(new javafx.util.StringConverter<>() {
             public String toString(Category c) { return c==null?"":Ui.category(c); }
-            public Category fromString(String value) { return Category.valueOf(value.toUpperCase(java.util.Locale.ROOT)); }
+            public Category fromString(String value) { return Category.shopping().stream().filter(c->c.label().equals(value)).findFirst().orElse(null); }
+        });
+        category.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(Category value,boolean empty) {
+                super.updateItem(value,empty);setText(value==null?"Choose a tech category":Ui.category(value));
+            }
         });
         category.getSelectionModel().selectFirst();
         CheckBox active=new CheckBox("Available to customers"); active.setSelected(true); active.setId("product-active");
+        javafx.beans.property.BooleanProperty replacementRequired=new javafx.beans.property.SimpleBooleanProperty();
+        Label replacement=Ui.label("This item is kept for replacement. Choose a tech category, update its content, then enable Available to customers when ready.","notice");replacement.setId("retired-category-notice");
+        replacement.visibleProperty().bind(replacementRequired);replacement.managedProperty().bind(replacement.visibleProperty());
         Label title=Ui.label("New product","section-title"),nameError=Ui.feedback("name-error"),priceError=Ui.feedback("price-error"),
             stockError=Ui.feedback("stock-error"),categoryError=Ui.feedback("category-error"),feedback=Ui.feedback("admin-feedback");
         name.textProperty().addListener((o,a,b)->nameError.setText(""));
@@ -58,7 +66,7 @@ public final class AdminView extends VBox {
         Runnable refresh=()->Ui.async(this,"Loading inventory…",()->products.search(admin,"",null),rows->{all=rows;filter();},error->Ui.failure(feedback,error));
         Runnable create=()-> {
             photos.setPhotos(null,List.of());photos.setFraming(PhotoFrame.AUTO); description.clear();specifications.clear();
-            clearErrors.run(); editingId=0; name.clear(); price.clear(); stock.setText("0"); category.getSelectionModel().selectFirst(); active.setSelected(true);
+            replacementRequired.set(false);clearErrors.run(); editingId=0; name.clear(); price.clear(); stock.setText("0"); category.getSelectionModel().selectFirst(); active.setSelected(true);
             title.setText("New product"); form.setVisible(true); name.requestFocus();
         };
         Runnable edit=()-> {
@@ -66,7 +74,7 @@ public final class AdminView extends VBox {
             if(p==null){feedback.setText("Select the product you want to edit.");return;}
             photos.setPhotos(p.getPhoto(),p.getAdditionalPhotos());photos.setFraming(p.getPhotoFrame()); description.setText(p.getDescription());specifications.setText(p.getSpecifications());
             clearErrors.run(); editingId=p.getId(); name.setText(p.getName()); price.setText(p.getPrice().toPlainString());
-            stock.setText(Integer.toString(p.getStock())); category.setValue(p.getCategory()); active.setSelected(p.isActive());
+            stock.setText(Integer.toString(p.getStock()));replacementRequired.set(p.getCategory().isRetired());category.setValue(p.getCategory().isRetired()?null:p.getCategory()); active.setSelected(p.isActive());
             title.setText("Edit product #"+editingId); form.setVisible(true); name.requestFocus();
         };
         Button add=Ui.primary("+ Add product",create); add.setId("new-product");
@@ -85,7 +93,7 @@ public final class AdminView extends VBox {
             int quantity=0;
             try {quantity=Ui.integer(stock.getText());if(quantity<0||quantity>100000)throw new edu.course.shop.exception.ValidationException("Stock must be between 0 and 100,000.");}
             catch(RuntimeException e){stockError.setText(Ui.message(e));valid=false;}
-            if(category.getValue()==null){categoryError.setText("Choose a category.");valid=false;}
+            if(category.getValue()==null||category.getValue().isRetired()&&active.isSelected()){categoryError.setText("Choose a tech category before making this item available.");valid=false;category.requestFocus();}
             if(!valid)return;
             long id=editingId;String value=name.getText();Category group=category.getValue();BigDecimal cost=amount;int qty=quantity;boolean enabled=active.isSelected();
             String details=description.getText(),specs=specifications.getText();byte[] selectedPhoto=photos.getPhoto();List<byte[]> angles=photos.getAdditionalPhotos();PhotoFrame frame=photos.getFraming();
@@ -99,7 +107,7 @@ public final class AdminView extends VBox {
         fields.getColumnConstraints().addAll(left,right);
         fields.add(Ui.field("Product name",name,nameError),0,0);fields.add(Ui.field("Category",category,categoryError),1,0);
         fields.add(Ui.field("Price (USD)",price,priceError),0,1);fields.add(Ui.field("Stock quantity",stock,stockError),1,1);
-        VBox information=new VBox(14,fields,Ui.field("Description",description,Ui.feedback("description-error")),new VBox(6,Ui.label("Specifications (optional)","field-label"),specifications),active,
+        VBox information=new VBox(14,replacement,fields,Ui.field("Description",description,Ui.feedback("description-error")),new VBox(6,Ui.label("Specifications (optional)","field-label"),specifications),active,
             Ui.label("Deactivating a product hides it from the store and preserves existing receipts.","muted"));
         information.setMinWidth(0);HBox.setHgrow(information,Priority.ALWAYS);
         photos.setPrefWidth(240);photos.setMinWidth(210);photos.setMaxWidth(240);

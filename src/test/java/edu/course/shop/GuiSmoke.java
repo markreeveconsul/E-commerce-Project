@@ -61,6 +61,7 @@ public final class GuiSmoke {
         Services services=new Services(new AuthService(db,new UserRepository()),new ProductService(db,pr),
             new CheckoutService(db,pr,or),new OrderService(db,or));
         User admin=services.auth().login("admin","admin123");
+        TechTestCatalog.prepare(services.products(),admin);
         Product lamp=services.products().get(6);
         services.products().save(admin,6,lamp.getName(),lamp.getCategory(),lamp.getPrice(),0,true);
         CountDownLatch ready=new CountDownLatch(1);Platform.startup(ready::countDown);ready.await();Platform.setImplicitExit(false);
@@ -87,12 +88,12 @@ public final class GuiSmoke {
             click("← Continue browsing");catalog();
             check(fx(()->((Button)scene.lookup("#account")).getText()).equals("Sign in"),"Guests browse without login");
             check(fx(()->scene.lookup("#search").isVisible()&&scene.lookup("#catalog-search")!=null),"Catalog search is reachable");
-            check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=300,"Campaign artwork fills the hero height");
+            check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=270,"Campaign artwork fills the area below integrated navigation");
             check(fx(()->{
                 javafx.scene.layout.Region art=(javafx.scene.layout.Region)scene.lookup("#product-4").lookup(".product-art");
                 return Math.abs(art.getWidth()-art.getHeight())<1;
             }),"Catalog product artwork uses square frames");
-            check(fx(()->scene.lookup("#product-4").lookup(".collection-artwork")!=null),"Seed product renders original offline artwork");
+            check(fx(()->scene.lookup("#product-1").lookup(".collection-artwork")!=null),"Seed product renders original offline artwork");
             check(fx(()->scene.lookup("#hero-headset") instanceof javafx.scene.image.ImageView view&&!view.getImage().isError()),"Campaign uses the bundled supplied headset image");
             fx(()->{((CheckBox)scene.lookup("#reduce-motion")).fire();return null;});
             check(fx(Motion::isReduced),"Footer enables reduced motion");
@@ -108,23 +109,38 @@ public final class GuiSmoke {
             screenshot("22-product-collection.png",1280,860);
             fx(()->{((ScrollPane)scene.lookup("#catalog-scroll")).setVvalue(0);return null;});
             screenshot("13-guest-storefront.png",1280,860);
-            screenshot("21-storefront-compact.png",960,680);screenshot("13-guest-storefront.png",1280,860);
+            screenshot("21-storefront-compact.png",960,680);
+            check(fx(()->scene.lookup("#editorial-hero").getLayoutBounds().getHeight()<=280),"Compact campaign is shorter, not a squeezed desktop banner");
+            check(fx(()->scene.lookup("#hero-category-more").isVisible()&&!scene.lookup("#hero-category-4").isVisible()),"Compact category overflow stays accessible through More");
+            check(fx(()->{
+                var photo=scene.lookup("#hero-headset");var hero=scene.lookup("#editorial-hero");var nav=scene.lookup("#tech-category-nav");
+                var imageBounds=photo.localToScene(photo.getLayoutBounds());
+                return imageBounds.getMinY()>=nav.localToScene(nav.getBoundsInLocal()).getMaxY()
+                    &&imageBounds.getMaxY()>hero.localToScene(hero.getLayoutBounds()).getMaxY();
+            }),"Headset clears category text and overlaps the campaign bottom");
+            check(fx(()->{
+                var photo=scene.lookup("#hero-headset");var filters=scene.lookup("#toggle-filters");
+                return photo.localToScene(photo.getBoundsInLocal()).getMaxY()<filters.localToScene(filters.getBoundsInLocal()).getMinY();
+            }),"Headset overlap clears catalog controls");
+            screenshot("13-guest-storefront.png",1280,860);
             fx(()->{
                 ScrollPane scroll=(ScrollPane)scene.lookup("#catalog-scroll");
                 double start=scene.lookup("#collection-links").getParent().getBoundsInParent().getMinY();
                 scroll.setVvalue(start/(scroll.getContent().getLayoutBounds().getHeight()-scroll.getViewportBounds().getHeight()));return null;
             });
             screenshot("23-collection-discovery.png",1280,860);
-            check(fx(()->scene.lookup("#collection-home").getLayoutBounds().getHeight())<=200,"Collection tiles stay compact");
+            check(fx(()->((FlowPane)scene.lookup("#collection-links")).getChildren().size())==6,"Discovery contains all six tech collections");
+            check(fx(()->scene.lookup("#collection-home")==null&&scene.lookup("#collection-clothing")==null),"Discovery excludes retired home and clothing categories");
+            check(fx(()->scene.lookup("#collection-pc_parts").getLayoutBounds().getHeight())<=200,"Collection tiles stay compact");
             fx(()->{((ScrollPane)scene.lookup("#catalog-scroll")).setVvalue(0);return null;});
             press("hero-electronics");catalog();
-            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2,"Campaign action opens electronics");
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==4,"Campaign action opens peripherals");
             check(fx(()->!scene.lookup("#editorial-hero").isManaged()),"Campaign hides while browsing a category");
-            press("collection-home");catalog();
+            press("collection-pc_parts");catalog();
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2&&
-                fx(()->((ComboBox<?>)scene.lookup("#category")).getSelectionModel().getSelectedIndex())==3,"Collection shortcut opens home products");
-            text("search","mug");click("Search");catalog();
-            press("collection-home");catalog();
+                fx(()->scene.lookup("#hero-category-2").getStyleClass().contains("category-active")),"Collection shortcut opens PC parts");
+            text("search","thermal");click("Search");catalog();
+            press("collection-pc_parts");catalog();
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2&&
                 fx(()->((TextField)scene.lookup("#search")).getText()).isEmpty(),"Same-category shortcut refreshes after clearing search");
             click("Shop all");catalog();
@@ -181,28 +197,24 @@ public final class GuiSmoke {
             text("search","does not exist");click("Search");
             waitFor(()->scene.getRoot().lookupAll(".empty-state").size()==1);
             check(label("catalog-feedback").isBlank(),"Empty results are not a failure");
-            check(fx(()->!scene.lookup("#catalog-filters").isVisible()),"Filters begin collapsed");
-            press("toggle-filters");
-            check(fx(()->scene.lookup("#catalog-filters").isVisible()),"Filter toggle reveals controls");
-            click("Clear filters");catalog();
-            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==6,"Clear filters restores catalog");
-            fx(()->{((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().select(2);return null;});idle();
-            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==4,"Price cap filters products");
-            fx(()->{((CheckBox)scene.lookup("#in-stock")).fire();return null;});idle();
+            check(fx(()->scene.lookup("#catalog-filters")==null),"Filter drawer starts closed");
+            press("clear-search");catalog();
+            press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
+            fx(()->{((PriceRange)scene.lookup("#price-range")).setRange(0,50);return null;});press("apply-filters");idle();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==4,"Slider price cap filters products");
+            press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
+            fx(()->{((CheckBox)scene.lookup("#filter-in-stock")).fire();return null;});press("apply-filters");idle();
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==3,"Stock and price filters combine");
-            press("toggle-filters");
-            check(fx(()->!scene.lookup("#catalog-filters").isManaged()&&((TilePane)scene.lookup("#product-grid")).getChildren().size()==3),"Collapsing filters retains active selection and results");
-            press("toggle-filters");
             screenshot("20-catalog-filtered.png",1280,860);
             press("view-4");waitFor(()->scene.lookup("#product-detail")!=null&&!scene.getRoot().isDisabled());idle();
             check(fx(()->scene.lookup("#related-products") instanceof FlowPane box&&!box.getChildren().isEmpty()),"Related products use current category");
-            fx(()->{((TitledPane)scene.lookup("#product-details-panel")).setExpanded(false);return null;});
-            check(!fx(()->((TitledPane)scene.lookup("#product-details-panel")).isExpanded()),"Product information can collapse");
+            check(fx(()->scene.lookup("#product-description")!=null),"Product description remains available");
+            check(fx(()->scene.lookup("#product-details-panel")==null),"Product description is no longer repeated in a second panel");
             click("← Back to results");catalog();
-            check(fx(()->((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().getSelectedIndex())==2&&fx(()->((CheckBox)scene.lookup("#in-stock")).isSelected()),"Back retains price and stock filters");
-            click("Up to $50  ×");idle();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==3,"Back retains price and stock filters");
+            click("Price: $0–$50.00  ×");idle();
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==5,"Removing one chip preserves other filters");
-            click("Clear filters");catalog();click("Home");catalog();
+            click("Clear filters");catalog();click("PC Parts");catalog();
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==2,"Header categories navigate to their collection");
             click("Clear filters");catalog();
             fx(()->{((ComboBox<?>)scene.lookup("#sort")).getSelectionModel().select(1);return null;});idle();

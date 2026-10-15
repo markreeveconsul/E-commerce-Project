@@ -28,7 +28,7 @@ public final class CheckoutService {
                 List<OrderItem> lines = new ArrayList<>();
                 for (CartItem item : cart.getItems()) {
                     Product latest = products.find(c, item.getProduct().getId());
-                    if (!latest.isActive()) throw new ValidationException(latest.getName() + " is no longer available. Remove it from your cart.");
+                    if (!latest.isActive()||latest.getCategory().isRetired()) throw new ValidationException(latest.getName() + " is no longer available. Remove it from your cart.");
                     if (latest.getPrice().compareTo(item.getProduct().getPrice()) != 0)
                         throw new ValidationException("The price of " + latest.getName() + " changed. Update its cart quantity to review the new price.");
                     products.deductStock(c, latest, item.getQuantity());

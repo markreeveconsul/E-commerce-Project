@@ -286,3 +286,102 @@
 .image-viewer-surface, .image-viewer-viewport, .image-viewer-viewport > .viewport { -fx-background-color: #F5F5F3; }
 .image-viewer-viewport { -fx-border-color: #E4E4E4; -fx-padding: 0; }
 .image-viewer-tools { -fx-padding: 4 0; }
+
+/* Tech collections keep the orange accent and charcoal hardware illustrations. */
+.tech-category-nav { -fx-padding: 6 24 10 24; -fx-background-color: white; -fx-border-color: transparent transparent -line transparent; }
+.tech-category-nav .button { -fx-padding: 10 14; }
+.product-art.pc_sets, .product-art.pc_parts { -fx-background-color: #ECEEF1; }
+.product-art.laptops { -fx-background-color: #F0ECE7; }
+.product-art.phones_tablets { -fx-background-color: #EAEFF0; }
+.product-art.peripherals { -fx-background-color: #F0EFEB; }
+
+/* Integrated storefront campaign: the category row shares the artwork canvas. */
+.catalog-campaign { -fx-background-color: linear-gradient(to right, #171719 0%, #171719 40%, #2B2420 100%); -fx-min-height: 52; }
+.hero-category-nav { -fx-padding: 7 24; -fx-background-color: transparent; -fx-min-height: 52; }
+.hero-category-nav .button, .hero-category-nav .menu-button {
+    -fx-background-color: transparent; -fx-text-fill: #EFEFEC; -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0;
+    -fx-padding: 10 12; -fx-font-size: 12px;
+}
+.hero-category-nav .menu-button > .label { -fx-text-fill: #EFEFEC; }
+.hero-category-nav .menu-button > .arrow-button > .arrow { -fx-background-color: #EFEFEC; }
+.hero-category-nav .button:hover, .hero-category-nav .button:focused,
+.hero-category-nav .menu-button:hover, .hero-category-nav .menu-button:focused { -fx-border-color: transparent transparent #F08B63 transparent; }
+.hero-category-nav .category-active, .hero-category-nav .category-active:hover,
+.hero-category-nav .category-active > .label { -fx-text-fill: #F08B63; -fx-border-color: transparent transparent #F08B63 transparent; }
+.hero-category-nav .context-menu .label { -fx-text-fill: #171719; }
+.hero-category-nav .context-menu .menu-item:focused .label { -fx-text-fill: white; }
+.storefront-campaign .hero-copy { -fx-padding: 12 40 18 40; -fx-spacing: 12; }
+.storefront-campaign .hero-headline { -fx-font-size: 64px; }
+.storefront-campaign.hero-compact { -fx-min-height: 280; -fx-pref-height: 280; -fx-max-height: 280; }
+.storefront-campaign.hero-compact .hero-copy { -fx-padding: 8 32 10 32; -fx-spacing: 8; }
+.storefront-campaign.hero-compact .hero-headline { -fx-font-size: 40px; }
+.storefront-campaign.hero-compact .hero-sub { -fx-font-size: 13px; }
+.storefront-campaign.hero-compact .hero-cta { -fx-padding: 10 18; -fx-min-height: 40; -fx-font-size: 12px; }
+.storefront-campaign.hero-compact .hero-link { -fx-min-height: 40; -fx-padding: 10 0; }
+.storefront-campaign .campaign-caption { -fx-padding: 0 22 16 0; }
+.storefront-campaign.hero-compact .campaign-caption { -fx-padding: 0 12 12 0; }
+.storefront-campaign.hero-compact .campaign-link { -fx-font-size: 10px; }
+.storefront-campaign.hero-compact .campaign-kicker { -fx-font-size: 8px; }
+.collection-section { -fx-padding: 42 40 20 40; }
+.catalog-outline-control { -fx-background-color: white; -fx-border-color: #AAAAAA; -fx-border-radius: 3; -fx-background-radius: 3; }
+.store-header .catalog-search-surface { -fx-min-height: 40; -fx-pref-height: 40; -fx-padding: 4 10; }
+.store-header .catalog-search-input { -fx-font-size: 12px; }
+.store-header #catalog-search { -fx-min-width: 66; -fx-pref-width: 66; -fx-min-height: 40; -fx-padding: 8; -fx-font-size: 12px; }
+
+/* Reference composition: charcoal utility/navigation row and compact campaign. */
+.store-header { -fx-background-color: #171719; -fx-border-width: 0; -fx-padding: 8 32; -fx-min-height: 50; }
+.store-header .brand-link { -fx-font-family: "Inter"; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: transparent; -fx-border-width: 0; -fx-effect: null; -fx-padding: 4 0; }
+.store-header .header-link, .store-header .cart-button { -fx-text-fill: white; -fx-background-color: transparent; -fx-border-color: transparent; -fx-font-size: 11px; -fx-padding: 6 7; }
+.store-header .store-icon { -fx-stroke: white; }
+.store-header .compact-menu { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 6; }
+.store-header .compact-menu > .label { -fx-text-fill: white; }
+.store-header .compact-menu > .arrow-button > .arrow { -fx-background-color: white; }
+.store-header .catalog-search-surface { -fx-background-color: #282828; -fx-border-color: #666666; -fx-border-width: 1; -fx-border-radius: 24; -fx-background-radius: 24; -fx-min-height: 30; -fx-pref-height: 30; -fx-padding: 3 10; }
+.store-header .catalog-search-input { -fx-text-fill: white; -fx-prompt-text-fill: #BEBEBE; -fx-background-color: transparent; -fx-font-size: 11px; -fx-padding: 2; }
+.store-header .search-clear { -fx-text-fill: white; }
+.store-header .hero-category-nav { -fx-padding: 0; -fx-min-height: 34; -fx-spacing: 0; }
+.store-header .hero-category-nav .button { -fx-font-size: 10px; -fx-padding: 8 8; -fx-min-height: 32; }
+.storefront-campaign { -fx-min-height: 320; -fx-pref-height: 320; -fx-max-height: 320; }
+.storefront-campaign .hero-copy { -fx-padding: 24 48; -fx-spacing: 12; }
+.storefront-campaign .hero-headline { -fx-font-size: 64px; }
+.storefront-campaign.hero-compact { -fx-min-height: 250; -fx-pref-height: 250; -fx-max-height: 250; }
+.storefront-campaign.hero-compact .hero-copy { -fx-padding: 4 32 12 32; -fx-spacing: 7; }
+.storefront-campaign.hero-compact .hero-headline { -fx-font-size: 38px; }
+.collection-section { -fx-padding: 30 48 20 48; }
+.catalog-toolbar { -fx-padding: 0; }
+.catalog-outline-control { -fx-min-height: 32; -fx-pref-height: 32; -fx-font-size: 11px; -fx-padding: 5 10; -fx-border-radius: 2; -fx-background-radius: 2; }
+.store-footer { -fx-padding: 4 24; }
+.catalog-outline-control { -fx-min-height: 38; -fx-pref-height: 38; -fx-max-height: 38; -fx-padding: 5 10; }
+.combo-box.catalog-outline-control { -fx-padding: 0; }
+.combo-box.catalog-outline-control > .list-cell { -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: #171719; }
+.collection-section { -fx-padding: 42 48 20 48; }
+
+/* Final reference proportions; cable fade and contact shadow are rendered by EditorialHeader. */
+.storefront-campaign { -fx-min-height: 294; -fx-pref-height: 294; -fx-max-height: 294; }
+.storefront-campaign .hero-copy { -fx-padding: 16 46; -fx-spacing: 12; }
+.storefront-campaign.hero-compact { -fx-min-height: 250; -fx-pref-height: 250; -fx-max-height: 250; }
+.storefront-campaign.hero-compact .hero-copy { -fx-padding: 4 32 12 32; -fx-spacing: 7; }
+.collection-section { -fx-padding: 18 46 20 46; }
+.checkout-header-note { -fx-text-fill: #CFCFCF; -fx-font-size: 12px; }
+.payment-choice { -fx-min-width: 190; -fx-padding: 14 18; -fx-graphic-text-gap: 10; }
+.stepper-input.invalid, .stepper-input.invalid:focused { -fx-border-color: -danger; -fx-border-width: 1.5; -fx-border-radius: 4; }
+
+/* Scoped modal styles. Header, hero and product cards are untouched. */
+.filter-drawer { -fx-background-color: white; -fx-padding: 24; -fx-effect: dropshadow(gaussian,rgba(0,0,0,.20),24,0,-5,0); }
+.filter-drawer .scroll-pane, .filter-drawer .scroll-pane > .viewport { -fx-background-color: transparent; -fx-padding: 0; }
+.filter-drawer .radio-button { -fx-font-size: 14px; }
+.filter-drawer .radio-button:selected .dot { -fx-background-color: #ef502b; }
+.range-track { -fx-background-color: #d7dadd; -fx-background-radius: 3; }
+.range-selection { -fx-background-color: #ef502b; -fx-background-radius: 3; }
+.range-thumb { -fx-min-width: 20; -fx-min-height: 20; -fx-pref-width: 20; -fx-pref-height: 20; -fx-max-width: 20; -fx-max-height: 20; -fx-padding: 0; -fx-background-color: white; -fx-border-color: #ef502b; -fx-border-width: 2; -fx-background-radius: 20; -fx-border-radius: 20; }
+.range-thumb:focused { -fx-effect: dropshadow(gaussian,rgba(239,80,43,.5),7,.3,0,0); }
+.glass-image-viewer { -fx-background-color: rgba(32,37,42,.82); -fx-background-radius: 18; -fx-border-radius: 18; -fx-border-color: rgba(255,255,255,.48); -fx-padding: 18; -fx-effect: dropshadow(gaussian,rgba(0,0,0,.40),30,0,0,10); }
+.glass-image-viewer > .content { -fx-padding: 0; }
+.glass-image-viewer .label { -fx-text-fill: #f7f8fa; }
+.glass-image-viewer .viewer-title { -fx-font-size: 18px; -fx-font-weight: bold; }
+.glass-image-viewer .muted { -fx-text-fill: #d0d4d9; -fx-font-size: 12px; }
+.glass-image-viewer .image-viewer-surface, .glass-image-viewer .image-viewer-viewport, .glass-image-viewer .image-viewer-viewport > .viewport { -fx-background-color: transparent; -fx-border-color: transparent; }
+.glass-image-viewer .button { -fx-background-color: rgba(255,255,255,.07); -fx-text-fill: white; -fx-border-color: rgba(255,255,255,.35); -fx-padding: 6 13; -fx-min-height: 32; -fx-font-size: 13px; }
+.glass-image-viewer .button:hover { -fx-background-color: rgba(255,255,255,.18); }
+.glass-image-viewer .image-viewer-tools { -fx-padding: 0; }

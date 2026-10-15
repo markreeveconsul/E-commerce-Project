@@ -37,18 +37,19 @@ public final class NextUiSmoke {
         fx(()->{write(scene.getRoot(),evidence.resolve(name));return null;});
     }
     private static void write(Node node,Path file)throws Exception{var im=node.snapshot(null,null);BufferedImage out=new BufferedImage((int)im.getWidth(),(int)im.getHeight(),BufferedImage.TYPE_INT_ARGB);for(int y=0;y<out.getHeight();y++)for(int x=0;x<out.getWidth();x++)out.setRGB(x,y,im.getPixelReader().getArgb(x,y));ImageIO.write(out,"png",file.toFile());}
-    private static DialogPane dialog() {return Window.getWindows().stream().filter(w->w.isShowing()&&w!=stage&&w.getScene().getRoot() instanceof DialogPane).map(w->(DialogPane)w.getScene().getRoot()).findFirst().orElse(null);}
+    private static DialogPane dialog() {if(scene.lookup("#image-viewer-panel") instanceof DialogPane p)return p;return Window.getWindows().stream().filter(w->w.isShowing()&&w!=stage&&w.getScene().getRoot() instanceof DialogPane).map(w->(DialogPane)w.getScene().getRoot()).findFirst().orElse(null);}
     private static void openDialog(String id)throws Exception{fx(()->{Platform.runLater(()->((Button)scene.lookup("#"+id)).fire());return null;});waitFor(()->dialog()!=null);}
-    private static void closeDialog()throws Exception{fx(()->{((Button)dialog().lookupButton(ButtonType.CLOSE)).fire();return null;});waitFor(()->dialog()==null);}
+    private static void closeDialog()throws Exception{fx(()->{if(scene.lookup("#image-close") instanceof Button close)close.fire();else ((Button)dialog().lookupButton(ButtonType.CLOSE)).fire();return null;});waitFor(()->dialog()==null);}
     private static byte[] photo(int color)throws Exception{BufferedImage img=new BufferedImage(1200,900,BufferedImage.TYPE_INT_RGB);var g=img.createGraphics();g.setColor(new java.awt.Color(237,238,239));g.fillRect(0,0,1200,900);g.setColor(new java.awt.Color(color));g.fillRoundRect(350,150,500,600,60,60);g.setColor(java.awt.Color.WHITE);g.drawString("SYNTHETIC PRODUCT FIXTURE",465,460);g.dispose();var bytes=new java.io.ByteArrayOutputStream();ImageIO.write(img,"png",bytes);return bytes.toByteArray();}
     public static void main(String[] args)throws Exception{
         evidence=Path.of(args[0]);Files.createDirectories(evidence);DatabaseManager db=new DatabaseManager(Path.of(args[1]));db.initialize();ProductRepository pr=new ProductRepository();OrderRepository or=new OrderRepository();
         Services services=new Services(new AuthService(db,new UserRepository()),new ProductService(db,pr),new CheckoutService(db,pr,or),new OrderService(db,or));User admin=services.auth().login("admin","admin123"),customer=services.auth().login("customer","customer123");
+        TechTestCatalog.prepare(services.products(),admin);
         byte[] main=photo(0x245C70),angle=photo(0xDB6939);Product p=services.products().get(1);services.products().save(admin,1,p.getName(),p.getCategory(),p.getPrice(),12,true,"A synthetic fixture used to verify product details and gallery controls.",main,List.of(angle),"Material: Test fixture\nIncluded items: One unit");
         CountDownLatch ready=new CountDownLatch(1);Platform.startup(ready::countDown);ready.await();Platform.setImplicitExit(false);
         try {
             fx(()->{stage=new Stage();scene=new Scene(new StackPane(),1280,860);scene.getStylesheets().add(NextUiSmoke.class.getResource("/shop.css").toExternalForm());stage.setScene(scene);stage.show();new ShopWindow(stage,services).showStorefront();return null;});catalog();
-            check(fx(()->((Button)scene.lookup("#nav-saved")).getText()).equals("Saved items"),"Saved items has a visible navigation label");
+            check(fx(()->((Button)scene.lookup("#nav-saved")).getText()).equals("Saved"),"Saved items has a visible navigation label");
             press("save-1");check(fx(()->((Button)scene.lookup("#save-1")).getText()).equals("♥"),"Guest heart toggles without signing in");
             press("nav-saved");waitFor(()->scene.lookup("#saved-grid") instanceof TilePane t&&t.getChildren().size()==1&&!scene.getRoot().isDisabled());check(label("saved-feedback").isEmpty(),"Guest saved list opens without errors");
             press("account");check(fx(()->!((TitledPane)scene.lookup("#demo-accounts")).isExpanded()),"Demo accounts are collapsed by default");
@@ -70,32 +71,41 @@ public final class NextUiSmoke {
             Thread.sleep(350);check(fx(()->Window.getWindows().stream().noneMatch(w->w.isShowing()&&w instanceof PopupWindow)),"Submitting search dismisses suggestions without a stale reopen");
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1,"Submitted name search returns the matching product");
             press("clear-search");idle();check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==6,"Clear search restores the collection");
-            press("toggle-filters");
-            fx(()->{((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().select(1);return null;});idle();
-            text("minimum-price","50");text("maximum-price","70");press("apply-price-range");idle();
-            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1,"Custom price range replaces quick budget instead of silently intersecting it");
-            check(fx(()->((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().getSelectedIndex())==0,"Custom price range clears quick budget selection");
-            check(fx(()->!scene.lookup("#editorial-hero").isVisible()),"Applied custom price range keeps results ahead of campaign");
-            check(fx(()->((Button)scene.lookup("#toggle-filters")).getText()).contains("1"),"Filter toggle shows number of applied filters");
-            text("minimum-price","80");press("apply-price-range");check(label("catalog-feedback").contains("range"),"Invalid price range reports inline error");
-            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1,"Invalid range retains previously loaded products");
-            fx(()->{((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().select(1);return null;});idle();
-            check(fx(()->((TextField)scene.lookup("#minimum-price")).getText()).isEmpty()&&fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==3,"Quick budget replaces stale custom range and recovers invalid draft");
-            text("search","mug");press("catalog-search");idle();press("clear-search");idle();
-            check(fx(()->((ComboBox<?>)scene.lookup("#budget")).getSelectionModel().getSelectedIndex())==1,"Clear search preserves the shopper's budget");
-            screenshot("10-catalog-filters.png");
-            resize(960,680);
-            screenshot("11-catalog-compact.png");
-            check(fx(()->{Node n=scene.lookup("#apply-price-range");var bounds=n.localToScene(n.getBoundsInLocal());return scene.getWidth()<=961&&bounds.getMaxX()<=scene.getWidth()&&bounds.getMinX()>=0;}),"Compact price controls stay inside the viewport");
-            check(fx(()->{Node n=scene.lookup("#nav-cart");var bounds=n.localToScene(n.getBoundsInLocal());return scene.getWidth()<=961&&bounds.getMaxX()<=scene.getWidth();}),"Labeled header stays inside a compact window");
-            resize(1280,860);press("clear-filters");idle();
+            press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
+            fx(()->{((PriceRange)scene.lookup("#price-range")).setRange(50,70);return null;});
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==6,"Draft slider does not refresh the catalog");
+            press("close-filters");check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==6,"Cancel discards draft");
+            press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
+            check(fx(()->((PriceRange)scene.lookup("#price-range")).getLow())==0,"Reopening restores applied values");
+            fx(()->{((PriceRange)scene.lookup("#price-range")).setRange(50,70);return null;});press("apply-filters");idle();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1,"Applied slider bounds filter exact prices");
+            check(fx(()->((Button)scene.lookup("#toggle-filters")).getText()).contains("1"),"Filter count reflects committed range");
+            press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
+            fx(()->{((PriceRange)scene.lookup("#price-range")).setRange(0,25);return null;});press("apply-filters");idle();
+            check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==3,"Maximum range filters products");
+            text("search","thermal");press("catalog-search");idle();
+            press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);press("clear-filters");press("apply-filters");idle();
+            check(fx(()->((TextField)scene.lookup("#search")).getText()).equals("thermal"),"Clear filters preserves search");
+            press("clear-search");idle();press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
+            screenshot("10-catalog-filters.png");resize(960,680);screenshot("11-catalog-compact.png");
+            check(fx(()->{Node n=scene.lookup("#apply-filters");var bounds=n.localToScene(n.getBoundsInLocal());return bounds.getMaxX()<=scene.getWidth()&&bounds.getMaxY()<=scene.getHeight();}),"Compact drawer keeps Apply visible");
+            fx(()->{scene.lookup("#price-range-low").fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED,"","",KeyCode.RIGHT,false,false,false,false));return null;});
+            check(fx(()->((PriceRange)scene.lookup("#price-range")).getLow())==1,"Range handle supports keyboard increments");
+            fx(()->{scene.lookup("#close-filters").fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED,"","",KeyCode.ESCAPE,false,false,false,false));return null;});
+            check(fx(()->scene.lookup("#catalog-filters")==null),"Escape dismisses drawer");
+            resize(1280,860);
             fx(()->{((ComboBox<?>)scene.lookup("#sort")).getSelectionModel().select(3);return null;});idle();
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().getFirst().getId()).equals("product-1"),"Name Z–A places Wireless headphones first");
             press("view-1");waitFor(()->scene.lookup("#detail-plus")!=null&&!scene.getRoot().isDisabled());click("← Back to results");catalog();
             check(fx(()->((ComboBox<?>)scene.lookup("#sort")).getSelectionModel().getSelectedIndex())==3,"Name sorting survives detail navigation");
-            press("clear-filters");idle();
+
             press("view-1");waitFor(()->scene.lookup("#detail-plus")!=null&&!scene.getRoot().isDisabled());press("detail-plus");check(fx(()->((QuantityControl)scene.lookup("#detail-quantity")).getValue())==2,"Custom quantity plus updates purchase amount");
             text("detail-quantity-input","999");fx(()->{((TextField)scene.lookup("#detail-quantity-input")).fireEvent(new javafx.event.ActionEvent());return null;});check(fx(()->((QuantityControl)scene.lookup("#detail-quantity")).getValue())==2,"Invalid typed quantity cannot bypass stock bound");
+            check(fx(()->scene.lookup("#detail-add").isDisabled()&&!((Label)scene.lookup("#detail-quantity-error")).getText().isBlank()),"Invalid quantity disables purchase and explains stock limit");
+            check(fx(()->((TextField)scene.lookup("#detail-quantity-input")).getText()).equals("999"),"Invalid quantity remains visible for correction");
+            screenshot("12-invalid-quantity.png");
+            text("detail-quantity-input","2");
+            check(fx(()->!scene.lookup("#detail-add").isDisabled()&&((Label)scene.lookup("#detail-quantity-error")).getText().isEmpty()),"Valid edit clears quantity error and restores purchase");
             press("gallery-photo-1");check(fx(()->scene.lookup("#gallery-photo-1").getStyleClass().contains("gallery-selected")),"Gallery angle gets selected state");screenshot("03-product-details.png");
             fx(()->{scene.lookup("#zoom-photo").requestFocus();return null;});openDialog("zoom-photo");fx(()->{((Button)dialog().lookup("#image-zoom-in")).fire();return null;});check(fx(()->((Label)dialog().lookup("#image-zoom-caption")).getText()).contains("Photo 2 of 2"),"Zoom opens the selected real angle");
             check(fx(()->dialog().getStylesheets().stream().anyMatch(sheet->sheet.endsWith("shop.css"))),"Image viewer inherits the Market visual system");
@@ -106,13 +116,32 @@ public final class NextUiSmoke {
             fx(()->{for(int i=0;i<5;i++)((Button)dialog().lookup("#image-zoom-in")).fire();dialog().applyCss();dialog().layout();return null;});
             check(fx(()->{ScrollPane viewport=(ScrollPane)dialog().lookup("#image-zoom-viewport");return viewport.getContent().getLayoutBounds().getWidth()>viewport.getViewportBounds().getWidth();}),"Zoomed photo expands scrollable content beyond the viewport");
             fx(()->{((Button)dialog().lookup("#image-zoom-reset")).fire();return null;});
-            check(fx(()->((ScrollPane)dialog().lookup("#image-zoom-viewport")).isPannable()),"Zoom supports image panning");fx(()->{write(dialog(),evidence.resolve("04-image-zoom.png"));return null;});closeDialog();check(fx(()->scene.getFocusOwner()==scene.lookup("#zoom-photo")),"Closing zoom restores gallery trigger focus");
+            // Sample across real JavaFX pulses: an idle image must never oscillate between positions.
+            Thread.sleep(250);
+            var stableBounds=fx(()->dialog().lookup("#image-zoom-photo").localToScene(dialog().lookup("#image-zoom-photo").getLayoutBounds()));
+            for(int sample=0;sample<12;sample++) {
+                Thread.sleep(40);
+                var bounds=fx(()->dialog().lookup("#image-zoom-photo").localToScene(dialog().lookup("#image-zoom-photo").getLayoutBounds()));
+                check(Math.abs(bounds.getMinX()-stableBounds.getMinX())<.5&&Math.abs(bounds.getMinY()-stableBounds.getMinY())<.5,"Enlarged photo remains still across layout pulses");
+            }
+            check(fx(()->((ScrollPane)dialog().lookup("#image-zoom-viewport")).isPannable()),"Zoom supports image panning");fx(()->{write(scene.getRoot(),evidence.resolve("04-image-zoom.png"));return null;});closeDialog();check(fx(()->scene.getFocusOwner()==scene.lookup("#zoom-photo")),"Closing zoom restores gallery trigger focus");
+            resize(960,680);openDialog("zoom-photo");
+            check(fx(()->dialog().getWidth()<scene.getWidth()*.85&&dialog().getHeight()<scene.getHeight()*.9),"Compact viewer leaves space around all edges");
+            check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect() instanceof javafx.scene.effect.GaussianBlur),"Background is blurred");
+            check(fx(()->scene.lookup("#image-zoom-photo").getEffect()==null),"Photo remains sharp"); check(fx(()->{ScrollPane v=(ScrollPane)scene.lookup("#image-zoom-viewport");return v.getContent().getLayoutBounds().getHeight()<=v.getViewportBounds().getHeight();}),"Fit image does not need vertical scrolling"); resize(1100,760); check(fx(()->dialog().getWidth()<scene.getWidth()*.85),"Open viewer responds to window resizing");resize(960,680);
+            screenshot("13-glass-compact.png");closeDialog();
+            check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect()==null),"Closing restores background effect");
+            resize(1280,860);
             press("detail-add");idle();check(fx(()->((Button)scene.lookup("#nav-cart")).getText()).contains("2"),"Detail purchase adds selected quantity");
             press("nav-cart");press("drawer-remove-1");check(fx(()->scene.lookup("#drawer-undo-removal").isVisible()),"Drawer offers removal undo");press("drawer-undo-removal");idle();check(fx(()->((Button)scene.lookup("#nav-cart")).getText()).contains("2"),"Drawer undo restores quantity");press("drawer-review");
             press("remove-1");press("undo-cart-removal");idle();check(fx(()->((TextField)scene.lookup("#cart-quantity-1")).getText()).equals("2"),"Full cart undo restores quantity");
             press("checkout");waitFor(()->scene.lookup("#checkout-saved-address") instanceof ComboBox<?> combo&&!combo.getItems().isEmpty()&&!scene.getRoot().isDisabled());
             fx(()->{((ComboBox<?>)scene.lookup("#checkout-saved-address")).getSelectionModel().selectFirst();return null;});check(fx(()->((TextArea)scene.lookup("#address")).getText()).equals("123 Test Street"),"Saved address fills checkout without changing stored address");
             fx(()->{((ToggleButton)scene.lookup("#payment-wallet")).fire();return null;});check(fx(()->((ComboBox<?>)scene.lookup("#payment")).getSelectionModel().getSelectedIndex())==1,"Payment card selects supported wallet method");screenshot("05-checkout.png");
+            resize(1280,600); // Explicit short viewport; header density must not define this test.
+            fx(()->{Node parent=scene.lookup("#checkout-columns");while(parent!=null&&!(parent instanceof ScrollPane))parent=parent.getParent();((ScrollPane)parent).setVvalue(.35);return null;});
+            check(fx(()->scene.lookup("#place-order").getParent().getTranslateY())==0,"Short checkout viewport uses normal scrolling for the full summary");
+            resize(1280,960);
             fx(()->{Node parent=scene.lookup("#checkout-columns");while(parent!=null&&!(parent instanceof ScrollPane))parent=parent.getParent();((ScrollPane)parent).setVvalue(.35);return null;});
             check(fx(()->scene.lookup("#place-order").getParent().getTranslateY())>0,"Wide summary follows scrolling beside checkout form");
             press("place-order");waitFor(()->scene.lookup("#confirmation")!=null&&!scene.getRoot().isDisabled());click("View my orders");waitFor(()->scene.lookup("#order-card-1")!=null&&!scene.getRoot().isDisabled());screenshot("06-order-history.png");

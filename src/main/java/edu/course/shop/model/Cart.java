@@ -19,7 +19,7 @@ public final class Cart {
         setQuantity(product, old + quantity);
     }
     public void setQuantity(Product product, int quantity) {
-        if (!product.isActive()) throw new ValidationException("This product is no longer available.");
+        if (!product.isActive()||product.getCategory().isRetired()) throw new ValidationException("This product is no longer available.");
         CartItem item = new CartItem(product, quantity);
         if (quantity > product.getStock()) throw new OutOfStockException(product.getName());
         items.put(product.getId(), item);

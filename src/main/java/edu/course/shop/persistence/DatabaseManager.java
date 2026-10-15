@@ -52,8 +52,12 @@ public final class DatabaseManager {
             int productCount;
             try (ResultSet r = s.executeQuery("SELECT COUNT(*) FROM products")) { r.next(); productCount = r.getInt(1); }
             if (productCount == 0) {
-                s.executeUpdate("INSERT INTO products(name,category,price_cents,stock,active) VALUES ('Wireless headphones','ELECTRONICS',5990,12,1),('Mechanical keyboard','ELECTRONICS',7990,8,1),('Everyday cotton tee','CLOTHING',1890,30,1),('Canvas tote','CLOTHING',1290,20,1),('Ceramic mug','HOME',1490,15,1),('Desk lamp','HOME',3290,6,1)");
+                s.executeUpdate("INSERT INTO products(name,category,price_cents,stock,active) VALUES ('Wireless headphones','PERIPHERALS',5990,12,1),('Mechanical keyboard','PERIPHERALS',7990,8,1),('Everyday cotton tee','CLOTHING',1890,30,0),('Canvas tote','CLOTHING',1290,20,0),('Ceramic mug','HOME',1490,15,0),('Desk lamp','HOME',3290,6,0)");
             }
+            // Retain old records, content, saved-item links and receipts for later replacement.
+            s.executeUpdate("UPDATE products SET active=0 WHERE category IN ('CLOTHING','HOME') AND active<>0");
+            // Existing named peripheral products belong in the same collection as new inventory.
+            s.executeUpdate("UPDATE products SET category='PERIPHERALS' WHERE category='ELECTRONICS' AND name IN ('Wireless headphones','Mechanical keyboard')");
             c.commit();
         } catch (SQLException e) { throw new StorageException(e); }
     }

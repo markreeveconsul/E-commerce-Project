@@ -43,7 +43,7 @@ public final class EditorialHeader extends StackPane {
 
     private EditorialHeader(Runnable shop,Runnable electronics,Runnable headphones,boolean account) {
         setId(account?"login-campaign":"editorial-hero");getStyleClass().add("editorial-header");
-        if(account)getStyleClass().add("account-campaign");
+        if(account)getStyleClass().add("account-campaign");else getStyleClass().add("storefront-campaign");
         glow.setId("hero-glow");glow.getStyleClass().add("hero-glow");glow.setMouseTransparent(true);glow.setOpacity(.65);
         glow.setMaxSize(640,640);glow.setPrefSize(640,640);
         StackPane.setAlignment(glow,Pos.CENTER_RIGHT);StackPane.setMargin(glow,new Insets(0,-25,0,0));
@@ -64,21 +64,46 @@ public final class EditorialHeader extends StackPane {
         Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource(account?"/images/login-pc-campaign.png":"/images/headset-campaign.png")).toExternalForm());
         if(image.isError())throw new IllegalStateException("Campaign image could not be loaded",image.getException());
         ImageView headset=new ImageView(image);headset.setId(account?"login-pc":"hero-headset");headset.setPreserveRatio(true);headset.setSmooth(true);
-        if(!account)headset.fitHeightProperty().bind(heightProperty().multiply(1.10));
+        if(!account) {
+            headset.fitHeightProperty().bind(heightProperty().add(26));
+            // Alpha mask fades only the cable's final pixels; the source artwork stays intact.
+            javafx.scene.shape.Rectangle cableMask=new javafx.scene.shape.Rectangle();
+            cableMask.setId("hero-cable-fade");
+            cableMask.widthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                ()->headset.getLayoutBounds().getWidth(),headset.layoutBoundsProperty()));
+            cableMask.heightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                ()->headset.getLayoutBounds().getHeight()*.96,headset.layoutBoundsProperty()));
+            cableMask.setFill(new javafx.scene.paint.LinearGradient(0,0,0,1,true,javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0,Color.BLACK),new javafx.scene.paint.Stop(.91,Color.BLACK),
+                new javafx.scene.paint.Stop(.95,Color.color(0,0,0,.55)),new javafx.scene.paint.Stop(1,Color.TRANSPARENT)));
+            headset.setClip(cableMask);
+            floating.setEffect(new javafx.scene.effect.DropShadow(12,0,6,Color.web("#000000",.18)));
+        }
         floating.setId("hero-float");floating.getChildren().add(headset);
-        StackPane.setAlignment(headset,Pos.TOP_CENTER);StackPane.setMargin(headset,new Insets(account?0:16,0,0,0));
+        StackPane.setAlignment(headset,Pos.TOP_CENTER);StackPane.setMargin(headset,Insets.EMPTY);
         parallax.setId("hero-parallax");parallax.getChildren().add(floating);
         productReveal.getChildren().add(parallax);productReveal.setMouseTransparent(true);
         floating.setMinSize(0,0);parallax.setMinSize(0,0);productReveal.setMinSize(0,0);
-        VBox caption=new VBox(4,Ui.label("01 / FIND YOUR FOCUS","campaign-kicker"),Ui.label("Explore electronics  ↗","campaign-link"));
+        VBox caption=new VBox(4,Ui.label("01 / FIND YOUR FOCUS","campaign-kicker"),Ui.label("Shop electronics  ↗","campaign-link"));
         caption.getStyleClass().add("campaign-caption");caption.setMaxHeight(USE_PREF_SIZE);caption.setMouseTransparent(true);
         StackPane visual=new StackPane(productReveal,caption);visual.setId("hero-visual");
         visual.setMinSize(0,0);
+        if(!account) {
+            // A broad contact shadow anchors the overlapping microphone and earcups to the white section.
+            javafx.scene.shape.Ellipse contact=new javafx.scene.shape.Ellipse();contact.setId("hero-contact-shadow");
+            contact.setManaged(false);contact.setMouseTransparent(true);contact.setFill(Color.web("#000000",.38));
+            contact.centerXProperty().bind(visual.widthProperty().multiply(.5).add(headset.translateXProperty()));
+            contact.centerYProperty().bind(visual.heightProperty().add(12));
+            contact.radiusXProperty().bind(visual.widthProperty().multiply(.21));contact.setRadiusY(8);
+            contact.setEffect(new javafx.scene.effect.GaussianBlur(16));visual.getChildren().add(0,contact);
+        }
         StackPane.setAlignment(caption,Pos.BOTTOM_RIGHT);
         Button discover=Ui.button("",electronics);discover.setId("hero-electronics");discover.setGraphic(visual);
-        discover.setAccessibleText("Explore electronics; headset campaign artwork");discover.getStyleClass().add("hero-art-button");
+        discover.setAccessibleText("Shop electronics; headset campaign artwork");discover.getStyleClass().add("hero-art-button");
         discover.setMinWidth(310);discover.setPrefWidth(500);discover.setMaxWidth(550);discover.setMaxHeight(Double.MAX_VALUE);
-        visual.prefWidthProperty().bind(discover.widthProperty());visual.prefHeightProperty().bind(heightProperty());
+        if(!account)headset.translateXProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+            ()->getWidth()*.77-(getWidth()-discover.getWidth()/2),widthProperty(),discover.widthProperty()));
+        visual.prefWidthProperty().bind(discover.widthProperty());visual.prefHeightProperty().bind(account?heightProperty():heightProperty().subtract(0));
         if(account) {
             visual.getChildren().remove(productReveal);
             Label edition=Ui.label("01 / BUILT FOR YOUR NEXT CHAPTER","campaign-kicker");
@@ -92,12 +117,16 @@ public final class EditorialHeader extends StackPane {
             getChildren().addAll(glow,rings,new CircuitAccents(),content);
         } else {
             HBox content=new HBox(0,copy,discover);content.setAlignment(Pos.CENTER_LEFT);
-            getChildren().addAll(glow,rings,content);
+            StackPane backdrop=new StackPane(glow,rings);Ui.round(backdrop,0);
+            Runnable arrange=()->{boolean compact=getWidth()<1200;headset.setTranslateY(compact?0:2);StackPane.setMargin(content,new Insets(compact?64:0,0,0,0));visual.prefHeightProperty().unbind();visual.prefHeightProperty().bind(heightProperty().subtract(compact?64:0));headset.fitHeightProperty().unbind();headset.fitHeightProperty().bind(heightProperty().add(compact?-20:55));};
+            widthProperty().addListener((o,a,b)->arrange.run());arrange.run();
+            getChildren().addAll(backdrop,content);
         }
-        Ui.round(this,0);
+        // Only the backdrop clips. The campaign photo deliberately extends onto the catalog.
+        if(account)Ui.round(this,0);
         widthProperty().addListener((o,a,b)->{
-            getStyleClass().remove("hero-compact");if(b.doubleValue()<(account?550:1050))getStyleClass().add("hero-compact");
-            discover.setPrefWidth(b.doubleValue()<1050?410:500);
+            getStyleClass().remove("hero-compact");if(b.doubleValue()<(account?550:1200))getStyleClass().add("hero-compact");
+            discover.setPrefWidth(b.doubleValue()<1050?340:500);
         });
 
         drift.setFromY(0);drift.setToY(-9);drift.setAutoReverse(true);drift.setCycleCount(Animation.INDEFINITE);
@@ -201,11 +230,11 @@ public final class EditorialHeader extends StackPane {
         private final Line[] streaks=new Line[3];
         private Rings() {
             for(int i=0;i<rings.length;i++) {
-                Circle ring=new Circle();ring.setFill(null);ring.setStroke(Color.web("#E65436",.10));ring.setStrokeWidth(i==2?1.2:.7);
+                Circle ring=new Circle();ring.setFill(null);ring.setStroke(Color.web("#E65436",.18));ring.setStrokeWidth(i==2?1.2:.7);
                 rings[i]=ring;getChildren().add(ring);
             }
             for(int i=0;i<streaks.length;i++) {
-                Line streak=new Line();streak.setStroke(Color.web("#F08B63",.09));streaks[i]=streak;getChildren().add(streak);
+                Line streak=new Line();streak.setStroke(Color.web("#F08B63",.16));streaks[i]=streak;getChildren().add(streak);
             }
         }
         @Override protected void layoutChildren() {

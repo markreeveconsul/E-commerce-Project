@@ -33,7 +33,7 @@ Product variants, fulfillment tracking, registration and account recovery were m
 
 ## Verification
 
-The existing Maven backend suite and new AccountAndRepeatTest cover 40 cases. GuiSmoke covers 89 shopping assertions; NextUiSmoke adds 59 assertions on a shown window, including saved-item transfer, profile/address persistence, search popup, price ranges, quantities, gallery zoom/focus, both Undo actions, saved-address checkout, payment cards, reviewed repeat orders, framing drafts/previews and verified 960×680 compact layouts. BannerMotionSmoke covers 30 banner/motion assertions.
+The Maven backend suite covers 43 cases, including account/repeat and tech-category migration tests. GuiSmoke covers 91 shopping assertions; NextUiSmoke adds 60 assertions on a shown window, including saved-item transfer, profile/address persistence, search popup, price ranges, quantities, gallery zoom/focus, both Undo actions, saved-address checkout, payment cards, reviewed repeat orders, framing drafts/previews and verified 960×680 compact layouts. BannerMotionSmoke covers 30 banner/motion assertions. TechCatalogSmoke adds 29 assertions for category routes, empty states, retained inventory replacement and real compact layouts.
 
 Run `mvn test` for backend checks. For the additional desktop harness, prepare the classpath with `mvn test-compile dependency:build-classpath -Dmdep.outputFile=target/classpath.txt`, then on Linux/macOS:
 
@@ -79,3 +79,23 @@ git merge --no-edit FETCH_HEAD
 ```
 
 After checking the app, `git push origin main` publishes the merged update using your own laptop credentials, subject to your repository's branch rules. Do not delete `data/shop.db` or overwrite it with a test fixture. On other platforms use `mvn compile javafx:run` to rebuild and launch the current sources.
+
+## Tech-store category update
+
+Six shopping categories now match the catalog: **PC Sets**, **PC Parts**, **Laptops**, **Phones & Tablets**, **Peripherals & Accessories**, and **Other Electronics**. The wide header has a dedicated category row; compact windows use the Shop menu. Filters and new-product editing use the same choices.
+
+“A little more you” is now **“Find your next upgrade”** with six matching offline illustrations: PC setup, graphics card/components, laptop, phone/tablet, keyboard, and speakers. Each card opens its actual category; empty collections offer filter recovery. These are category illustrations, not supplied product photographs. The closing copy now refers to work and play.
+
+Clothing and Home enum codes remain readable for existing records. Initialization sets retired-category items inactive, retaining names, prices, stock, descriptions, original photos, galleries, framing, saved-item links and historical receipts. Existing headphones and keyboards move from the generic Electronics category to Peripherals. No existing records are deleted or replaced with sample prices.
+
+### Replace retained inventory when ready
+
+1. Sign in as admin and select the old product in inventory.
+2. Choose **Edit selected**. The replacement notice explains the next steps.
+3. Choose one of the six tech categories and update name, price, stock, photos, description and specifications.
+4. Keep **Available to customers** unchecked while preparing content.
+5. Enable availability and save when the actual replacement is ready.
+
+Existing IDs remain stable. Receipts keep the original purchase name and price even after a product is replaced. Customer search, saved-item creation, cart operations, repeat purchases and checkout reject retired-category products. Retired categories remain available as admin inventory filters; they are not offered as new product categories.
+
+For the real catalog, supply product names/models, prices, stock, original photos and verified specifications. PC sets should list included components; parts should list sockets/interfaces or compatible systems where relevant. No invented variants, compatibility claims or fulfillment promises are added. The storefront hero and PC login composition remain unchanged.
