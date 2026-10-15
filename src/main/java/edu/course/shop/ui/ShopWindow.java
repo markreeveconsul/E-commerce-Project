@@ -109,7 +109,7 @@ public final class ShopWindow {
     private Button link(String text,Runnable action){Button b=Ui.button(text,action);b.getStyleClass().add("header-link");return b;}
     private void buildShell(){
         dismissDrawer();stopFeedbackAnimations();
-        shell=new BorderPane();shell.setMinWidth(0);
+        shell=new BorderPane();shell.setMinSize(0,0);
         // The toast sits in the window stack, above the page and below the cart drawer.
         toast=new Label();toast.setId("cart-toast-message");toast.setWrapText(true);toast.setMinWidth(0);HBox.setHgrow(toast,Priority.ALWAYS);
         Button review=Ui.button("Review cart →",this::showCartDrawer);review.setId("toast-review-cart");review.getStyleClass().add("toast-action");
@@ -117,7 +117,7 @@ public final class ShopWindow {
         toastBar.setMinWidth(0);toastBar.setMaxWidth(720);toastBar.setMaxHeight(Region.USE_PREF_SIZE);toastBar.setOpacity(0);
         toastBar.visibleProperty().bind(toastBar.opacityProperty().greaterThan(0));
         StackPane.setAlignment(toastBar,Pos.BOTTOM_CENTER);StackPane.setMargin(toastBar,new Insets(0,24,64,24));
-        window=new StackPane(shell,toastBar);overlay=null;navButtons.clear();lastCartCount=-1;
+        window=new StackPane(shell,toastBar);window.setMinSize(0,0);StackPane.setAlignment(shell,Pos.TOP_LEFT);overlay=null;navButtons.clear();lastCartCount=-1;
         Label operation=Ui.feedback("operation-status");operation.getStyleClass().add("operation");
         if(user.canManageProducts()){
             Button overview=Ui.button("Overview",this::showAdminOverview);overview.setId("admin-nav-overview");
@@ -145,7 +145,7 @@ public final class ShopWindow {
             cartButton=link("Cart · 0",this::showCartDrawer);cartButton.setId("nav-cart");
             cartButton.setGraphic(StoreIcon.of("bag"));cartButton.getStyleClass().add("cart-button");
             Button account=link(user instanceof Guest?"Sign in":"My orders",user instanceof Guest?this::showLogin:this::showOrders);account.setId("account");
-            account.setGraphic(StoreIcon.of("account"));
+            account.setGraphic(StoreIcon.of("account"));account.setMinWidth(96);account.setPrefWidth(96);account.setMaxWidth(96);
             Button favorites=link("Saved",this::showSaved);favorites.setGraphic(StoreIcon.of("heart"));favorites.setId("nav-saved");favorites.setAccessibleText("Saved items");
             HBox right=new HBox(4,favorites,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);right.setMinWidth(Region.USE_PREF_SIZE);
             if(!(user instanceof Guest)){
@@ -163,6 +163,12 @@ public final class ShopWindow {
                 accountMenu.visibleProperty().bind(profile.visibleProperty().not());accountMenu.managedProperty().bind(accountMenu.visibleProperty());
                 right.getChildren().addAll(profile,signOut,accountMenu);
             }
+            if(user instanceof Guest){
+                Button guestProfile=link("Profile",this::showLogin);
+                guestProfile.setId("guest-profile");
+                guestProfile.setAccessibleText("Profile — sign in to view your account");
+                right.getChildren().add(guestProfile);
+            }
             Button all=Ui.button("Shop all",()->category(0));navButtons.add(all);
             HBox categories=new HBox(6,all);categories.setAlignment(Pos.CENTER_LEFT);
             categories.getStyleClass().addAll("category-nav","integrated-categories");
@@ -176,6 +182,12 @@ public final class ShopWindow {
             headerSearch=new HBox();headerSearch.setId("header-search-slot");var searchSlotWidth=javafx.beans.binding.Bindings.createDoubleBinding(()->stage.getScene().getWidth()>=1100?Math.min(270,Math.max(180,stage.getScene().getWidth()-1070)):270,stage.getScene().widthProperty());headerSearch.minWidthProperty().bind(searchSlotWidth);headerSearch.prefWidthProperty().bind(searchSlotWidth);headerSearch.maxWidthProperty().bind(searchSlotWidth);
             headerNavigation=new HBox();headerNavigation.setMinWidth(Region.USE_PREF_SIZE);
             HBox header=new HBox(12,logo,menu,headerNavigation,headerSearch,right,spacer);
+            if(user instanceof Guest){
+                headerSearch.minWidthProperty().unbind();headerSearch.prefWidthProperty().unbind();headerSearch.maxWidthProperty().unbind();
+                headerSearch.setMinWidth(180);headerSearch.setPrefWidth(320);headerSearch.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(headerSearch,Priority.ALWAYS);
+                spacer.setVisible(false);spacer.setManaged(false);
+            }
             categories.setId("secondary-category-nav");categories.setAlignment(Pos.CENTER);categories.getStyleClass().add("tech-category-nav");
             var outsideCatalog=javafx.beans.binding.Bindings.createBooleanBinding(()->!(shell.getCenter() instanceof CatalogView),shell.centerProperty());
             var checkoutPage=javafx.beans.binding.Bindings.createBooleanBinding(()->shell.getCenter() instanceof CheckoutView,shell.centerProperty());
@@ -184,7 +196,7 @@ public final class ShopWindow {
             headerSearch.visibleProperty().bind(checkoutPage.not());headerSearch.managedProperty().bind(headerSearch.visibleProperty());
             categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(1100).and(outsideCatalog).and(checkoutPage.not()));categories.managedProperty().bind(categories.visibleProperty());
             menu.visibleProperty().bind(header.widthProperty().lessThan(1100).and(outsideCatalog).and(checkoutPage.not()));menu.managedProperty().bind(menu.visibleProperty());
-            header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
+            header.setMinWidth(0);header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
             Label announcement=Ui.label("GOOD FINDS. ZERO SHIPPING FEES.  /  Free shipping on every demo order","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
             shell.setTop(new VBox(header,categories,operation));updateCart();
         }
