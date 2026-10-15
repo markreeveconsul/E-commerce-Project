@@ -50,15 +50,14 @@ public final class LoginView extends StackPane {
 
         Label passwordLabel=Ui.label("Password","field-label");passwordLabel.setLabelFor(password);
         password.setAccessibleText("Password");passwordError.getStyleClass().add("field-error");
-        CheckBox motion=new CheckBox("Reduce motion");motion.setId("login-reduce-motion");motion.getStyleClass().add("motion-control");
-        motion.setSelected(Motion.isReduced());motion.setOnAction(e->Motion.reducedProperty().set(motion.isSelected()));
-        javafx.beans.InvalidationListener motionSync=o->motion.setSelected(Motion.isReduced());
-        Motion.reducedProperty().addListener(new javafx.beans.WeakInvalidationListener(motionSync));
-        motion.getProperties().put("market.motionSync",motionSync);
+        Label mark=Ui.label("MARK","login-brand-mark"),et=Ui.label("ET","login-brand-et");
+        mark.setWrapText(false);et.setWrapText(false);
+        HBox wordmark=new HBox(0,mark,et);wordmark.setId("login-brand");wordmark.setAccessibleText("MARKET");wordmark.getStyleClass().add("login-brand");
         TitledPane demoPanel=new TitledPane("Demo accounts",demo);demoPanel.setExpanded(false);demoPanel.setAnimated(false);demoPanel.setId("demo-accounts");
-        VBox form=new VBox(16,Ui.label("Welcome back.","page-title"),Ui.label("Sign in to check out or manage your store.","muted"),
-            Ui.field("Username",username,usernameError),new VBox(6,passwordLabel,passwordRow,passwordError),feedback,status,login,demoPanel,motion);
-        form.getStyleClass().add("login-card"); form.setPrefWidth(480); form.setMaxWidth(480);
+        VBox form=new VBox(14,wordmark,Ui.label("ACCOUNT ACCESS","login-access-label"),Ui.label("Welcome back.","page-title"),
+            Ui.label("Sign in to continue shopping or manage your store.","muted"),Ui.field("Username",username,usernameError),
+            new VBox(6,passwordLabel,passwordRow,passwordError),feedback,status,login,demoPanel);
+        form.getStyleClass().add("login-card"); form.setPrefWidth(440); form.setMaxWidth(440);
         form.setMaxHeight(Region.USE_PREF_SIZE);
 
         EditorialHeader intro=EditorialHeader.forLogin();

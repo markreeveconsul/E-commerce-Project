@@ -15,6 +15,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -61,9 +62,10 @@ public final class EditorialHeader extends StackPane {
         if(account)copy.getChildren().remove(actions);
         copyNodes=account?new Node[]{eyebrow,headline,support}:new Node[]{eyebrow,headline,support,actions};
 
-        Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource(account?"/images/login-pc-campaign.png":"/images/headset-campaign.png")).toExternalForm());
+        Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource(account?"/images/login-pc-campaign.jpg":"/images/headset-campaign.png")).toExternalForm());
         if(image.isError())throw new IllegalStateException("Campaign image could not be loaded",image.getException());
         ImageView headset=new ImageView(image);headset.setId(account?"login-pc":"hero-headset");headset.setPreserveRatio(true);headset.setSmooth(true);
+        if(account)headset.setBlendMode(javafx.scene.effect.BlendMode.LIGHTEN);
         if(!account) {
             headset.fitHeightProperty().bind(heightProperty().add(26));
             // Alpha mask fades only the cable's final pixels; the source artwork stays intact.
@@ -108,13 +110,20 @@ public final class EditorialHeader extends StackPane {
             visual.getChildren().remove(productReveal);
             Label edition=Ui.label("01 / BUILT FOR YOUR NEXT CHAPTER","campaign-kicker");
             edition.getStyleClass().add("account-edition");
+            Ellipse pcShadow=new Ellipse();pcShadow.setId("login-pc-shadow");pcShadow.setManaged(false);pcShadow.setMouseTransparent(true);
+            pcShadow.setFill(Color.web("#000000",.62));pcShadow.setEffect(new javafx.scene.effect.GaussianBlur(18));
+            pcShadow.centerXProperty().bind(widthProperty().multiply(.60));pcShadow.centerYProperty().bind(heightProperty().multiply(.94));
+            pcShadow.radiusXProperty().bind(widthProperty().multiply(.30));pcShadow.radiusYProperty().bind(heightProperty().multiply(.02));
             StackPane artwork=new StackPane(productReveal);artwork.setMinSize(0,0);
             VBox.setVgrow(artwork,Priority.ALWAYS);
-            // Campaign crop: fill the panel width and clip the oversized case below the copy.
-            headset.fitWidthProperty().bind(javafx.beans.binding.Bindings.max(1,artwork.widthProperty().multiply(.98)));
+            // The supplied JPEG has a deep-black photo background; LIGHTEN lets the campaign glow
+            // and rings show through its darkest pixels without repainting the PC itself.
+            // Compact windows scale the photo down slightly so the login copy stays clear.
+            headset.fitWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                ()->Math.max(1,artwork.getWidth()*(getWidth()<550?.84:.96)),artwork.widthProperty(),widthProperty()));
             StackPane.setAlignment(headset,Pos.TOP_CENTER);Ui.round(artwork,0);
             VBox content=new VBox(0,copy,artwork,edition);content.setMinSize(0,0);
-            getChildren().addAll(glow,rings,new CircuitAccents(),content);
+            getChildren().addAll(glow,rings,pcShadow,new CircuitAccents(),content);
         } else {
             HBox content=new HBox(0,copy,discover);content.setAlignment(Pos.CENTER_LEFT);
             StackPane backdrop=new StackPane(glow,rings);Ui.round(backdrop,0);

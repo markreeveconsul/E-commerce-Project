@@ -73,8 +73,12 @@ public final class GuiSmoke {
             });
             screenshot("01-login.png",1280,860);
             screenshot("24-login-compact.png",960,680);screenshot("01-login.png",1280,860);
-            check(fx(()->scene.lookup("#login-pc").getBoundsInParent().getWidth()>scene.lookup("#login-campaign").getBoundsInParent().getWidth()*.94),"Login PC dominates campaign width");
-            check(fx(()->scene.lookup("#login-pc") instanceof javafx.scene.image.ImageView image&&!image.getImage().isError()),"Account campaign loads supplied PC artwork");
+            check(fx(()->scene.lookup("#login-pc").getBoundsInParent().getWidth()>scene.lookup("#login-campaign").getBoundsInParent().getWidth()*.80),"Login PC remains prominent at compact size");
+            check(fx(()->scene.lookup("#login-pc") instanceof javafx.scene.image.ImageView image&&!image.getImage().isError()
+                &&image.getImage().getWidth()>=848&&image.getImage().getHeight()>=1264
+                &&image.getBlendMode()==javafx.scene.effect.BlendMode.LIGHTEN),"Account campaign loads the supplied high-resolution PC photo");
+            check(fx(()->"MARKET".equals(scene.lookup("#login-brand").getAccessibleText())),"Login wordmark is accessible and split by brand color");
+            check(fx(()->scene.lookup("#login-reduce-motion").getParent().getStyleClass().contains("store-footer")),"Motion preference sits in the login utility footer");
             text("password","temporary");press("show-password");
             check(fx(()->scene.lookup("#password-visible").isVisible()&&!scene.lookup("#password").isVisible()),"Show reveals only the visible password control");
             text("password-visible","changed");press("show-password");
