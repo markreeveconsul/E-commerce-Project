@@ -55,4 +55,19 @@ public final class Motion {
         target.sceneProperty().addListener(cancel);reduced.addListener(new WeakInvalidationListener(cancel));
         target.getProperties().put("market.reveal",cancel);
     }
+
+    /** Short top-down entrance for transient panels; reduced-motion users see the final state immediately. */
+    public static void dropIn(Node target) {
+        if(isReduced()) { target.setOpacity(1);target.setTranslateY(0);return; }
+        javafx.animation.FadeTransition fade=new javafx.animation.FadeTransition(Duration.millis(190),target);
+        fade.setFromValue(0);fade.setToValue(1);fade.setInterpolator(Interpolator.EASE_OUT);
+        TranslateTransition slide=new TranslateTransition(Duration.millis(210),target);
+        slide.setFromY(-22);slide.setToY(0);slide.setInterpolator(Interpolator.EASE_OUT);
+        javafx.animation.ParallelTransition entrance=new javafx.animation.ParallelTransition(fade,slide);
+        Runnable reset=()->{entrance.stop();target.setOpacity(1);target.setTranslateY(0);};
+        InvalidationListener cancel=o->{if(target.getScene()==null||isReduced())reset.run();};
+        target.sceneProperty().addListener(cancel);reduced.addListener(new WeakInvalidationListener(cancel));
+        entrance.setOnFinished(e->{target.sceneProperty().removeListener(cancel);target.setOpacity(1);target.setTranslateY(0);});
+        target.setOpacity(0);target.setTranslateY(-22);entrance.play();
+    }
 }
