@@ -109,7 +109,7 @@ public final class ShopWindow {
     private Button link(String text,Runnable action){Button b=Ui.button(text,action);b.getStyleClass().add("header-link");return b;}
     private void buildShell(){
         dismissDrawer();stopFeedbackAnimations();
-        shell=new BorderPane();
+        shell=new BorderPane();shell.setMinWidth(0);
         // The toast sits in the window stack, above the page and below the cart drawer.
         toast=new Label();toast.setId("cart-toast-message");toast.setWrapText(true);toast.setMinWidth(0);HBox.setHgrow(toast,Priority.ALWAYS);
         Button review=Ui.button("Review cart →",this::showCartDrawer);review.setId("toast-review-cart");review.getStyleClass().add("toast-action");
@@ -173,9 +173,9 @@ public final class ShopWindow {
             javafx.scene.control.MenuButton menu=new javafx.scene.control.MenuButton("Shop");menu.setId("compact-shop-menu");menu.getStyleClass().add("compact-menu");
             javafx.scene.control.MenuItem allItem=new javafx.scene.control.MenuItem("Shop all");allItem.setOnAction(e->category(0));menu.getItems().add(allItem);
             for(Category c:Category.shopping()){javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(c));item.setOnAction(e->category(c.shoppingIndex()));menu.getItems().add(item);}
-            headerSearch=new HBox();headerSearch.setMinWidth(0);headerSearch.setMaxWidth(320);HBox.setHgrow(headerSearch,Priority.ALWAYS);
+            headerSearch=new HBox();headerSearch.setId("header-search-slot");var searchSlotWidth=javafx.beans.binding.Bindings.createDoubleBinding(()->stage.getScene().getWidth()>=1100?Math.min(270,Math.max(180,stage.getScene().getWidth()-1070)):270,stage.getScene().widthProperty());headerSearch.minWidthProperty().bind(searchSlotWidth);headerSearch.prefWidthProperty().bind(searchSlotWidth);headerSearch.maxWidthProperty().bind(searchSlotWidth);
             headerNavigation=new HBox();headerNavigation.setMinWidth(Region.USE_PREF_SIZE);
-            HBox header=new HBox(12,logo,menu,headerNavigation,spacer,headerSearch,right);
+            HBox header=new HBox(12,logo,menu,headerNavigation,headerSearch,right,spacer);
             categories.setId("secondary-category-nav");categories.setAlignment(Pos.CENTER);categories.getStyleClass().add("tech-category-nav");
             var outsideCatalog=javafx.beans.binding.Bindings.createBooleanBinding(()->!(shell.getCenter() instanceof CatalogView),shell.centerProperty());
             var checkoutPage=javafx.beans.binding.Bindings.createBooleanBinding(()->shell.getCenter() instanceof CheckoutView,shell.centerProperty());
