@@ -1,19 +1,32 @@
 package edu.course.shop.ui;
+
 import edu.course.shop.model.Category;
 import java.util.EnumMap;
 import java.util.Locale;
+import javafx.animation.Animation;
+import javafx.animation.Interpolator;
+import javafx.animation.TranslateTransition;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.*;
-import javafx.scene.effect.DropShadow;
+import javafx.scene.shape.Ellipse;
+import javafx.stage.Window;
+import javafx.util.Duration;
 
 /** Shared category campaigns; the Shop all hero remains a separate component. */
 public final class CategoryBanner extends Pane {
-    private record Campaign(String headline,String support,String image,double rotation) {}
-    private record Artwork(Image image,double left,double top,double width,double height) {}
+    private record Campaign(String headline,String support,String image) {}
+    private record Artwork(Image image,Rectangle2D viewport) {}
     private static final EnumMap<Category,Artwork> ART=new EnumMap<>(Category.class);
     private final Canvas canvas=new Canvas();
     private final Label eyebrow=Ui.label("","category-banner-eyebrow");
@@ -21,50 +34,93 @@ public final class CategoryBanner extends Pane {
     private final Label support=Ui.label("","category-banner-support");
     private final Label pending=Ui.label("","category-banner-pending");
     private final VBox copy=new VBox(8,eyebrow,headline,support);
+    private final ImageView product=new ImageView();
+    private final StackPane floating=new StackPane(product);
+    private final Ellipse contactShadow=new Ellipse();
+    private final TranslateTransition drift=new TranslateTransition(Duration.seconds(3.2),floating);
+    private final InvalidationListener lifecycle=o->syncMotion();
+    private final ChangeListener<Window> windowListener=(o,a,b)->watchWindow(b);
+    private Window watchedWindow;
     private Category category;
     private Campaign campaign;
 
     public CategoryBanner(){
-        setId("category-banner");setMinWidth(0);setPrefWidth(0);canvas.setMouseTransparent(true);copy.setMouseTransparent(true);pending.setMouseTransparent(true);
-        getChildren().addAll(canvas,copy,pending);
+        setId("category-banner");setMinWidth(0);setPrefWidth(0);
+        canvas.setMouseTransparent(true);copy.setMouseTransparent(true);pending.setMouseTransparent(true);
+        floating.setMouseTransparent(true);floating.setManaged(false);
+        contactShadow.setMouseTransparent(true);contactShadow.setManaged(false);
+        product.setPreserveRatio(true);product.setSmooth(true);product.setMouseTransparent(true);
+        product.setEffect(new DropShadow(26,0,16,Color.web("#000000",.62)));
+        contactShadow.setFill(Color.web("#000000",.42));
+        contactShadow.setEffect(new javafx.scene.effect.GaussianBlur(16));
+        getChildren().addAll(canvas,contactShadow,floating,copy,pending);
         widthProperty().addListener((o,a,b)->{double height=b.doubleValue()<1200?242:260;setMinHeight(height);setPrefHeight(height);setMaxHeight(height);});
         setMinHeight(260);setPrefHeight(260);setMaxHeight(260);
-        javafx.scene.shape.Rectangle clip=new javafx.scene.shape.Rectangle();
-        clip.widthProperty().bind(widthProperty());clip.heightProperty().bind(heightProperty());setClip(clip);
+        visibleProperty().addListener(lifecycle);
+        Motion.reducedProperty().addListener(new WeakInvalidationListener(lifecycle));
+        sceneProperty().addListener((o,a,b)->{
+            if(a!=null)a.windowProperty().removeListener(windowListener);
+            if(b!=null)b.windowProperty().addListener(windowListener);
+            watchWindow(b==null?null:b.getWindow());
+        });
+        drift.setFromY(0);drift.setToY(-7);drift.setAutoReverse(true);drift.setCycleCount(Animation.INDEFINITE);
+        drift.setInterpolator(Interpolator.EASE_BOTH);
     }
+
     public void showCategory(Category value){
         category=value;
         campaign=switch(value){
-            case PC_SETS -> new Campaign("YOUR\nNEXT SETUP.","Built for work. Ready for play.","category-pc.png",0);
-            case PC_PARTS -> new Campaign("BUILD YOUR\nADVANTAGE.","The parts behind your next upgrade.","category-gpu.png",50);
-            case LAPTOPS -> new Campaign("POWER\nTHAT MOVES.","Performance, wherever you go.","category-laptop.png",0);
-            case PHONES_TABLETS -> new Campaign("STAY\nCONNECTED.","Everyday essentials. Extraordinary possibilities.","category-phones.png",0);
-            case PERIPHERALS -> new Campaign("MAKE IT\nYOURS.","The finishing touches for your setup.","category-keyboard.png",0);
-            case ELECTRONICS -> new Campaign("DISCOVER\nWHAT'S NEXT.","More possibilities for your everyday.","category-controller.png",0);
+            case PC_SETS -> new Campaign("YOUR\nNEXT SETUP.","Built for work. Ready for play.","category-pc.png");
+            case PC_PARTS -> new Campaign("BUILD YOUR\nADVANTAGE.","The parts behind your next upgrade.","category-gpu.png");
+            case LAPTOPS -> new Campaign("POWER\nTHAT MOVES.","Performance, wherever you go.","category-laptop.png");
+            case PHONES_TABLETS -> new Campaign("STAY\nCONNECTED.","Everyday essentials. Extraordinary possibilities.","category-phones.png");
+            case PERIPHERALS -> new Campaign("MAKE IT\nYOURS.","The finishing touches for your setup.","category-keyboard.png");
+            case ELECTRONICS -> new Campaign("DISCOVER\nWHAT'S NEXT.","More possibilities for your everyday.","category-controller.png");
             default -> throw new IllegalArgumentException("Unsupported category");
         };
         eyebrow.setText(value.label().toUpperCase(Locale.ROOT));headline.setText(campaign.headline());support.setText(campaign.support());
         pending.setText(value==Category.PC_SETS?"PC set model\nto be selected":"Electronics model\nto be selected");
         pending.setVisible(campaign.image()==null);
-        if(campaign.image()!=null)ART.computeIfAbsent(value,c->load(campaign));
-        setAccessibleText(value.label()+". "+campaign.headline().replace('\n',' ')+". "+campaign.support());
-        requestLayout();
-    }
-    /** Measure visible pixels after rotation, avoiding empty margins around supplied cutouts. */
-    private static Artwork load(Campaign campaign){
-        Image image=new Image(java.util.Objects.requireNonNull(CategoryBanner.class.getResource("/images/"+campaign.image())).toExternalForm());
-        if(image.isError())throw new IllegalStateException("Category artwork could not load",image.getException());
-        double rad=Math.toRadians(campaign.rotation()),cos=Math.cos(rad),sin=Math.sin(rad);
-        double left=Double.MAX_VALUE,top=Double.MAX_VALUE,right=-Double.MAX_VALUE,bottom=-Double.MAX_VALUE;
-        var pixels=image.getPixelReader();
-        for(int y=0;y<(int)image.getHeight();y++)for(int x=0;x<(int)image.getWidth();x++){
-            if((pixels.getArgb(x,y)>>>24)<32)continue;
-            double px=x*cos-y*sin,py=x*sin+y*cos;
-            left=Math.min(left,px);right=Math.max(right,px);top=Math.min(top,py);bottom=Math.max(bottom,py);
+        if(campaign.image()!=null){
+            Artwork art=ART.computeIfAbsent(value,c->load(campaign.image()));
+            product.setImage(art.image());product.setViewport(art.viewport());
+            floating.setVisible(true);contactShadow.setVisible(true);
+        }else{
+            product.setImage(null);product.setViewport(null);
+            floating.setVisible(false);contactShadow.setVisible(false);
         }
-        if(right<left)return new Artwork(image,0,0,image.getWidth(),image.getHeight());
-        return new Artwork(image,left,top,right-left+1,bottom-top+1);
+        setAccessibleText(value.label()+". "+campaign.headline().replace('\n',' ')+". "+campaign.support());
+        syncMotion();requestLayout();
     }
+
+    /** Crop transparent padding so the visible product, rather than its file canvas, fills the artwork area. */
+    private static Artwork load(String file){
+        Image image=new Image(java.util.Objects.requireNonNull(CategoryBanner.class.getResource("/images/"+file)).toExternalForm());
+        if(image.isError())throw new IllegalStateException("Category artwork could not load",image.getException());
+        var pixels=image.getPixelReader();
+        int minX=(int)image.getWidth(),minY=(int)image.getHeight(),maxX=-1,maxY=-1;
+        for(int y=0;y<(int)image.getHeight();y++)for(int x=0;x<(int)image.getWidth();x++){
+            if((pixels.getArgb(x,y)>>>24)<24)continue;
+            minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+        }
+        if(maxX<minX)return new Artwork(image,null);
+        return new Artwork(image,new Rectangle2D(minX,minY,maxX-minX+1,maxY-minY+1));
+    }
+
+    private void watchWindow(Window next){
+        if(watchedWindow!=null)watchedWindow.showingProperty().removeListener(lifecycle);
+        watchedWindow=next;
+        if(watchedWindow!=null)watchedWindow.showingProperty().addListener(lifecycle);
+        syncMotion();
+    }
+
+    private void syncMotion(){
+        boolean active=category!=null&&campaign!=null&&campaign.image()!=null&&isVisible()
+            &&watchedWindow!=null&&watchedWindow.isShowing()&&!Motion.isReduced();
+        if(active){if(drift.getStatus()!=Animation.Status.RUNNING)drift.playFromStart();}
+        else{drift.stop();floating.setTranslateY(0);}
+    }
+
     @Override protected void layoutChildren(){
         double w=getWidth(),h=getHeight(),nav=w<1200?52:0,body=h-nav;
         canvas.setWidth(w);canvas.setHeight(h);var g=canvas.getGraphicsContext2D();
@@ -81,16 +137,18 @@ public final class CategoryBanner extends Pane {
         double left=w*.045,copyWidth=w*.45;
         headline.setStyle("-fx-font-size: "+(w<1200?32:52)+"px;");
         copy.resize(copyWidth,copy.prefHeight(copyWidth));copy.relocate(left,nav+(body-copy.getHeight())/2);
-        double artLeft=w*.52,artWidth=w*.45;
         if(campaign.image()!=null){
-            Artwork art=ART.get(category);double scale=Math.min(artWidth/art.width(),(body-12)/art.height());
-            g.save();g.translate(artLeft+artWidth/2,cy+3);g.scale(scale,scale);
-            g.translate(-(art.left()+art.width()/2),-(art.top()+art.height()/2));g.rotate(campaign.rotation());
-            g.setEffect(new DropShadow(18,0,10,Color.web("#000000",.7)));g.drawImage(art.image(),0,0);g.restore();
+            double artWidth=w*.47,artHeight=body+36,overlap=18;
+            product.setFitWidth(artWidth);product.setFitHeight(artHeight);
+            floating.resizeRelocate(w*.52,nav+(body-artHeight)/2+overlap,artWidth,artHeight);
+            contactShadow.setCenterX(w*.755);contactShadow.setCenterY(h+2);
+            contactShadow.setRadiusX(Math.min(artWidth*.26,150));contactShadow.setRadiusY(8);
+            pending.setVisible(false);
         }else{
-            double bw=artWidth*.74,bh=body*.74,x=artLeft+(artWidth-bw)/2,y=nav+(body-bh)/2;
-            g.setStroke(Color.web("#919191",.6));g.setLineDashes(6,5);g.strokeRoundRect(x,y,bw,bh,10,10);g.setLineDashes();
-            pending.resizeRelocate(x+12,y,bw-24,bh);
+            floating.setVisible(false);contactShadow.setVisible(false);
+            double artWidth=w*.43,artHeight=body*.74,x=w*.52+(w*.47-artWidth)/2,y=nav+(body-artHeight)/2;
+            g.setStroke(Color.web("#919191",.6));g.setLineDashes(6,5);g.strokeRoundRect(x,y,artWidth,artHeight,10,10);g.setLineDashes();
+            pending.setVisible(true);pending.resizeRelocate(x+12,y,artWidth-24,artHeight);
         }
     }
 }

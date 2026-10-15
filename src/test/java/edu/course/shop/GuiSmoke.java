@@ -93,7 +93,7 @@ public final class GuiSmoke {
                 screenshot("category-"+categoryIndex+"-desktop.png",1280,860);
             }
             press("hero-category-3");idle();screenshot("category-laptop-compact.png",960,680);
-            check(fx(()->scene.lookup("#category-banner").getBoundsInParent().getHeight())<=242,"Compact category banner leaves room for products");
+            check(fx(()->((javafx.scene.layout.Region)scene.lookup("#category-banner")).getHeight())<=242,"Compact category banner leaves room for products");
             text("search","laptop");press("catalog-search");idle();
             check(fx(()->!scene.lookup("#category-banner").isManaged()),"Searching hides category campaigns");
             click("Shop all");catalog();screenshot("category-shop-all-preserved.png",1280,860);

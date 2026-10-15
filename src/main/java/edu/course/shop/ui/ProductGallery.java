@@ -37,7 +37,8 @@ public final class ProductGallery extends VBox {
     }
     private void select(int index) {
         selected=index;
-        ProductArtwork art=photos.isEmpty()?new ProductArtwork(product,520):new ProductArtwork(photos.get(index),product.getName(),520);
+        ProductArtwork art=photos.isEmpty()?new ProductArtwork(product,520):
+            new ProductArtwork(photos.get(index),product.getName(),520,false,edu.course.shop.model.PhotoFrame.AUTO,true);
         art.setId("gallery-main");art.getStyleClass().add(product.getCategory().name().toLowerCase(java.util.Locale.ROOT));
         var height=javafx.beans.binding.Bindings.createDoubleBinding(()->compact.get()?Math.min(360,Math.max(240,windowHeight.get()*.42)):Math.min(560,Math.max(320,getWidth()*.9)),widthProperty(),compact,windowHeight);
         art.minHeightProperty().bind(height);art.prefHeightProperty().bind(height);art.maxHeightProperty().bind(height);
@@ -72,7 +73,7 @@ public final class ProductGallery extends VBox {
         Runnable render=()->{
             scale.set(1);viewport.setHvalue(.5);viewport.setVvalue(.5);
             if(photos.isEmpty())surface.getChildren().setAll(new ProductArtwork(product,baseHeight));
-            else {image.setImage(new javafx.scene.image.Image(new java.io.ByteArrayInputStream(photos.get(current[0])),3000,3000,true,true));image.setAccessibleText("Photo "+(current[0]+1)+" of "+product.getName());surface.getChildren().setAll(image);}
+            else {image.setImage(new javafx.scene.image.Image(new java.io.ByteArrayInputStream(photos.get(current[0]))));image.setAccessibleText("Photo "+(current[0]+1)+" of "+product.getName());surface.getChildren().setAll(image);}
             caption.setText(photos.isEmpty()?"Illustration / photo unavailable":"Photo "+(current[0]+1)+" of "+photos.size()+" · Drag to pan when zoomed");
         };
         Button previous=Ui.button("←",()->{current[0]=Math.floorMod(current[0]-1,photos.size());render.run();}),next=Ui.button("→",()->{current[0]=(current[0]+1)%photos.size();render.run();});
