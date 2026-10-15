@@ -46,6 +46,20 @@ public final class CatalogView extends VBox {
     private final VBox results=new VBox(16);
     private final ScrollPane scroll;
     private final EditorialHeader hero;
+    private final HBox searchBar;
+    private final SearchSuggestions suggestions;
+    public void stopSearchSuggestions(){suggestions.close();}
+    private HBox navigation;
+    private javafx.scene.layout.StackPane campaign;
+    public void useHeaderNavigation(HBox host) {
+        Runnable place=()->{
+            javafx.scene.layout.Pane target=getWidth()>=1200?host:campaign;
+            if(navigation.getParent()!=target){if(navigation.getParent() instanceof javafx.scene.layout.Pane old)old.getChildren().remove(navigation);target.getChildren().add(navigation);}
+            host.setManaged(target==host);host.setVisible(target==host);
+        };
+        widthProperty().addListener((o,a,b)->place.run());place.run();
+    }
+    public HBox searchBar() { return searchBar; }
     private final User user;private final Cart cart;private final ProductService products;private final CartService carts;
     private final Runnable changed;
     private final Consumer<String> toast; // optional: shows a floating "added to cart" message (null = old inline message)
@@ -64,57 +78,55 @@ public final class CatalogView extends VBox {
         getStyleClass().add("page");setSpacing(16);
         category.getItems().add("All categories");for(Category c:Category.shopping())category.getItems().add(Ui.category(c));
         category.getSelectionModel().select(state.getCategoryIndex());category.setId("category");category.setAccessibleText("Filter by category");
-        sort.getItems().addAll("Name: A–Z","Price: low to high","Price: high to low","Name: Z–A");sort.getSelectionModel().select(state.getSortIndex());
+        sort.getItems().addAll("Sort by: Name A–Z","Sort by: Price low–high","Sort by: Price high–low","Sort by: Name Z–A");sort.getSelectionModel().select(state.getSortIndex());
         sort.setId("sort");sort.setAccessibleText("Sort products");
         budget.getItems().addAll("Any price","Up to $25","Up to $50","Up to $100");budget.getSelectionModel().select(state.getBudgetIndex());
         budget.setId("budget");budget.setAccessibleText("Maximum price");available.setId("in-stock");available.setSelected(state.isInStockOnly());
         category.setOnAction(e->filterChanged());sort.setOnAction(e->filterChanged());budget.setOnAction(e->{if(clearing)return;minimum.clear();maximum.clear();applyFilters();});available.setOnAction(e->filterChanged());
         grid.setId("product-grid");
         grid.widthProperty().addListener((o,a,b)->{
-            int columns=Math.max(1,Math.min(4,(int)((b.doubleValue()+20)/270)));
+            int columns=Math.max(1,Math.min(5,(int)((b.doubleValue()+20)/230)));
             grid.setPrefTileWidth(Math.max(180,Math.floor((b.doubleValue()-20*(columns-1))/columns)-2));
         });
 
-        VBox collectionTitle=new VBox(6,Ui.label("CURATED FOR YOUR EVERYDAY","eyebrow"),title,result);
+        VBox collectionTitle=new VBox(4,title,Ui.label("Shop the collection","muted"),result);
         collectionTitle.setMinWidth(0);
         Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
-        search.setPromptText("Search laptops, phones, parts and more…");
+        search.setPromptText("Search products…");
         search.setMinWidth(0);search.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(search,Priority.ALWAYS);
         if(!search.getStyleClass().contains("catalog-search-input"))search.getStyleClass().add("catalog-search-input");
         Button clearSearch=Ui.button("×",()->{search.clear();state.setScrollPosition(0);refresh();search.requestFocus();});
         clearSearch.setId("clear-search");clearSearch.setAccessibleText("Clear search");
         clearSearch.getStyleClass().add("search-clear");
         clearSearch.visibleProperty().bind(search.textProperty().isNotEmpty());clearSearch.managedProperty().bind(clearSearch.visibleProperty());
-        HBox searchInput=new HBox(12,StoreIcon.of("search"),search,clearSearch);searchInput.setAlignment(Pos.CENTER_LEFT);
+        HBox searchInput=new HBox(12,StoreIcon.of("search"),search,clearSearch);searchInput.setAlignment(Pos.CENTER_LEFT);searchInput.setMinWidth(0);
         searchInput.getStyleClass().add("catalog-search-surface");HBox.setHgrow(searchInput,Priority.ALWAYS);
         Button find=Ui.primary("Search",()->{state.setScrollPosition(0);refresh();});find.setId("catalog-search");
-        find.getStyleClass().add("purchase-action");
+        find.getStyleClass().add("purchase-action");find.setVisible(false);find.setManaged(false);
         search.setOnAction(e->find.fire());
-        SearchSuggestions suggestions=new SearchSuggestions(search,user,products,details,()->{state.setScrollPosition(0);refresh();});
+        suggestions=new SearchSuggestions(search,user,products,details,()->{state.setScrollPosition(0);refresh();});
         find.setOnAction(e->{suggestions.dismiss();state.setScrollPosition(0);refresh();});
         HBox searchRow=new HBox(10,searchInput,find);searchRow.setAlignment(Pos.CENTER_LEFT);searchRow.setId("catalog-search-row");
+        searchBar=searchRow;searchBar.setMinWidth(0);
+        find.setAccessibleText("Search products");
         toggle.setId("toggle-filters");
         minimum.setText(state.getMinimumPrice());maximum.setText(state.getMaximumPrice());minimum.setPromptText("0.00");maximum.setPromptText("Any");minimum.setId("minimum-price");maximum.setId("maximum-price");minimum.setPrefWidth(100);maximum.setPrefWidth(100);minimum.setAccessibleText("Minimum price in USD");maximum.setAccessibleText("Maximum price in USD");
         minimum.textProperty().addListener((o,a,b)->Ui.flag(minimum,false));maximum.textProperty().addListener((o,a,b)->Ui.flag(maximum,false));
         rangeApplied.set(!minimum.getText().isBlank()||!maximum.getText().isBlank());
-        Button applyRange=Ui.button("Apply range",this::applyRange);applyRange.setId("apply-price-range");minimum.setOnAction(e->applyRange());maximum.setOnAction(e->applyRange());
-        Button clearFilters=Ui.link("Clear filters",this::clear);clearFilters.setId("clear-filters");
-        category.setPrefWidth(190);budget.setPrefWidth(160);sort.setPrefWidth(195);
-        HBox rangeControls=new HBox(8,labeled("From $",minimum),labeled("To $",maximum),applyRange);rangeControls.setAlignment(Pos.BOTTOM_LEFT);
-        VBox price=new VBox(6,Ui.label("Custom price range · USD","field-label"),rangeControls);
-        VBox availability=new VBox(12,Ui.label("Availability","field-label"),available,clearFilters);
-        filters.getChildren().addAll(labeled("Category",category),labeled("Quick budget",budget),price,availability);
-        filters.setId("catalog-filters");filters.getStyleClass().add("catalog-filter-panel");filters.setAlignment(Pos.TOP_LEFT);
-        filters.setVisible(state.isFiltersExpanded());filters.managedProperty().bind(filters.visibleProperty());
+        filters.setVisible(false);
         syncToggle();
-        toggle.setOnAction(e->{filters.setVisible(!filters.isVisible());state.setFiltersExpanded(filters.isVisible());syncToggle();});
-        HBox tools=new HBox(12,toggle,labeled("Sort by",sort));tools.setAlignment(Pos.BOTTOM_RIGHT);
+        toggle.setOnAction(e->openFilters());
+        toggle.getStyleClass().add("catalog-outline-control");
+        sort.getStyleClass().add("catalog-outline-control");
+        sort.setButtonCell(new javafx.scene.control.ListCell<>(){ @Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(empty?null:"Sort by");} });
+        sort.setPrefWidth(105);
+        HBox tools=new HBox(12,toggle,sort);tools.setAlignment(Pos.BOTTOM_RIGHT);
         HBox toolbar=new HBox(20,collectionTitle,spacer,tools);toolbar.setAlignment(Pos.BOTTOM_LEFT);
         toolbar.getStyleClass().add("catalog-toolbar");
         chips.setId("filter-chips");chips.managedProperty().bind(chips.visibleProperty());
         results.getChildren().add(grid);
 
-        VBox collection=new VBox(20,toolbar,searchRow,filters,chips,feedback,results);collection.getStyleClass().add("collection-section");
+        VBox collection=new VBox(16,toolbar,chips,feedback,results);collection.getStyleClass().add("collection-section");
         VBox content=new VBox(0);
         hero=new EditorialHeader(()->{
             content.applyCss();content.layout();
@@ -127,12 +139,42 @@ public final class CatalogView extends VBox {
         hero.visibleProperty().bind(search.textProperty().isEmpty().and(category.getSelectionModel().selectedIndexProperty().isEqualTo(0))
             .and(budget.getSelectionModel().selectedIndexProperty().isEqualTo(0)).and(available.selectedProperty().not()).and(rangeApplied.not()));
         hero.managedProperty().bind(hero.visibleProperty());
-        content.getChildren().addAll(hero,collection,collections(),closing());
+        // The navigation shares the campaign canvas; it stays reachable when filters hide the campaign.
+        navigation=categoryNavigation();
+        campaign=new javafx.scene.layout.StackPane(hero,navigation);
+        campaign.setId("catalog-campaign");campaign.getStyleClass().add("catalog-campaign");
+        campaign.setViewOrder(-1); // Draw the headset overlap above the following white section.
+        javafx.scene.layout.StackPane.setAlignment(navigation,Pos.TOP_CENTER);
+        navigation.setMaxHeight(Region.USE_PREF_SIZE);
+        content.getChildren().addAll(campaign,collection,collections(),closing());
         scroll=Ui.scroll(content);scroll.setId("catalog-scroll");getStyleClass().add("catalog-page");getChildren().add(scroll);
         scroll.vvalueProperty().addListener((o,a,b)->{if(!restoring)state.setScrollPosition(b.doubleValue());updateHeroViewport();});
         scroll.viewportBoundsProperty().addListener((o,a,b)->updateHeroViewport());
         content.layoutBoundsProperty().addListener((o,a,b)->updateHeroViewport());
         Platform.runLater(this::refresh);
+    }
+    private HBox categoryNavigation() {
+        HBox row=new HBox(6);row.setId("tech-category-nav");row.setAlignment(Pos.CENTER);
+        row.getStyleClass().add("hero-category-nav");
+        for(int index=0;index<=Category.shopping().size();index++) {
+            final int selection=index;
+            Button tab=Ui.button(index==0?"Shop all":Ui.category(Category.shopping().get(index-1)),()->browseCategory(selection));
+            tab.setId("hero-category-"+index);
+            Runnable highlight=()->{tab.getStyleClass().remove("category-active");if(category.getSelectionModel().getSelectedIndex()==selection)tab.getStyleClass().add("category-active");};
+            category.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->highlight.run());highlight.run();
+            if(index>3){tab.visibleProperty().bind(widthProperty().greaterThanOrEqualTo(1200));tab.managedProperty().bind(tab.visibleProperty());}
+            row.getChildren().add(tab);
+        }
+        javafx.scene.control.MenuButton more=new javafx.scene.control.MenuButton("More");more.setId("hero-category-more");
+        for(int index=4;index<=Category.shopping().size();index++) {
+            final int selection=index;
+            javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(Category.shopping().get(index-1)));
+            item.setOnAction(e->browseCategory(selection));more.getItems().add(item);
+        }
+        Runnable markMore=()->{more.getStyleClass().remove("category-active");if(category.getSelectionModel().getSelectedIndex()>3)more.getStyleClass().add("category-active");};
+        category.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->markMore.run());markMore.run();
+        more.visibleProperty().bind(widthProperty().lessThan(1200));more.managedProperty().bind(more.visibleProperty());row.getChildren().add(more);
+        return row;
     }
     private static VBox labeled(String title,javafx.scene.control.Control input) {
         Label label=Ui.label(title,"field-label");label.setLabelFor(input);
@@ -141,13 +183,20 @@ public final class CatalogView extends VBox {
     private void syncToggle() {
         int count=(state.getCategoryIndex()>0?1:0)+(state.getBudgetIndex()>0?1:0)+(state.isInStockOnly()?1:0)
             +(!state.getMinimumPrice().isBlank()||!state.getMaximumPrice().isBlank()?1:0);
-        toggle.setText("Filters"+(count>0?" · "+count:"")+(filters.isVisible()?" −":" +"));
+        toggle.setText("Filters"+(count>0?" · "+count:"")+(filters.isVisible()?"  ⌃":"  ⌄"));
         toggle.setAccessibleText((filters.isVisible()?"Hide":"Show")+" product filters; "+count+" active");
     }
     private void applyFilters() { state.setScrollPosition(0);refresh(); }
-    private void applyRange() {
-        if(!validRange())return;
-        clearing=true;budget.getSelectionModel().selectFirst();clearing=false;applyFilters();
+    private void openFilters() {
+        suggestions.dismiss();
+        Ui.async(this,"Loading filters…",()->products.search(user,"",null).stream().map(Product::getPrice).max(BigDecimal::compareTo).orElse(BigDecimal.ONE), ceiling->{
+            FilterDrawer.show(this,state,ceiling.doubleValue(),draft->{
+                clearing=true;
+                category.getSelectionModel().select(draft.category());available.setSelected(draft.inStock());
+                budget.getSelectionModel().selectFirst();minimum.setText(draft.minimum());maximum.setText(draft.maximum());
+                clearing=false;filterChanged();
+            });
+        },error->Ui.failure(feedback,error));
     }
     private boolean validRange() {
         boolean valid=true;BigDecimal lower=null,upper=null;
@@ -200,7 +249,7 @@ public final class CatalogView extends VBox {
         clearing=true;search.clear();category.getSelectionModel().select(index);clearing=false;filterChanged();
     }
     private void clear() {
-        clearing=true;search.clear();category.getSelectionModel().selectFirst();sort.getSelectionModel().selectFirst();
+        clearing=true;category.getSelectionModel().selectFirst();
         budget.getSelectionModel().selectFirst();minimum.clear();maximum.clear();state.setPriceRange("","");available.setSelected(false);clearing=false;filterChanged();
     }
     private void refresh() {

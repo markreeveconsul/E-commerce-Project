@@ -70,9 +70,10 @@ public final class CheckoutView extends VBox {
             javafx.application.Platform.runLater(()->Ui.async(this,"Loading saved addresses…",()->accounts.addresses(user),rows->{addresses.getItems().setAll(rows);addresses.setVisible(!rows.isEmpty());},error->Ui.failure(feedback,error)));
         }
         javafx.scene.control.ToggleGroup paymentGroup=new javafx.scene.control.ToggleGroup();FlowPane paymentChoices=new FlowPane(12,12);
-        for(int i=0;i<2;i++) {int index=i;ToggleButton choice=new ToggleButton(i==0?"Cash on delivery":"Simulated wallet");choice.setId(i==0?"payment-cash":"payment-wallet");choice.getStyleClass().add("payment-choice");choice.setToggleGroup(paymentGroup);choice.setSelected(payment.getSelectionModel().getSelectedIndex()==i);choice.setOnAction(e->{payment.getSelectionModel().select(index);choice.setSelected(true);});paymentChoices.getChildren().add(choice);}
-        payment.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->{for(int i=0;i<2;i++)((ToggleButton)paymentChoices.getChildren().get(i)).setSelected(b.intValue()==i);});
-        VBox paymentCard=new VBox(14,Ui.label("Payment","section-title"),paymentChoices,Ui.field("Payment method",payment,paymentError),explanation,
+        for(int i=0;i<2;i++) {int index=i;ToggleButton choice=new ToggleButton(i==0?"Cash on delivery":"Simulated wallet");choice.setId(i==0?"payment-cash":"payment-wallet");choice.getStyleClass().add("payment-choice");choice.setToggleGroup(paymentGroup);choice.setSelected(i==0?payment.getSelectionModel().getSelectedIndex()==0:payment.getSelectionModel().getSelectedIndex()>0);choice.setOnAction(e->{payment.getSelectionModel().select(index);choice.setSelected(true);});RadioButton indicator=new RadioButton();indicator.setMouseTransparent(true);indicator.setFocusTraversable(false);indicator.selectedProperty().bind(choice.selectedProperty());choice.setGraphic(indicator);paymentChoices.getChildren().add(choice);}
+        payment.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->{for(int i=0;i<2;i++)((ToggleButton)paymentChoices.getChildren().get(i)).setSelected(i==0?b.intValue()==0:b.intValue()>0);});
+        TitledPane demoOptions=new TitledPane("Demo test options",Ui.field("Simulated payment outcome",payment,paymentError));demoOptions.setId("demo-payment-options");demoOptions.setExpanded(false);demoOptions.setAnimated(false);
+        VBox paymentCard=new VBox(14,Ui.label("Payment","section-title"),paymentChoices,explanation,demoOptions,
             Ui.label("Course demo · Payments are simulated.","notice"));
         paymentCard.getStyleClass().add("card");
         VBox form=new VBox(16,deliveryCard,paymentCard,feedback); form.setMinWidth(0); HBox.setHgrow(form,Priority.ALWAYS);
@@ -80,7 +81,7 @@ public final class CheckoutView extends VBox {
         VBox columns=Ui.purchaseColumns(form,new OrderSummary(cart,place));columns.setId("checkout-columns");
 
         Button backLink=Ui.link("← Back to cart",back);backLink.setMaxWidth(Region.USE_PREF_SIZE);
-        getChildren().addAll(backLink,Ui.label("Checkout","page-title"),steps(),Ui.scroll(columns));
+        getChildren().addAll(Ui.label("Checkout","page-title"),steps(),Ui.scroll(columns));
     }
 
     /** Progress indicator: finished step, current step (filled pill), upcoming step. */

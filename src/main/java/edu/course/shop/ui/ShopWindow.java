@@ -47,6 +47,7 @@ public final class ShopWindow {
     private User user=new Guest();private Cart cart=new Cart(0),pendingGuestCart;
     private final CheckoutDraft draft=new CheckoutDraft();
     private BorderPane shell;private StackPane window,overlay;private Button cartButton;
+    private HBox headerSearch,headerNavigation;
     private Node previousFocus;
     // Header selection and brief action-feedback animations.
     private final List<Button> navButtons=new ArrayList<>();
@@ -118,14 +119,28 @@ public final class ShopWindow {
         }else{
             search.setPromptText("Search the collection");search.setAccessibleText("Search products");search.setMinWidth(130);search.setPrefWidth(260);
             Runnable find=()->{catalogState.setScrollPosition(0);showCatalog();};search.setOnAction(e->find.run());
-            Button logo=Ui.button("MARKET",()->category(0));logo.getStyleClass().add("brand-link");
+            Button logo=Ui.button("MARKET",()->category(0));logo.getStyleClass().add("brand-link");logo.setMinWidth(Region.USE_PREF_SIZE);
             cartButton=link("Cart · 0",this::showCartDrawer);cartButton.setId("nav-cart");
             cartButton.setGraphic(StoreIcon.of("bag"));cartButton.getStyleClass().add("cart-button");
             Button account=link(user instanceof Guest?"Sign in":"My orders",user instanceof Guest?this::showLogin:this::showOrders);account.setId("account");
             account.setGraphic(StoreIcon.of("account"));
-            Button favorites=link("Saved items",this::showSaved);favorites.setGraphic(StoreIcon.of("heart"));favorites.setId("nav-saved");favorites.setAccessibleText("Saved items");
-            HBox right=new HBox(4,favorites,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);
-            if(!(user instanceof Guest)){Button profile=link("Profile",this::showAccount);profile.setId("nav-profile");right.getChildren().addAll(profile,link("Sign out",this::signOut));}
+            Button favorites=link("Saved",this::showSaved);favorites.setGraphic(StoreIcon.of("heart"));favorites.setId("nav-saved");favorites.setAccessibleText("Saved items");
+            HBox right=new HBox(4,favorites,account,cartButton);right.setAlignment(Pos.CENTER_RIGHT);right.setMinWidth(Region.USE_PREF_SIZE);
+            if(!(user instanceof Guest)){
+                Button profile=link("Profile",this::showAccount);profile.setId("nav-profile");
+                Button signOut=link("Sign out",this::signOut);
+                profile.visibleProperty().bind(shell.widthProperty().greaterThanOrEqualTo(1100));profile.managedProperty().bind(profile.visibleProperty());
+                signOut.visibleProperty().bind(profile.visibleProperty());signOut.managedProperty().bind(signOut.visibleProperty());
+                account.visibleProperty().bind(profile.visibleProperty());account.managedProperty().bind(account.visibleProperty());
+                javafx.scene.control.MenuButton accountMenu=new javafx.scene.control.MenuButton("Account");accountMenu.setId("compact-account-menu");
+                accountMenu.getStyleClass().add("compact-menu");
+                javafx.scene.control.MenuItem profileItem=new javafx.scene.control.MenuItem("Profile");profileItem.setOnAction(e->showAccount());
+                javafx.scene.control.MenuItem exitItem=new javafx.scene.control.MenuItem("Sign out");exitItem.setOnAction(e->signOut());
+                javafx.scene.control.MenuItem ordersItem=new javafx.scene.control.MenuItem("My orders");ordersItem.setOnAction(e->showOrders());
+                accountMenu.getItems().addAll(ordersItem,profileItem,exitItem);
+                accountMenu.visibleProperty().bind(profile.visibleProperty().not());accountMenu.managedProperty().bind(accountMenu.visibleProperty());
+                right.getChildren().addAll(profile,signOut,accountMenu);
+            }
             Button all=Ui.button("Shop all",()->category(0));navButtons.add(all);
             HBox categories=new HBox(6,all);categories.setAlignment(Pos.CENTER_LEFT);
             categories.getStyleClass().addAll("category-nav","integrated-categories");
@@ -136,13 +151,20 @@ public final class ShopWindow {
             javafx.scene.control.MenuButton menu=new javafx.scene.control.MenuButton("Shop");menu.setId("compact-shop-menu");menu.getStyleClass().add("compact-menu");
             javafx.scene.control.MenuItem allItem=new javafx.scene.control.MenuItem("Shop all");allItem.setOnAction(e->category(0));menu.getItems().add(allItem);
             for(Category c:Category.shopping()){javafx.scene.control.MenuItem item=new javafx.scene.control.MenuItem(Ui.category(c));item.setOnAction(e->category(c.shoppingIndex()));menu.getItems().add(item);}
-            HBox header=new HBox(16,logo,menu,spacer,right);
-            categories.setId("tech-category-nav");categories.setAlignment(Pos.CENTER);categories.getStyleClass().add("tech-category-nav");
-            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(1100));categories.managedProperty().bind(categories.visibleProperty());
-            menu.visibleProperty().bind(categories.visibleProperty().not());menu.managedProperty().bind(menu.visibleProperty());
+            headerSearch=new HBox();headerSearch.setMinWidth(0);headerSearch.setMaxWidth(320);HBox.setHgrow(headerSearch,Priority.ALWAYS);
+            headerNavigation=new HBox();headerNavigation.setMinWidth(Region.USE_PREF_SIZE);
+            HBox header=new HBox(12,logo,menu,headerNavigation,spacer,headerSearch,right);
+            categories.setId("secondary-category-nav");categories.setAlignment(Pos.CENTER);categories.getStyleClass().add("tech-category-nav");
+            var outsideCatalog=javafx.beans.binding.Bindings.createBooleanBinding(()->!(shell.getCenter() instanceof CatalogView),shell.centerProperty());
+            var checkoutPage=javafx.beans.binding.Bindings.createBooleanBinding(()->shell.getCenter() instanceof CheckoutView,shell.centerProperty());
+            right.visibleProperty().bind(checkoutPage.not());right.managedProperty().bind(right.visibleProperty());
+            HBox checkoutLinks=new HBox(18,link("← Back to cart",this::showCart),Ui.label("Demo checkout","checkout-header-note"));checkoutLinks.setAlignment(Pos.CENTER_RIGHT);checkoutLinks.visibleProperty().bind(checkoutPage);checkoutLinks.managedProperty().bind(checkoutPage);header.getChildren().add(checkoutLinks);
+            headerSearch.visibleProperty().bind(checkoutPage.not());headerSearch.managedProperty().bind(headerSearch.visibleProperty());
+            categories.visibleProperty().bind(header.widthProperty().greaterThanOrEqualTo(1100).and(outsideCatalog).and(checkoutPage.not()));categories.managedProperty().bind(categories.visibleProperty());
+            menu.visibleProperty().bind(header.widthProperty().lessThan(1100).and(outsideCatalog).and(checkoutPage.not()));menu.managedProperty().bind(menu.visibleProperty());
             header.setAlignment(Pos.CENTER_LEFT);header.getStyleClass().add("store-header");
             Label announcement=Ui.label("GOOD FINDS. ZERO SHIPPING FEES.  /  Free shipping on every demo order","store-announcement");announcement.setMaxWidth(Double.MAX_VALUE);
-            shell.setTop(new VBox(announcement,header,categories,operation));updateCart();
+            shell.setTop(new VBox(header,categories,operation));updateCart();
         }
         // Footer: two real labels pushed apart, instead of one label padded with spaces.
         Region footerSpace=new Region();HBox.setHgrow(footerSpace,Priority.ALWAYS);
@@ -157,7 +179,7 @@ public final class ShopWindow {
         info.initOwner(stage);info.setTitle("About Market");info.setHeaderText("A small shop. Good things.");info.showAndWait();
     }
     private void category(int index){catalogState.setCategoryIndex(index);catalogState.setScrollPosition(0);search.clear();showCatalog();}
-    private void show(Node page){dismissDrawer();stopFeedbackAnimations();shell.setCenter(page);if(!(page instanceof CatalogView))Motion.reveal(page);updateNav();}
+    private void show(Node page){if(shell.getCenter() instanceof CatalogView previous&&previous!=page)previous.stopSearchSuggestions();dismissDrawer();stopFeedbackAnimations();if(headerNavigation!=null&&!(page instanceof CatalogView)){headerNavigation.setVisible(false);headerNavigation.setManaged(false);}shell.setCenter(page);if(!(page instanceof CatalogView)){search.setOnAction(e->{catalogState.setScrollPosition(0);showCatalog();});Motion.reveal(page);}updateNav();}
 
     /** Highlights the header button for the current category, only while the storefront is showing. */
     private void updateNav(){
@@ -200,7 +222,7 @@ public final class ShopWindow {
         if(cartPulse!=null){cartPulse.stop();cartPulse=null;}
         if(cartButton!=null){cartButton.setScaleX(1);cartButton.setScaleY(1);}
     }
-    public void showCatalog(){CatalogView catalog=new CatalogView(user,cart,services.products(),new CartService(services.products()),(Runnable)this::updateCart,(Runnable)this::showCartDrawer,(java.util.function.Consumer<Product>)this::showDetails,search,catalogState,(java.util.function.Consumer<String>)this::showToast,(Runnable)this::updateNav);catalog.enableSavedItems(saved);show(catalog);}
+    public void showCatalog(){CatalogView catalog=new CatalogView(user,cart,services.products(),new CartService(services.products()),(Runnable)this::updateCart,(Runnable)this::showCartDrawer,(java.util.function.Consumer<Product>)this::showDetails,search,catalogState,(java.util.function.Consumer<String>)this::showToast,(Runnable)this::updateNav);catalog.enableSavedItems(saved);headerNavigation.getChildren().clear();catalog.useHeaderNavigation(headerNavigation);headerSearch.getChildren().setAll(catalog.searchBar());HBox.setHgrow(catalog.searchBar(),Priority.ALWAYS);show(catalog);}
     private void showDetails(Product product){
         dismissDrawer();Ui.async(shell,"Opening product…",()->services.products().get(product.getId()),latest->{
             if(!latest.isActive()){showCatalog();return;}

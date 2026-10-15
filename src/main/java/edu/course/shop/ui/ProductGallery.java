@@ -52,19 +52,23 @@ public final class ProductGallery extends VBox {
             "Photo "+(index+1)+" of "+photos.size()+" · Select image to enlarge");
     }
     private void enlarge() {
-        Dialog<Void> dialog=new Dialog<>();dialog.setTitle(product.getName());dialog.initOwner(getScene().getWindow());dialog.setResizable(true);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStylesheets().add(ProductGallery.class.getResource("/shop.css").toExternalForm());
-        dialog.getDialogPane().getStyleClass().add("image-viewer");
+        DialogPane panel=new DialogPane();panel.setId("image-viewer-panel");
+        panel.getStylesheets().add(ProductGallery.class.getResource("/shop.css").toExternalForm());
+        panel.getStyleClass().addAll("image-viewer","glass-image-viewer");
+        double panelWidth=Math.min(1040,getScene().getWidth()*.80),panelHeight=Math.min(760,getScene().getHeight()*.84);
+        panel.setMinSize(0,0);panel.prefWidthProperty().bind(javafx.beans.binding.Bindings.min(1040,getScene().widthProperty().multiply(.80)));panel.prefHeightProperty().bind(javafx.beans.binding.Bindings.min(760,getScene().heightProperty().multiply(.84)));panel.maxWidthProperty().bind(panel.prefWidthProperty());panel.maxHeightProperty().bind(panel.prefHeightProperty());
         StackPane surface=new StackPane();surface.setMinSize(0,0);surface.getStyleClass().add("image-viewer-surface");
-        ScrollPane viewport=new ScrollPane(surface);viewport.setPannable(true);viewport.getStyleClass().add("image-viewer-viewport");viewport.setId("image-zoom-viewport");viewport.setPrefViewportWidth(Math.min(850,getScene().getWidth()-120));viewport.setPrefViewportHeight(Math.min(560,getScene().getHeight()-210));
-        surface.minWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(()->viewport.getViewportBounds().getWidth(),viewport.viewportBoundsProperty()));
-        surface.minHeightProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(()->viewport.getViewportBounds().getHeight(),viewport.viewportBoundsProperty()));
+        ScrollPane viewport=new ScrollPane(surface);viewport.setPannable(true);viewport.getStyleClass().add("image-viewer-viewport");viewport.setId("image-zoom-viewport");viewport.setPrefViewportWidth(panelWidth-48);viewport.setPrefViewportHeight(panelHeight-150);
+        // Fixed content geometry breaks the viewport / scrollbar / preferred-size feedback loop.
+        viewport.setFitToWidth(false);viewport.setFitToHeight(false);
         javafx.beans.property.DoubleProperty scale=new javafx.beans.property.SimpleDoubleProperty(1);
         Label caption=Ui.label("","muted");caption.setId("image-zoom-caption");
-        int[] current={selected};double baseWidth=Math.min(800,getScene().getWidth()-150),baseHeight=Math.min(520,getScene().getHeight()-240);
+        int[] current={selected};double baseWidth=panelWidth-52,baseHeight=panelHeight-210;
         javafx.scene.image.ImageView image=new javafx.scene.image.ImageView();image.setPreserveRatio(true);image.setSmooth(true);image.setId("image-zoom-photo");
-        image.fitWidthProperty().bind(scale.multiply(baseWidth));image.fitHeightProperty().bind(scale.multiply(baseHeight));
+        image.fitWidthProperty().bind(scale.multiply(panel.prefWidthProperty().subtract(52)));image.fitHeightProperty().bind(scale.multiply(panel.prefHeightProperty().subtract(210)));
+        surface.prefWidthProperty().bind(scale.multiply(panel.prefWidthProperty().subtract(52)));surface.prefHeightProperty().bind(scale.multiply(panel.prefHeightProperty().subtract(210)));
+        surface.setMinSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);surface.setMaxSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);
+        viewport.setMinSize(0,0);VBox.setVgrow(viewport,Priority.ALWAYS);
         Runnable render=()->{
             scale.set(1);viewport.setHvalue(.5);viewport.setVvalue(.5);
             if(photos.isEmpty())surface.getChildren().setAll(new ProductArtwork(product,baseHeight));
@@ -78,8 +82,13 @@ public final class ProductGallery extends VBox {
         if(photos.isEmpty()){minus.disableProperty().unbind();plus.disableProperty().unbind();minus.setDisable(true);plus.setDisable(true);}
         Button reset=Ui.button("Fit image",()->{scale.set(1);viewport.setHvalue(.5);viewport.setVvalue(.5);});reset.setId("image-zoom-reset");Label level=Ui.label("","field-label");level.textProperty().bind(scale.multiply(100).asString("%.0f%%"));
         FlowPane tools=new FlowPane(12,12,previous,minus,level,plus,reset,next);tools.setAlignment(javafx.geometry.Pos.CENTER);tools.getStyleClass().add("image-viewer-tools");render.run();
-        dialog.getDialogPane().setContent(new VBox(16,Ui.label(product.getName(),"section-title"),viewport,tools,caption));
-        dialog.getDialogPane().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,e->{if(e.getCode()==javafx.scene.input.KeyCode.LEFT){previous.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.RIGHT){next.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.ADD||e.getCode()==javafx.scene.input.KeyCode.PLUS||e.getCode()==javafx.scene.input.KeyCode.EQUALS){plus.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.SUBTRACT||e.getCode()==javafx.scene.input.KeyCode.MINUS){minus.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.DIGIT0){reset.fire();e.consume();}});
-        dialog.setOnHidden(e->{select(current[0]);main.requestFocus();});dialog.showAndWait();
+        Label heading=Ui.label(product.getName(),"viewer-title");heading.setWrapText(false);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(heading,Priority.ALWAYS);
+        Button close=Ui.button("×",()->{});close.setId("image-close");close.setAccessibleText("Close image viewer");
+        HBox header=new HBox(16,heading,close);header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        VBox content=new VBox(10,header,viewport,tools,caption);content.setMinHeight(0);panel.setContent(content);
+        Runnable dismiss=ShopOverlay.show(this,panel,true,false,()->select(current[0]));
+        close.setOnAction(e->dismiss.run());
+        panel.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,e->{if(e.getCode()==javafx.scene.input.KeyCode.LEFT){previous.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.RIGHT){next.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.ADD||e.getCode()==javafx.scene.input.KeyCode.PLUS||e.getCode()==javafx.scene.input.KeyCode.EQUALS){plus.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.SUBTRACT||e.getCode()==javafx.scene.input.KeyCode.MINUS){minus.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.DIGIT0){reset.fire();e.consume();}});
+
     }
 }

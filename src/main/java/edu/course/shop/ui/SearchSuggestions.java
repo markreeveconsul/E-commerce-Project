@@ -16,6 +16,8 @@ public final class SearchSuggestions {
     private Task<List<Product>> pending;
     public void dismiss() {generation++;debounce.stop();if(pending!=null)pending.cancel();popup.hide();}
     private long generation;
+    private Runnable cleanup=()->{};
+    public void close(){dismiss();cleanup.run();}
     private javafx.beans.value.ChangeListener<javafx.scene.Scene> lifecycle;
     public SearchSuggestions(TextField search,User user,ProductService products,Consumer<Product> details,Runnable results) {
         popup.setId("search-suggestions");popup.setStyle("-fx-min-width: 350;");
@@ -40,6 +42,7 @@ public final class SearchSuggestions {
         });
         search.textProperty().addListener(listener);
         javafx.beans.value.ChangeListener<Boolean> focused=(o,a,b)->{if(!b){debounce.stop();}else if(search.getText().trim().length()>=2)debounce.playFromStart();};search.focusedProperty().addListener(focused);
-        lifecycle=(o,a,b)->{if(b==null){generation++;debounce.stop();if(pending!=null)pending.cancel();popup.hide();search.textProperty().removeListener(listener);search.focusedProperty().removeListener(focused);search.sceneProperty().removeListener(lifecycle);search.removeEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,keyboard);}};search.sceneProperty().addListener(lifecycle);
+        cleanup=()->{search.textProperty().removeListener(listener);search.focusedProperty().removeListener(focused);search.sceneProperty().removeListener(lifecycle);search.removeEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,keyboard);};
+        lifecycle=(o,a,b)->{if(b==null)close();};search.sceneProperty().addListener(lifecycle);
     }
 }
