@@ -65,7 +65,9 @@ public final class NextUiSmoke {
             click("Edit");check(label("address-form-title").equals("Edit address"),"Address editor identifies editing mode");click("New address");check(label("address-form-title").equals("Add an address"),"New address resets editing mode");
             screenshot("01-account.png");press("nav-saved");waitFor(()->scene.lookup("#saved-grid")!=null&&!scene.getRoot().isDisabled());screenshot("02-saved-items.png");check(fx(()->scene.lookup("#remove-saved-1") instanceof Button),"Saved products expose a direct remove action");press("save-1");idle();check(services.accounts().saved(customer).isEmpty(),"Removing saved item updates storage");check(fx(()->scene.lookup("#saved-grid").lookupAll(".empty-state").size())==1,"Removing last favorite shows recovery state");click("Explore products");catalog();
             fx(()->{stage.toFront();stage.requestFocus();((TextField)scene.lookup("#search")).requestFocus();return null;});waitFor(()->scene.lookup("#search").isFocused());text("search","head");
-            waitFor(()->scene.lookup("#search-overlay-panel")!=null&&scene.lookup("#search-result-1")!=null);
+            waitFor(()->scene.lookup("#search-overlay-panel")!=null);
+            check(fx(()->scene.lookup("#search-overlay-panel").getTranslateY()<0),"Search panel begins above its final position for the drop-in entrance");
+            waitFor(()->scene.lookup("#search-result-1")!=null&&Math.abs(scene.lookup("#search-overlay-panel").getTranslateY())<.1);
             screenshot("14-search-clear.png");
             double[] searchBounds=fx(()->{Node panel=scene.lookup("#search-overlay-panel");var bounds=panel.localToScene(panel.getLayoutBounds());return new double[]{bounds.getCenterX(),bounds.getCenterY(),scene.getWidth()/2,scene.getHeight()/2};});
             check(Math.abs(searchBounds[0]-searchBounds[2])<4&&Math.abs(searchBounds[1]-searchBounds[3])<4,"Debounced search opens a centered, moderate-size product panel");
@@ -118,6 +120,10 @@ public final class NextUiSmoke {
             check(fx(()->dialog().getStylesheets().stream().anyMatch(sheet->sheet.endsWith("shop.css"))),"Image viewer inherits the Market visual system");
             check(fx(()->dialog().lookup("#image-viewer-add") instanceof Button),"Photo viewer includes the real add-to-cart action");
             check(fx(()->dialog().lookupAll(".viewer-info").size()==1&&dialog().lookupAll(".viewer-product-price").size()==1),"Photo viewer surfaces product details and price beside the image");
+            fx(()->{((Button)dialog().lookup("#image-zoom-reset")).fire();return null;});
+            double zoomCenterDelta=fx(()->{Node image=dialog().lookup("#image-zoom-photo"),controls=dialog().lookup("#image-zoom-controls");return Math.abs(image.localToScene(image.getBoundsInLocal()).getCenterX()-controls.localToScene(controls.getBoundsInLocal()).getCenterX());});
+            check(zoomCenterDelta<3,"Zoom controls are centered on the displayed photo (offset "+zoomCenterDelta+" px)");
+            check(fx(()->{Node viewport=dialog().lookup("#image-zoom-viewport"),details=dialog().lookup(".viewer-info");double gap=details.localToScene(details.getBoundsInLocal()).getMinX()-viewport.localToScene(viewport.getBoundsInLocal()).getMaxX();return gap>=0&&gap<24;}),"Product details sit close beside the image instead of drifting to the right");
             fx(()->{((Button)dialog().lookup("#image-zoom-reset")).fire();dialog().applyCss();dialog().layout();return null;});
             check(fx(()->dialog().lookupAll(".label").stream().anyMatch(n->n instanceof Label l&&l.getText().equals("Fit"))),"Viewer names its default zoom state Fit");
             check(fx(()->{ScrollPane viewport=(ScrollPane)dialog().lookup("#image-zoom-viewport");Node image=dialog().lookup("#image-zoom-photo");return Math.abs(image.getBoundsInParent().getCenterX()-viewport.getContent().getLayoutBounds().getCenterX())<2;}),"Fit image centers a photo smaller than its viewport");
@@ -136,10 +142,10 @@ public final class NextUiSmoke {
             }
             check(fx(()->((ScrollPane)dialog().lookup("#image-zoom-viewport")).isPannable()),"Zoom supports image panning");fx(()->{write(scene.getRoot(),evidence.resolve("04-image-zoom.png"));return null;});closeDialog();check(fx(()->scene.getFocusOwner()==scene.lookup("#zoom-photo")),"Closing zoom restores gallery trigger focus");
             resize(960,680);openDialog("zoom-photo");
-            check(fx(()->dialog().getWidth()<scene.getWidth()*.85&&dialog().getHeight()<scene.getHeight()*.9),"Compact viewer leaves space around all edges");
+            check(fx(()->dialog().getWidth()<scene.getWidth()*.90&&dialog().getHeight()<scene.getHeight()*.9),"Compact viewer leaves space around all edges");
             check(fx(()->dialog().getHeight()<scene.getHeight()*.84),"Compact photo viewer sizes to its content instead of stretching vertically");
             check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect() instanceof javafx.scene.effect.GaussianBlur),"Background is blurred");
-            check(fx(()->scene.lookup("#image-zoom-photo").getEffect()==null),"Photo remains sharp"); check(fx(()->{ScrollPane v=(ScrollPane)scene.lookup("#image-zoom-viewport");return v.getContent().getLayoutBounds().getHeight()<=v.getViewportBounds().getHeight();}),"Fit image does not need vertical scrolling"); resize(1100,760); check(fx(()->dialog().getWidth()<scene.getWidth()*.85),"Open viewer responds to window resizing");resize(960,680);
+            check(fx(()->scene.lookup("#image-zoom-photo").getEffect()==null),"Photo remains sharp"); check(fx(()->{ScrollPane v=(ScrollPane)scene.lookup("#image-zoom-viewport");return v.getContent().getLayoutBounds().getHeight()<=v.getViewportBounds().getHeight();}),"Fit image does not need vertical scrolling"); resize(1100,760); check(fx(()->dialog().getWidth()<scene.getWidth()*.90),"Open viewer responds to window resizing");resize(960,680);
             screenshot("13-glass-compact.png");closeDialog();
             check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect()==null),"Closing restores background effect");
             resize(1280,860);

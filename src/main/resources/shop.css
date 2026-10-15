@@ -399,6 +399,16 @@
 .glass-image-viewer .button { -fx-background-color: rgba(255,255,255,.07); -fx-text-fill: white; -fx-border-color: rgba(255,255,255,.35); -fx-padding: 6 13; -fx-min-height: 32; -fx-font-size: 13px; }
 .glass-image-viewer .button:hover { -fx-background-color: rgba(255,255,255,.18); }
 .glass-image-viewer .image-viewer-tools { -fx-padding: 0; }
+.glass-image-viewer #image-viewer-tools { -fx-min-height: 40; -fx-pref-height: 40; }
+.glass-image-viewer .image-zoom-controls { -fx-spacing: 8; -fx-alignment: center; }
+.glass-image-viewer #image-zoom-out, .glass-image-viewer #image-zoom-in,
+.glass-image-viewer #image-previous, .glass-image-viewer #image-next {
+    -fx-min-width: 40; -fx-pref-width: 40; -fx-max-width: 40;
+    -fx-min-height: 40; -fx-pref-height: 40; -fx-max-height: 40;
+    -fx-padding: 0; -fx-background-radius: 22; -fx-border-radius: 22;
+}
+.glass-image-viewer #image-zoom-level { -fx-min-width: 48; -fx-pref-width: 48; -fx-max-width: 48; -fx-text-alignment: center; }
+.glass-image-viewer #image-zoom-reset { -fx-min-width: 112; -fx-pref-width: 112; -fx-max-width: 112; -fx-min-height: 40; -fx-pref-height: 40; -fx-max-height: 40; -fx-padding: 0 10; -fx-background-radius: 22; -fx-border-radius: 22; }
 
 /* Centered product search: dark search pill over a clean, readable results card. */
 .search-overlay-panel { -fx-spacing: 12; }
@@ -625,3 +635,7 @@
 .viewer-info .viewer-note { -fx-font-size: 11px; -fx-text-fill: #B6B9BF; }
 .viewer-media { -fx-spacing: 10; }
 .viewer-caption { -fx-padding: 2 10; }
+
+.glass-image-viewer .viewer-columns { -fx-spacing: 14; }
+
+.glass-image-viewer .viewer-info-scroll, .glass-image-viewer .viewer-info-scroll > .viewport { -fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0; }
