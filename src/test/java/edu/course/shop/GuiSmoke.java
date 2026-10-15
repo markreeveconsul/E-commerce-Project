@@ -86,6 +86,19 @@ public final class GuiSmoke {
             press("login");check(!label("username-error").isBlank(),"Missing username needs field error");
             login("customer","incorrect");idle();check(label("login-feedback").contains("Incorrect"),"Wrong password needs inline error");
             click("← Continue browsing");catalog();
+            for(int categoryIndex=1;categoryIndex<=6;categoryIndex++){
+                press("hero-category-"+categoryIndex);idle();
+                check(fx(()->scene.lookup("#category-banner").isVisible()),"Category banner is visible for category "+categoryIndex);
+                check(fx(()->!scene.lookup("#editorial-hero").isManaged()),"Shop all hero stays separate from category banner");
+                screenshot("category-"+categoryIndex+"-desktop.png",1280,860);
+            }
+            press("hero-category-3");idle();screenshot("category-laptop-compact.png",960,680);
+            check(fx(()->scene.lookup("#category-banner").getBoundsInParent().getHeight())<=242,"Compact category banner leaves room for products");
+            text("search","laptop");press("catalog-search");idle();
+            check(fx(()->!scene.lookup("#category-banner").isManaged()),"Searching hides category campaigns");
+            click("Shop all");catalog();screenshot("category-shop-all-preserved.png",1280,860);
+            // Reset the offscreen fixture after explicit snapshot resizing before the original suite.
+            fx(()->{new ShopWindow((Stage)scene.getWindow(),services).showStorefront();return null;});catalog();
             check(fx(()->((Button)scene.lookup("#account")).getText()).equals("Sign in"),"Guests browse without login");
             check(fx(()->scene.lookup("#search").isVisible()&&scene.lookup("#catalog-search")!=null),"Catalog search is reachable");
             check(fx(()->((Button)scene.lookup("#hero-electronics")).getGraphic().getLayoutBounds().getHeight())>=270,"Campaign artwork fills the area below integrated navigation");

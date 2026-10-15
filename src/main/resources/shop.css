@@ -418,3 +418,51 @@
 /* Chevron graphic on the Filters button: same shape and size as the Sort control's arrow. */
 .chevron-icon { -fx-shape: "M0 1.4 L1.4 0 L6 4.6 L10.6 0 L12 1.4 L6 7.4 Z"; -fx-background-color: #171719; -fx-min-width: 12; -fx-pref-width: 12; -fx-max-width: 12; -fx-min-height: 7.4; -fx-pref-height: 7.4; -fx-max-height: 7.4; }
 #toggle-filters { -fx-graphic-text-gap: 12; }
+/* Search reset and filter refinement: scoped to these controls only. */
+.store-header .button.search-clear {
+    -fx-min-width: 28; -fx-pref-width: 28; -fx-max-width: 28;
+    -fx-min-height: 28; -fx-pref-height: 28; -fx-max-height: 28;
+    -fx-padding: 0; -fx-background-color: transparent;
+    -fx-border-color: transparent; -fx-background-radius: 14; -fx-border-radius: 14;
+    -fx-effect: null;
+}
+.store-header .button.search-clear .store-icon { -fx-stroke: #E8E8E8; -fx-stroke-width: 1.8; }
+.store-header .button.search-clear:hover { -fx-background-color: rgba(255,255,255,.12); }
+.store-header .button.search-clear:focused { -fx-border-color: #ef502b; }
+.filter-drawer .button.filter-close {
+    -fx-min-width: 32; -fx-pref-width: 32; -fx-max-width: 32;
+    -fx-min-height: 32; -fx-pref-height: 32; -fx-max-height: 32;
+    -fx-padding: 0; -fx-background-color: #F0F0F2;
+    -fx-border-color: transparent; -fx-background-radius: 16; -fx-border-radius: 16;
+    -fx-effect: null;
+}
+.filter-drawer .button.filter-close:hover { -fx-background-color: #E4E4E7; }
+.filter-drawer .button.filter-close:focused { -fx-border-color: #ef502b; }
+.filter-drawer .radio-button {
+    -fx-padding: 8 10; -fx-background-radius: 8; -fx-graphic-text-gap: 10;
+}
+.filter-drawer .radio-button:hover { -fx-background-color: #F7F7F7; }
+.filter-drawer .radio-button:selected { -fx-background-color: #FFF3EE; }
+.filter-drawer .radio-button .radio {
+    -fx-background-color: white; -fx-background-insets: 0;
+    -fx-border-color: #A9ABB0; -fx-border-width: 1.5; -fx-border-radius: 20;
+    -fx-padding: 4; -fx-effect: null;
+}
+.filter-drawer .radio-button:selected .radio { -fx-border-color: #ef502b; }
+.filter-drawer .radio-button .dot { -fx-background-color: transparent; -fx-padding: 4; }
+.filter-drawer .radio-button:selected .dot { -fx-background-color: #ef502b; }
+.filter-drawer .radio-button:focused .radio { -fx-effect: dropshadow(gaussian,rgba(239,80,43,.35),5,.2,0,0); }
+.filter-drawer .check-box .box {
+    -fx-background-color: white; -fx-background-insets: 0; -fx-border-color: #B5B7BB;
+    -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 4;
+}
+.filter-drawer .check-box:selected .box { -fx-background-color: #ef502b; -fx-border-color: #ef502b; }
+.filter-drawer .check-box:selected .mark { -fx-background-color: white; }
+.filter-drawer .range-help, .filter-drawer .filter-match-count { -fx-font-size: 12px; -fx-text-fill: #737780; }
+.filter-drawer #apply-filters { -fx-padding: 10 16; -fx-font-size: 13px; }
+
+/* Category-only campaigns: the existing Shop all hero is unchanged. */
+.category-banner-eyebrow { -fx-text-fill: #F36A27; -fx-font-size: 12px; -fx-font-weight: bold; }
+.category-banner-headline { -fx-font-family: "Archivo Black"; -fx-text-fill: #FAFAFA; -fx-font-size: 44px; -fx-line-spacing: -6; }
+.category-banner-support { -fx-text-fill: #C0C0C2; -fx-font-size: 14px; }
+.category-banner-pending { -fx-text-fill: #969699; -fx-font-size: 14px; -fx-alignment: center; -fx-text-alignment: center; }
