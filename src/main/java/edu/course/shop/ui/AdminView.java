@@ -19,15 +19,40 @@ public final class AdminView extends VBox {
     private final Label count=Ui.label("","muted");
 
     public AdminView(User admin,ProductService products) {
-        getStyleClass().add("page"); setSpacing(16);
+        getStyleClass().add("page"); setId("admin-page"); setSpacing(16);
         table.setId("admin-table"); table.setMinHeight(225); table.setPrefHeight(330);
-        table.getColumns().add(Ui.column("ID",p->Long.toString(p.getId()))); table.getColumns().getFirst().setMinWidth(45); table.getColumns().getFirst().setPrefWidth(50); table.getColumns().getFirst().setMaxWidth(65);
-        table.getColumns().add(Ui.column("Product",Product::getName)); table.getColumns().get(1).setMinWidth(180);
-        table.getColumns().add(Ui.column("Category",p->Ui.category(p.getCategory())));
-        table.getColumns().add(Ui.column("Price",p->Money.format(p.getPrice())));
-        table.getColumns().add(Ui.column("Stock",p->Integer.toString(p.getStock())));
-        table.getColumns().add(Ui.column("Status",p->p.isActive()?"Active":"Inactive"));
-        table.getColumns().add(Ui.column("Content",p->(p.getPhoto()==null?"Photo · ":"")+(p.getDescription().isBlank()?"Description · ":"")+(p.getSpecifications().isBlank()?"Specs":"")));
+        TableColumn<Product,String> idColumn=Ui.column("ID",p->Long.toString(p.getId()));idColumn.setMinWidth(45);idColumn.setPrefWidth(50);idColumn.setMaxWidth(65);table.getColumns().add(idColumn);
+        TableColumn<Product,Product> productColumn=new TableColumn<>("Product");
+        productColumn.setCellValueFactory(row->new javafx.beans.property.ReadOnlyObjectWrapper<>(row.getValue()));
+        productColumn.setCellFactory(column->new TableCell<>() {
+            @Override protected void updateItem(Product product,boolean empty) {
+                super.updateItem(product,empty);
+                if(empty||product==null){setGraphic(null);setText(null);return;}
+                ProductArtwork photo=new ProductArtwork(product,42,true);photo.setPrefWidth(48);photo.setMinWidth(48);photo.setMaxWidth(48);
+                Label name=Ui.label(product.getName(),"admin-product-name");name.setWrapText(false);name.setMaxWidth(Double.MAX_VALUE);name.setTooltip(new Tooltip(product.getName()));
+                Label price=Ui.label(Money.format(product.getPrice()),"admin-product-price");
+                VBox details=new VBox(2,name,price);HBox.setHgrow(details,Priority.ALWAYS);
+                HBox cell=new HBox(10,photo,details);cell.setAlignment(javafx.geometry.Pos.CENTER_LEFT);setGraphic(cell);setText(null);
+            }
+        });productColumn.setMinWidth(230);table.getColumns().add(productColumn);
+        TableColumn<Product,String> categoryColumn=Ui.column("Category",p->Ui.category(p.getCategory()));categoryColumn.setMinWidth(125);categoryColumn.setPrefWidth(165);categoryColumn.setCellFactory(column->new TableCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(empty?null:item);setTooltip(empty||item==null?null:new Tooltip(item));}});table.getColumns().add(categoryColumn);
+        TableColumn<Product,String> priceColumn=Ui.column("Price",p->Money.format(p.getPrice()));priceColumn.setMinWidth(82);priceColumn.setPrefWidth(100);table.getColumns().add(priceColumn);
+        TableColumn<Product,String> stockColumn=Ui.column("Stock",p->Integer.toString(p.getStock()));stockColumn.setMinWidth(58);stockColumn.setPrefWidth(70);table.getColumns().add(stockColumn);
+        TableColumn<Product,String> statusColumn=Ui.column("Status",p->p.isActive()?"Active":"Inactive");statusColumn.setMinWidth(78);statusColumn.setPrefWidth(90);table.getColumns().add(statusColumn);
+        TableColumn<Product,String> contentColumn=new TableColumn<>("Content");
+        contentColumn.setCellValueFactory(row->{Product p=row.getValue();int missing=(p.getPhoto()==null?1:0)+(p.getDescription().isBlank()?1:0)+(p.getSpecifications().isBlank()?1:0);return new javafx.beans.property.ReadOnlyStringWrapper(missing==0?"Complete":missing+" missing");});
+        contentColumn.setCellFactory(column->new TableCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(empty?null:item);if(empty||getTableRow()==null||getTableRow().getItem()==null){setTooltip(null);return;}Product p=getTableRow().getItem();java.util.List<String> missing=new java.util.ArrayList<>();if(p.getPhoto()==null)missing.add("photo");if(p.getDescription().isBlank())missing.add("description");if(p.getSpecifications().isBlank())missing.add("specifications");setTooltip(new Tooltip(missing.isEmpty()?"Product photo, description, and specifications are present":"Missing: "+String.join(", ",missing)));}});
+        contentColumn.setMinWidth(110);contentColumn.setPrefWidth(135);table.getColumns().add(contentColumn);
+        table.widthProperty().addListener((o,a,b)->{
+            boolean compact=b.doubleValue()<780;
+            idColumn.setMinWidth(compact?38:45);idColumn.setPrefWidth(compact?42:50);
+            productColumn.setMinWidth(compact?165:230);productColumn.setPrefWidth(compact?185:245);
+            categoryColumn.setMinWidth(compact?90:125);categoryColumn.setPrefWidth(compact?112:165);
+            priceColumn.setMinWidth(compact?68:82);priceColumn.setPrefWidth(compact?82:100);
+            stockColumn.setMinWidth(compact?56:58);stockColumn.setPrefWidth(compact?62:70);
+            statusColumn.setMinWidth(compact?58:78);statusColumn.setPrefWidth(compact?72:90);
+            contentColumn.setMinWidth(compact?82:110);contentColumn.setPrefWidth(compact?98:135);
+        });
         search.setPromptText("Find a product"); search.setId("admin-search"); search.setAccessibleText("Search inventory"); HBox.setHgrow(search,Priority.ALWAYS);
         status.getItems().addAll("All statuses","Active","Inactive"); status.getSelectionModel().selectFirst(); status.setId("admin-status"); status.setAccessibleText("Filter by status");
         filterCategory.getItems().add("All categories");

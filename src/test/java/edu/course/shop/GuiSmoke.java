@@ -59,7 +59,7 @@ public final class GuiSmoke {
         DatabaseManager db=new DatabaseManager(Path.of(args[1]));db.initialize();
         ProductRepository pr=new ProductRepository();OrderRepository or=new OrderRepository();
         Services services=new Services(new AuthService(db,new UserRepository()),new ProductService(db,pr),
-            new CheckoutService(db,pr,or),new OrderService(db,or));
+            new CheckoutService(db,pr,or),new OrderService(db,or),new edu.course.shop.service.AdminService(db,new edu.course.shop.persistence.AdminRepository()));
         User admin=services.auth().login("admin","admin123");
         TechTestCatalog.prepare(services.products(),admin);
         Product lamp=services.products().get(6);
@@ -78,7 +78,10 @@ public final class GuiSmoke {
                 &&image.getImage().getWidth()>=848&&image.getImage().getHeight()>=1264
                 &&image.getBlendMode()==javafx.scene.effect.BlendMode.LIGHTEN),"Account campaign loads the supplied high-resolution PC photo");
             check(fx(()->"MARKET".equals(scene.lookup("#login-brand").getAccessibleText())),"Login wordmark is accessible and split by brand color");
-            check(fx(()->scene.lookup("#login-reduce-motion").getParent().getStyleClass().contains("store-footer")),"Motion preference sits in the login utility footer");
+            check(fx(()->scene.lookup("#login-reduce-motion").getParent().getStyleClass().contains("login-utility")),"Login utility controls overlay the full-height campaign instead of reserving a footer strip");
+            check(fx(()->scene.lookup("#login-campaign").getBoundsInParent().getHeight()>scene.getHeight()*.9),"Login campaign extends to the bottom of the window");
+            check(fx(()->scene.lookup("#login-utility").getBoundsInParent().getMaxY()>scene.getHeight()*.9),"Login utility controls stay at the bottom edge");
+            check(fx(()->scene.lookup(".login-card").getBoundsInParent().getWidth()>=480),"Login panel has the approved wider desktop layout");
             text("password","temporary");press("show-password");
             check(fx(()->scene.lookup("#password-visible").isVisible()&&!scene.lookup("#password").isVisible()),"Show reveals only the visible password control");
             text("password-visible","changed");press("show-password");

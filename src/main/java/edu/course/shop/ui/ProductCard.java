@@ -68,8 +68,10 @@ public final class ProductCard extends VBox {
         VBox body=new VBox(8,Ui.label(Ui.category(product.getCategory()),"eyebrow"),name,priceRow,actions);
         body.getStyleClass().add("product-body");visualLayer=new StackPane(visual);getChildren().addAll(visualLayer,body);
     }
-    public void enableSavedItems(SavedItems saved) {
+    public void enableSavedItems(SavedItems saved) { enableSavedItems(saved,false); }
+    public void enableSavedItems(SavedItems saved,boolean showRemoveAction) {
         // A sibling control avoids nesting a focusable heart inside the image button.
         Button heart=saved.heart(productForSaving);StackPane.setAlignment(heart,Pos.TOP_RIGHT);StackPane.setMargin(heart,new javafx.geometry.Insets(10));visualLayer.getChildren().add(heart);
+        if(showRemoveAction){Button remove=Ui.link("Remove from saved",heart::fire);remove.setId("remove-saved-"+productForSaving.getId());remove.getStyleClass().add("remove-saved");getChildren().add(remove);}
     }
 }

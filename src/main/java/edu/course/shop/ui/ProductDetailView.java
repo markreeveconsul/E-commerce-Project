@@ -49,7 +49,7 @@ public final class ProductDetailView extends VBox {
             Ui.label(product.getName(),"page-title"),priceRow,preview,quantityRow,quantityError,add,feedback,viewCart,specifications(product),delivery,stock);
         info.getStyleClass().add("detail-info");info.setMinWidth(300);info.setPrefWidth(420);info.setMaxWidth(460);
 
-        ProductGallery gallery=new ProductGallery(product);HBox.setHgrow(gallery,Priority.ALWAYS);
+        ProductGallery gallery=new ProductGallery(product,add::fire);HBox.setHgrow(gallery,Priority.ALWAYS);
         info.setMaxWidth(Double.MAX_VALUE);
         VBox columns=Ui.responsiveColumns(gallery,info,1000,32);columns.setId("detail-columns");columns.widthProperty().addListener((o,a,b)->gallery.setCompact(b.doubleValue()<1000));
 

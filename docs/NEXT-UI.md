@@ -5,9 +5,9 @@ Implemented on the existing task branch. The storefront hero, PC campaign artwor
 ## Shopping screens
 
 - Shared heart controls save products during a guest visit and persist them for customers. Guest selections merge on customer sign-in; signing out clears session state. Unavailable products are hidden from Saved items. Saving does not reserve inventory.
-- Search suggestions use a 220 ms debounce and actual catalog matches. Stale requests cannot reopen a detached page. Custom minimum/maximum prices and preset budgets replace one another when applied; invalid ranges keep the previous results. Search, sorting, filters and scroll state survive navigation.
+- Search opens a centered, responsive panel for real catalog matches, with a dark clearable search pill, product thumbnails, price/stock details, keyboard selection and a View all action. Suggestions use a short debounce; stale requests cannot reopen a detached page. Custom minimum/maximum prices and preset budgets replace one another when applied; invalid ranges keep the previous results. Search, sorting, filters and scroll state survive navigation.
 - Product details have breadcrumbs, a bounded minus/plus quantity control, useful optional content, real gallery angles, selected thumbnails, a short image transition and related-product cards. Secondary recommendations load without disabling the purchase controls.
-- Enlarged photos offer pan, zoom, previous/next and keyboard arrows. Closing restores the gallery trigger's focus. No additional photographs or specifications are invented.
+- Enlarged photos use a balanced image/details layout sized to the window, with pan, zoom, previous/next, keyboard arrows and a clear Fit state. Compact windows retain space around the viewer. Closing restores the gallery trigger's focus. Products without photos use a smaller, explicit empty state; no additional photographs or specifications are invented.
 - Cards use brief lift/zoom effects and show an actual alternate angle on hover when available. Buttons retain visible keyboard focus and accessible stock states.
 - Cart and drawer removals offer a six-second Undo. Restoration rechecks current price, activity and stock. Wide purchase summaries follow scrolling when they fit the viewport; compact layouts stack with normal scrolling.
 - Checkout has payment choice cards, retained form input, optional saved-address selection, current totals and existing service-level validation. The demo-only decline option remains available for validation.
@@ -18,6 +18,8 @@ Implemented on the existing task branch. The storefront hero, PC campaign artwor
 Customer profiles store a display name separately from the login username. Customers can save up to five validated delivery addresses and select a default. SQL operations scope all records to the signed-in customer; other users and roles cannot access or change them.
 
 Admin gallery drafts support drag reordering, keyboard-accessible earlier/later actions and Make main. Framing can use AUTO, CONTAIN or COVER with a horizontal/vertical focal point. Preferences affect catalog images; original image bytes and full gallery photographs are retained. Preview photo frames compares catalog and full-image presentation. Preview product shows an unsaved draft. Structured specification rows and the optional text editor use the same saved content. The inventory flags missing photos, descriptions and specifications. Dimensions and file size help identify small source photos.
+
+The admin workspace includes Overview, Products, Orders and Customers. Overview metrics and order/customer tables come from read-only, administrator-authorized database queries. The inventory table adjusts its column widths for compact windows and summarizes missing content, with a tooltip naming each missing field. Customer search matches display name or username. Orders show the payment state currently stored by checkout; the project does not claim shipment or delivery tracking.
 
 ## Layout and motion
 
@@ -33,7 +35,7 @@ Product variants, fulfillment tracking, registration and account recovery were m
 
 ## Verification
 
-The Maven backend suite covers 43 cases, including account/repeat and tech-category migration tests. GuiSmoke covers 91 shopping assertions; NextUiSmoke adds 60 assertions on a shown window, including saved-item transfer, profile/address persistence, search popup, price ranges, quantities, gallery zoom/focus, both Undo actions, saved-address checkout, payment cards, reviewed repeat orders, framing drafts/previews and verified 960×680 compact layouts. BannerMotionSmoke covers 30 banner/motion assertions. TechCatalogSmoke adds 29 assertions for category routes, empty states, retained inventory replacement and real compact layouts.
+The Maven backend suite covers 43 cases, including account/repeat and tech-category migration tests. GuiSmoke covers 112 shopping assertions; NextUiSmoke covers 99 assertions on a shown window, including saved-item transfer, profile/address persistence, centered keyboard-friendly search, filtered catalog spacing, price ranges, quantities, gallery zoom/focus, both Undo actions, checkout, reviewed repeat orders, framing drafts/previews, admin reports, and verified 960×680 compact layouts. NextUiSmoke exports 18 screenshots. BannerMotionSmoke covers 30 banner/motion assertions. TechCatalogSmoke adds 29 assertions for category routes, empty states, retained inventory replacement and real compact layouts.
 
 Run `mvn test` for backend checks. For the additional desktop harness, prepare the classpath with `mvn test-compile dependency:build-classpath -Dmdep.outputFile=target/classpath.txt`, then on Linux/macOS:
 
@@ -45,9 +47,9 @@ Use a fresh database filename on every run. On a Linux host without a display, p
 
 ## Catalog and screen-access follow-up
 
-The collection now has a full-width search surface with a visible clear action. Submitting or pressing Escape cancels pending suggestions. Clearing a search keeps category, budget and stock filters. Sort by has both Name A–Z and Name Z–A, plus both price directions, and survives detail navigation.
+The collection now has a full-width search surface with a visible clear action. Typing at least two characters opens the centered search panel; Up/Down and Enter select or open results, Escape closes it, and View all applies the query to the catalog. Clearing a search keeps category, budget and stock filters. Sort by has both Name A–Z and Name Z–A, plus both price directions, and survives detail navigation.
 
-Filters have persistent labels, an active count, category, quick budget, custom USD range and availability. Applying a custom range clears the preset budget; choosing a budget clears the custom range. Invalid ranges retain previous results and focus the invalid input. Applied price ranges keep filtered results ahead of the campaign. The hero artwork, layout and motion are unchanged.
+Filters have persistent labels, an active count, category, quick budget, custom USD range and availability. Applying a custom range clears the preset budget; choosing a budget clears the custom range. Invalid ranges retain previous results and focus the invalid input. Applied filters hide collection-discovery and closing sections until Shop all is unfiltered again, keeping results unobstructed. The hero artwork, layout and motion are unchanged.
 
 Saved items has a visible header label. Compact headers use the Shop menu to preserve room for account links. The product save control aligns with the category heading. Image dialogs load the shared stylesheet and support + / − to zoom, 0 or Fit image to reset, and arrows for real uploaded angles. Closing keeps the viewed angle and restores gallery focus. Inventory search/status/category controls have visible labels and a clear-search button. Account forms show field-specific errors and identify address editing mode.
 

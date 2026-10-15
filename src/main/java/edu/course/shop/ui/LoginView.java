@@ -57,7 +57,7 @@ public final class LoginView extends StackPane {
         VBox form=new VBox(14,wordmark,Ui.label("ACCOUNT ACCESS","login-access-label"),Ui.label("Welcome back.","page-title"),
             Ui.label("Sign in to continue shopping or manage your store.","muted"),Ui.field("Username",username,usernameError),
             new VBox(6,passwordLabel,passwordRow,passwordError),feedback,status,login,demoPanel);
-        form.getStyleClass().add("login-card"); form.setPrefWidth(440); form.setMaxWidth(440);
+        form.getStyleClass().add("login-card"); form.setPrefWidth(500); form.setMaxWidth(520);
         form.setMaxHeight(Region.USE_PREF_SIZE);
 
         EditorialHeader intro=EditorialHeader.forLogin();
@@ -69,6 +69,8 @@ public final class LoginView extends StackPane {
         form.setMinWidth(0);
         intro.setPrefWidth(0); formPane.setPrefWidth(0);
         HBox.setHgrow(intro,Priority.ALWAYS); HBox.setHgrow(formPane,Priority.ALWAYS);
-        getChildren().add(new HBox(0,intro,formPane));
+        HBox layout=new HBox(0,intro,formPane);
+        layout.setMaxSize(Double.MAX_VALUE,Double.MAX_VALUE);
+        getChildren().add(layout);
     }
 }

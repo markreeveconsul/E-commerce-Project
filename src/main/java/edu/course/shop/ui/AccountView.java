@@ -50,7 +50,11 @@ public final class AccountView extends VBox {
             Ui.field("City",city,addressErrors[2]),Ui.field("Postal code",postal,addressErrors[3]),preferred,new HBox(12,saveAddress,Ui.button("New address",reset)));
         addressBook.getStyleClass().add("card");addressBook.setMinWidth(0);
         VBox content=Ui.responsiveColumns(profile,addressBook,850,24);
-        getChildren().addAll(Ui.label("Your space","page-title"),new HBox(12,Ui.button("Saved items",savedItems),Ui.button("Your orders",orders)),feedback,Ui.scroll(content));
+        Label profileTab=Ui.label("Profile","account-tab-active");
+        Button savedTab=Ui.button("Saved items",savedItems);savedTab.getStyleClass().add("account-tab");
+        Button ordersTab=Ui.button("Your orders",orders);ordersTab.getStyleClass().add("account-tab");
+        HBox accountNavigation=new HBox(8,profileTab,savedTab,ordersTab);accountNavigation.getStyleClass().add("account-navigation");
+        getChildren().addAll(Ui.label("Your space","page-title"),accountNavigation,feedback,Ui.scroll(content));
         Platform.runLater(()->Ui.async(this,"Loading profile…",()->accounts.displayName(user),value->{name.setText(value);refresh.run();},error->Ui.failure(feedback,error)));
     }
     private void reload() { ((Button)getProperties().get("market.reload")).fire(); }

@@ -43,7 +43,7 @@ public final class NextUiSmoke {
     private static byte[] photo(int color)throws Exception{BufferedImage img=new BufferedImage(1200,900,BufferedImage.TYPE_INT_RGB);var g=img.createGraphics();g.setColor(new java.awt.Color(237,238,239));g.fillRect(0,0,1200,900);g.setColor(new java.awt.Color(color));g.fillRoundRect(350,150,500,600,60,60);g.setColor(java.awt.Color.WHITE);g.drawString("SYNTHETIC PRODUCT FIXTURE",465,460);g.dispose();var bytes=new java.io.ByteArrayOutputStream();ImageIO.write(img,"png",bytes);return bytes.toByteArray();}
     public static void main(String[] args)throws Exception{
         evidence=Path.of(args[0]);Files.createDirectories(evidence);DatabaseManager db=new DatabaseManager(Path.of(args[1]));db.initialize();ProductRepository pr=new ProductRepository();OrderRepository or=new OrderRepository();
-        Services services=new Services(new AuthService(db,new UserRepository()),new ProductService(db,pr),new CheckoutService(db,pr,or),new OrderService(db,or));User admin=services.auth().login("admin","admin123"),customer=services.auth().login("customer","customer123");
+        Services services=new Services(new AuthService(db,new UserRepository()),new ProductService(db,pr),new CheckoutService(db,pr,or),new OrderService(db,or),new edu.course.shop.service.AdminService(db,new edu.course.shop.persistence.AdminRepository()));User admin=services.auth().login("admin","admin123"),customer=services.auth().login("customer","customer123");
         TechTestCatalog.prepare(services.products(),admin);
         byte[] main=photo(0x245C70),angle=photo(0xDB6939);Product p=services.products().get(1);services.products().save(admin,1,p.getName(),p.getCategory(),p.getPrice(),12,true,"A synthetic fixture used to verify product details and gallery controls.",main,List.of(angle),"Material: Test fixture\nIncluded items: One unit");
         CountDownLatch ready=new CountDownLatch(1);Platform.startup(ready::countDown);ready.await();Platform.setImplicitExit(false);
@@ -63,15 +63,21 @@ public final class NextUiSmoke {
             check(!label("saved-postal-error").isEmpty()&&fx(()->scene.getFocusOwner()==scene.lookup("#saved-postal")),"Postal validation is beside its own field");
             text("saved-recipient","Smoke Shopper");text("saved-street","123 Test Street");text("saved-city","Test City");text("saved-postal","12345");press("save-address");waitFor(()->scene.lookup("#address-list") instanceof VBox v&&v.getChildren().size()==1&&!scene.getRoot().isDisabled());check(services.accounts().addresses(customer).size()==1,"Address save persists validated fields");
             click("Edit");check(label("address-form-title").equals("Edit address"),"Address editor identifies editing mode");click("New address");check(label("address-form-title").equals("Add an address"),"New address resets editing mode");
-            screenshot("01-account.png");press("nav-saved");waitFor(()->scene.lookup("#saved-grid")!=null&&!scene.getRoot().isDisabled());screenshot("02-saved-items.png");press("save-1");idle();check(services.accounts().saved(customer).isEmpty(),"Removing saved item updates storage");check(fx(()->scene.lookup("#saved-grid").lookupAll(".empty-state").size())==1,"Removing last favorite shows recovery state");click("Explore products");catalog();
+            screenshot("01-account.png");press("nav-saved");waitFor(()->scene.lookup("#saved-grid")!=null&&!scene.getRoot().isDisabled());screenshot("02-saved-items.png");check(fx(()->scene.lookup("#remove-saved-1") instanceof Button),"Saved products expose a direct remove action");press("save-1");idle();check(services.accounts().saved(customer).isEmpty(),"Removing saved item updates storage");check(fx(()->scene.lookup("#saved-grid").lookupAll(".empty-state").size())==1,"Removing last favorite shows recovery state");click("Explore products");catalog();
             fx(()->{stage.toFront();stage.requestFocus();((TextField)scene.lookup("#search")).requestFocus();return null;});waitFor(()->scene.lookup("#search").isFocused());text("search","head");
-            waitFor(()->Window.getWindows().stream().anyMatch(w->w.isShowing()&&w instanceof PopupWindow));
-            check(fx(()->Window.getWindows().stream().anyMatch(w->w.isShowing()&&w instanceof PopupWindow)),"Debounced search suggestions open on real window");
-            check(fx(()->((Button)scene.lookup("#clear-search")).getGraphic()!=null),"Search reset uses a visible icon");screenshot("14-search-clear.png");
-            press("catalog-search");idle();
-            Thread.sleep(350);check(fx(()->Window.getWindows().stream().noneMatch(w->w.isShowing()&&w instanceof PopupWindow)),"Submitting search dismisses suggestions without a stale reopen");
+            waitFor(()->scene.lookup("#search-overlay-panel")!=null&&scene.lookup("#search-result-1")!=null);
+            screenshot("14-search-clear.png");
+            double[] searchBounds=fx(()->{Node panel=scene.lookup("#search-overlay-panel");var bounds=panel.localToScene(panel.getLayoutBounds());return new double[]{bounds.getCenterX(),bounds.getCenterY(),scene.getWidth()/2,scene.getHeight()/2};});
+            check(Math.abs(searchBounds[0]-searchBounds[2])<4&&Math.abs(searchBounds[1]-searchBounds[3])<4,"Debounced search opens a centered, moderate-size product panel");
+            check(fx(()->((Button)scene.lookup("#clear-search")).getGraphic()!=null),"Search reset uses a visible icon");
+            fx(()->{scene.lookup("#search-overlay-input").fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED,"","",KeyCode.DOWN,false,false,false,false));return null;});
+            check(fx(()->scene.lookup("#search-result-1").getStyleClass().contains("search-overlay-active")),"Search suggestions can be selected with the keyboard");
+            press("search-overlay-all");idle();
+            check(fx(()->scene.lookup("#search-overlay-panel")==null),"Viewing all results closes the centered panel cleanly");
             check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==1,"Submitted name search returns the matching product");
+            check(fx(()->!scene.lookup("#collection-links").getParent().isVisible()),"Filtered results hide collection discovery below the product rows");
             press("clear-search");idle();check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==6,"Clear search restores the collection");
+            check(fx(()->scene.lookup("#collection-links").getParent().isVisible()),"Unfiltered Shop all restores collection discovery");
             press("toggle-filters");waitFor(()->scene.lookup("#price-range")!=null);
             fx(()->{((PriceRange)scene.lookup("#price-range")).setRange(50,70);return null;});
             check(label("filter-match-count").equals("1 matching product"),"Draft count reflects price range before applying");check(fx(()->((Button)scene.lookup("#apply-filters")).getText()).equals("Apply filters · 1"),"Apply button shows draft count");check(fx(()->((TilePane)scene.lookup("#product-grid")).getChildren().size())==6,"Draft slider does not refresh the catalog");
@@ -110,7 +116,10 @@ public final class NextUiSmoke {
             press("gallery-photo-1");check(fx(()->scene.lookup("#gallery-photo-1").getStyleClass().contains("gallery-selected")),"Gallery angle gets selected state");screenshot("03-product-details.png");
             fx(()->{scene.lookup("#zoom-photo").requestFocus();return null;});openDialog("zoom-photo");fx(()->{((Button)dialog().lookup("#image-zoom-in")).fire();return null;});check(fx(()->((Label)dialog().lookup("#image-zoom-caption")).getText()).contains("Photo 2 of 2"),"Zoom opens the selected real angle");
             check(fx(()->dialog().getStylesheets().stream().anyMatch(sheet->sheet.endsWith("shop.css"))),"Image viewer inherits the Market visual system");
+            check(fx(()->dialog().lookup("#image-viewer-add") instanceof Button),"Photo viewer includes the real add-to-cart action");
+            check(fx(()->dialog().lookupAll(".viewer-info").size()==1&&dialog().lookupAll(".viewer-product-price").size()==1),"Photo viewer surfaces product details and price beside the image");
             fx(()->{((Button)dialog().lookup("#image-zoom-reset")).fire();dialog().applyCss();dialog().layout();return null;});
+            check(fx(()->dialog().lookupAll(".label").stream().anyMatch(n->n instanceof Label l&&l.getText().equals("Fit"))),"Viewer names its default zoom state Fit");
             check(fx(()->{ScrollPane viewport=(ScrollPane)dialog().lookup("#image-zoom-viewport");Node image=dialog().lookup("#image-zoom-photo");return Math.abs(image.getBoundsInParent().getCenterX()-viewport.getContent().getLayoutBounds().getCenterX())<2;}),"Fit image centers a photo smaller than its viewport");
             fx(()->{dialog().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED,"","",KeyCode.PLUS,false,false,false,false));return null;});
             check(fx(()->dialog().lookupAll(".label").stream().anyMatch(n->n instanceof Label l&&l.getText().equals("150%"))),"Keyboard plus changes zoom after Fit image resets it");
@@ -128,6 +137,7 @@ public final class NextUiSmoke {
             check(fx(()->((ScrollPane)dialog().lookup("#image-zoom-viewport")).isPannable()),"Zoom supports image panning");fx(()->{write(scene.getRoot(),evidence.resolve("04-image-zoom.png"));return null;});closeDialog();check(fx(()->scene.getFocusOwner()==scene.lookup("#zoom-photo")),"Closing zoom restores gallery trigger focus");
             resize(960,680);openDialog("zoom-photo");
             check(fx(()->dialog().getWidth()<scene.getWidth()*.85&&dialog().getHeight()<scene.getHeight()*.9),"Compact viewer leaves space around all edges");
+            check(fx(()->dialog().getHeight()<scene.getHeight()*.84),"Compact photo viewer sizes to its content instead of stretching vertically");
             check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect() instanceof javafx.scene.effect.GaussianBlur),"Background is blurred");
             check(fx(()->scene.lookup("#image-zoom-photo").getEffect()==null),"Photo remains sharp"); check(fx(()->{ScrollPane v=(ScrollPane)scene.lookup("#image-zoom-viewport");return v.getContent().getLayoutBounds().getHeight()<=v.getViewportBounds().getHeight();}),"Fit image does not need vertical scrolling"); resize(1100,760); check(fx(()->dialog().getWidth()<scene.getWidth()*.85),"Open viewer responds to window resizing");resize(960,680);
             screenshot("13-glass-compact.png");closeDialog();
@@ -148,6 +158,20 @@ public final class NextUiSmoke {
             press("place-order");waitFor(()->scene.lookup("#confirmation")!=null&&!scene.getRoot().isDisabled());click("View my orders");waitFor(()->scene.lookup("#order-card-1")!=null&&!scene.getRoot().isDisabled());screenshot("06-order-history.png");
             fx(()->{Platform.runLater(()->((Button)scene.lookup("#buy-again-1")).fire());return null;});waitFor(()->dialog()!=null);check(fx(()->dialog().getContentText()).contains("Current catalog prices"),"Buy again asks customer to review current prices");fx(()->{((Button)dialog().lookupButton(ButtonType.YES)).fire();return null;});waitFor(()->scene.lookup("#cart-quantity-1")!=null&&!scene.getRoot().isDisabled());check(fx(()->((TextField)scene.lookup("#cart-quantity-1")).getText()).equals("2"),"Confirmed repeat order populates cart");
             press("remove-1");click("Sign out");catalog();press("account");text("username","admin");text("password","admin123");press("login");waitFor(()->scene.lookup("#admin-table") instanceof TableView<?> t&&!t.getItems().isEmpty()&&!scene.getRoot().isDisabled());
+            press("admin-nav-overview");waitFor(()->scene.lookup("#admin-report-stats") instanceof HBox h&&h.getChildren().size()==5&&!scene.getRoot().isDisabled());
+            check(fx(()->scene.lookup("#admin-recent-orders") instanceof TableView<?> t&&t.getItems().size()==services.admin().orders(admin).size()),"Admin overview uses real order data");
+            screenshot("15-admin-overview.png");
+            press("admin-nav-orders");waitFor(()->scene.lookup("#admin-orders-table") instanceof TableView<?> t&&!scene.getRoot().isDisabled());
+            check(fx(()->((TableView<?>)scene.lookup("#admin-orders-table")).getItems().size())==services.admin().orders(admin).size(),"Admin orders report is read-only and complete");
+            screenshot("16-admin-orders.png");resize(960,680);screenshot("18-admin-orders-compact.png");
+            check(fx(()->{var table=scene.lookup("#admin-orders-table");var b=table.localToScene(table.getBoundsInLocal());return b.getMaxX()<=scene.getWidth()&&b.getMaxY()<=scene.getHeight();}),"Admin orders table stays within the compact window");resize(1280,860);
+            press("admin-nav-customers");waitFor(()->scene.lookup("#admin-customers-table") instanceof TableView<?> t&&!scene.getRoot().isDisabled());
+            check(fx(()->((TableView<?>)scene.lookup("#admin-customers-table")).getItems().size())==services.admin().customers(admin).size(),"Admin customer report shows actual accounts");
+            text("admin-customer-search","customer");check(fx(()->((TableView<?>)scene.lookup("#admin-customers-table")).getItems().size())==1,"Admin customer search filters by username");
+            screenshot("17-admin-customers.png");
+            boolean customerBlocked=false;try{services.admin().customers(customer);}catch(edu.course.shop.exception.ValidationException expected){customerBlocked=true;}
+            check(customerBlocked,"Admin reports reject customer access");press("nav-inventory");waitFor(()->scene.lookup("#admin-table") instanceof TableView<?> t&&!t.getItems().isEmpty()&&!scene.getRoot().isDisabled());resize(960,680);
+            check(fx(()->{TableView<?> inventory=(TableView<?>)scene.lookup("#admin-table");double columns=inventory.getColumns().stream().mapToDouble(TableColumn::getWidth).sum();return inventory.getColumns().size()==7&&columns<=inventory.getWidth()+3&&inventory.getColumns().get(6).getWidth()>=70;}),"Compact admin inventory keeps the content-completeness column readable");screenshot("19-admin-inventory-compact.png");resize(1280,860);
             fx(()->{TableView<Product> table=(TableView<Product>)scene.lookup("#admin-table");table.getSelectionModel().select(table.getItems().stream().filter(row->row.getId()==1).findFirst().orElseThrow());return null;});press("edit-product");
             fx(()->{((ProductPhotoEditor)scene.lookup("#photo-editor")).setFraming(new PhotoFrame(PhotoFrame.Mode.COVER,.15,.75));return null;});press("make-main-0");check(fx(()->Arrays.equals(((ProductPhotoEditor)scene.lookup("#photo-editor")).getPhoto(),angle)),"Make main swaps draft gallery and primary photo");click("Cancel");check(Arrays.equals(services.products().get(1).getPhoto(),main),"Cancel preserves original stored image");press("edit-product");
             fx(()->{((ProductPhotoEditor)scene.lookup("#photo-editor")).setFraming(new PhotoFrame(PhotoFrame.Mode.COVER,.15,.75));return null;});openDialog("preview-photo-frames");check(fx(()->dialog().lookupAll(".product-photo").size())==2,"Framing preview shows catalog and full image");closeDialog();
@@ -155,7 +179,7 @@ public final class NextUiSmoke {
             resize(960,680);screenshot("08-admin-compact.png");
             check(fx(()->scene.lookup("#photo-editor").getBoundsInParent().getWidth())>0,"Compact admin editor keeps photo tools available");
             fx(()->{Motion.reducedProperty().set(true);return null;});click("Cancel");click("Sign out");catalog();press("view-1");waitFor(()->scene.lookup("#detail-columns")!=null&&!scene.getRoot().isDisabled());screenshot("09-details-compact.png");check(fx(()->((VBox)scene.lookup("#detail-columns")).getChildren().getFirst() instanceof ProductGallery),"Compact details stack gallery before purchase panel");check(fx(()->scene.lookup("#gallery-main").getBoundsInParent().getHeight())<=360,"Compact gallery reserves space for purchase controls");check(fx(()->scene.lookup("#product-detail").getOpacity())==1,"Reduced motion uses immediate page state");
-            System.out.println("NEXT UI SMOKE PASS: "+checks+" assertions; saved items, profile, address book, search popup, price range, quantity, zoom, undo, payment, repeat order and draft framing; 11 snapshots.");
+            System.out.println("NEXT UI SMOKE PASS: "+checks+" assertions; saved items, profile, address book, centered search panel, price range, quantity, zoom, undo, payment, repeat order, draft framing and admin reports; 18 snapshots.");
         }finally{Platform.exit();}
     }
 }
