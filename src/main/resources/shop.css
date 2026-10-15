@@ -133,7 +133,7 @@
 .photo-placeholder { -fx-text-fill: -ink-muted; -fx-font-size: 11px; }
 .quick-add { -fx-padding: 7 18; -fx-min-height: 36; -fx-font-size: 12px; }
 .quick-add:disabled { -fx-background-color: #E8E8E5; -fx-border-color: #E8E8E5; -fx-text-fill: -ink-muted; -fx-opacity: 1; }
-.stock, .stock-out, .badge-neutral { -fx-background-radius: 3; -fx-padding: 3 7; -fx-font-size: 10px; -fx-font-weight: bold; }
+.stock, .stock-low, .stock-out, .badge-neutral { -fx-background-radius: 3; -fx-padding: 3 7; -fx-font-size: 10px; -fx-font-weight: bold; }
 .stock { -fx-text-fill: #2E6744; -fx-background-color: #ECF3EC; }
 .stock-out { -fx-text-fill: -danger; -fx-background-color: #FBECE8; }
 .badge-neutral { -fx-text-fill: -ink-muted; -fx-background-color: -tint; }
@@ -385,3 +385,36 @@
 .glass-image-viewer .button { -fx-background-color: rgba(255,255,255,.07); -fx-text-fill: white; -fx-border-color: rgba(255,255,255,.35); -fx-padding: 6 13; -fx-min-height: 32; -fx-font-size: 13px; }
 .glass-image-viewer .button:hover { -fx-background-color: rgba(255,255,255,.18); }
 .glass-image-viewer .image-viewer-tools { -fx-padding: 0; }
+
+/* Same shape as .stock (shared rule above); only the colors differ. */
+.stock-low { -fx-text-fill: #92400E; -fx-background-color: #FEF3C7; }
+
+/* ===== Wireframe polish (added) =====
+   Everything below only restyles existing ids and classes. Header and hero rules above are untouched. */
+
+/* Filters button and Sort control: one shared look (white, 1px dark border, 8px corners, bold, same height). */
+#toggle-filters, #sort, .catalog-outline-control {
+    -fx-min-height: 40; -fx-pref-height: 40; -fx-max-height: 40;
+    -fx-background-color: white; -fx-background-radius: 8;
+    -fx-border-color: #171719; -fx-border-width: 1; -fx-border-radius: 8;
+    -fx-text-fill: #171719; -fx-font-size: 13px; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: null;
+}
+#toggle-filters { -fx-padding: 0 18; }
+#toggle-filters:hover, #sort:hover { -fx-background-color: #F5F5F3; -fx-border-color: #171719; }
+#toggle-filters:focused, #sort:focused { -fx-border-color: #171719; -fx-border-width: 2; -fx-effect: dropshadow(gaussian, rgba(23,23,25,.25), 5, .3, 0, 0); }
+#sort .list-cell { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #171719; -fx-padding: 0 0 0 16; }
+#sort > .arrow-button { -fx-background-color: transparent; -fx-padding: 0 14 0 6; }
+#sort > .arrow-button > .arrow { -fx-shape: "M0 1.4 L1.4 0 L6 4.6 L10.6 0 L12 1.4 L6 7.4 Z"; -fx-background-color: #171719; -fx-padding: 3.7 6; }
+
+/* Payment cards: orange ring radio, selected card has an orange border and a warm fill. */
+.payment-choice { -fx-min-height: 56; -fx-background-radius: 12; -fx-border-radius: 12; -fx-graphic-text-gap: 12; }
+.payment-choice:hover { -fx-border-color: #8A8A84; }
+.payment-choice:selected { -fx-background-color: #FFF3EE; -fx-border-color: #E65436; -fx-border-width: 2; }
+.payment-choice .radio { -fx-background-color: #C9C9C4, white; -fx-background-insets: 0, 2; -fx-background-radius: 10px; -fx-padding: 6; }
+.payment-choice:selected .radio { -fx-background-color: #E65436, white; }
+.payment-choice .radio .dot { -fx-background-color: transparent; -fx-background-radius: 5; -fx-padding: 4; }
+.payment-choice:selected .radio .dot { -fx-background-color: #E65436; }
+
+/* Chevron graphic on the Filters button: same shape and size as the Sort control's arrow. */
+.chevron-icon { -fx-shape: "M0 1.4 L1.4 0 L6 4.6 L10.6 0 L12 1.4 L6 7.4 Z"; -fx-background-color: #171719; -fx-min-width: 12; -fx-pref-width: 12; -fx-max-width: 12; -fx-min-height: 7.4; -fx-pref-height: 7.4; -fx-max-height: 7.4; }
+#toggle-filters { -fx-graphic-text-gap: 12; }
