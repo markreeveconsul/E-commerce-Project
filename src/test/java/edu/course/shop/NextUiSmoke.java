@@ -50,10 +50,13 @@ public final class NextUiSmoke {
         try {
             fx(()->{stage=new Stage();scene=new Scene(new StackPane(),1280,860);scene.getStylesheets().add(NextUiSmoke.class.getResource("/shop.css").toExternalForm());stage.setScene(scene);stage.show();new ShopWindow(stage,services).showStorefront();return null;});catalog();
             check(fx(()->((Button)scene.lookup("#nav-saved")).getText()).equals("Saved"),"Saved items has a visible navigation label");
+            double[] guestSearch=fx(()->{Node n=scene.lookup("#header-search-slot");var b=n.localToScene(n.getLayoutBounds());return new double[]{b.getMinX(),b.getWidth()};});
             press("save-1");check(fx(()->((Button)scene.lookup("#save-1")).getText()).equals("♥"),"Guest heart toggles without signing in");
             press("nav-saved");waitFor(()->scene.lookup("#saved-grid") instanceof TilePane t&&t.getChildren().size()==1&&!scene.getRoot().isDisabled());check(label("saved-feedback").isEmpty(),"Guest saved list opens without errors");
             press("account");check(fx(()->!((TitledPane)scene.lookup("#demo-accounts")).isExpanded()),"Demo accounts are collapsed by default");
             text("username","customer");text("password","customer123");press("login");catalog();check(services.accounts().saved(customer).contains(1L),"Guest selections persist after customer sign-in");
+            resize(1280,860);
+            check(fx(()->{Node n=scene.lookup("#header-search-slot");var b=n.localToScene(n.getLayoutBounds());return Math.abs(b.getMinX()-guestSearch[0])<2&&Math.abs(b.getWidth()-guestSearch[1])<2;}),"Guest and signed-in headers keep matching search spacing");
             press("nav-profile");waitFor(()->scene.lookup("#display-name")!=null&&!scene.getRoot().isDisabled());text("display-name","");press("save-profile");idle();
             check(!label("profile-error").isEmpty()&&fx(()->scene.getFocusOwner()==scene.lookup("#display-name")),"Invalid profile points to display name inline");
             text("display-name","Smoke Shopper");check(label("profile-error").isEmpty(),"Editing profile clears its own error");press("save-profile");idle();check(services.accounts().displayName(customer).equals("Smoke Shopper"),"Profile save reaches persistent service");
@@ -146,6 +149,7 @@ public final class NextUiSmoke {
             check(fx(()->dialog().getHeight()<scene.getHeight()*.84),"Compact photo viewer sizes to its content instead of stretching vertically");
             check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect() instanceof javafx.scene.effect.GaussianBlur),"Background is blurred");
             check(fx(()->scene.lookup("#image-zoom-photo").getEffect()==null),"Photo remains sharp"); check(fx(()->{ScrollPane v=(ScrollPane)scene.lookup("#image-zoom-viewport");return v.getContent().getLayoutBounds().getHeight()<=v.getViewportBounds().getHeight();}),"Fit image does not need vertical scrolling"); resize(1100,760); check(fx(()->dialog().getWidth()<scene.getWidth()*.90),"Open viewer responds to window resizing");resize(960,680);
+            check(fx(()->{Node add=scene.lookup("#image-viewer-add");var b=add.localToScene(add.getLayoutBounds());var panelBounds=dialog().localToScene(dialog().getLayoutBounds());return b.getMaxY()<panelBounds.getMaxY()-12&&b.getMinY()>panelBounds.getMinY();}),"Compact viewer keeps the full purchase button visible");
             screenshot("13-glass-compact.png");closeDialog();
             check(fx(()->((StackPane)scene.getRoot()).getChildren().getFirst().getEffect()==null),"Closing restores background effect");
             resize(1280,860);
