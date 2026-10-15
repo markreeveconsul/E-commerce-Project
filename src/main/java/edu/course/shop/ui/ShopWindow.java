@@ -65,7 +65,14 @@ public final class ShopWindow {
         dismissDrawer();stopFeedbackAnimations();
         BorderPane login=new BorderPane(new LoginView(services.auth(),this::signedIn));
         Button browse=Ui.button("← Continue browsing",this::showStorefront);browse.getStyleClass().add("header-link");
-        HBox back=new HBox(browse);back.getStyleClass().add("store-footer");login.setBottom(back);stage.getScene().setRoot(login);
+        CheckBox motion=new CheckBox("Reduce motion");motion.setId("login-reduce-motion");motion.getStyleClass().add("motion-control");
+        motion.setSelected(Motion.isReduced());motion.setOnAction(e->Motion.reducedProperty().set(motion.isSelected()));
+        javafx.beans.InvalidationListener motionSync=o->motion.setSelected(Motion.isReduced());
+        Motion.reducedProperty().addListener(new javafx.beans.WeakInvalidationListener(motionSync));
+        motion.getProperties().put("market.motionSync",motionSync);
+        Region footerSpace=new Region();HBox.setHgrow(footerSpace,Priority.ALWAYS);
+        HBox back=new HBox(16,browse,footerSpace,motion);back.setAlignment(Pos.CENTER_LEFT);back.getStyleClass().add("store-footer");
+        login.setBottom(back);stage.getScene().setRoot(login);
     }
     private void signedIn(User signedIn){
         if(signedIn.canManageProducts()){saved.reset();completeSignIn(signedIn);return;}

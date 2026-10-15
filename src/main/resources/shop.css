@@ -176,9 +176,15 @@
 .login-intro .hero-title { -fx-font-size: 54px; }
 .login-intro.login-compact { -fx-padding: 32; }
 .login-intro.login-compact .hero-title { -fx-font-size: 44px; }
-.login-form-pane { -fx-background-color: -surface; }
-.login-card { -fx-border-color: transparent; -fx-padding: 28 32; }
+.login-form-pane { -fx-background-color: #F5F4F1; -fx-padding: 30; }
+.login-form-pane .clean-scroll, .login-form-pane .clean-scroll > .viewport { -fx-background-color: transparent; }
+.login-card { -fx-background-color: white; -fx-border-color: #E6E3DF; -fx-border-width: 1; -fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 34 36; -fx-effect: dropshadow(gaussian, rgba(22,18,16,.10), 24, .14, 0, 7); }
 .login-card .page-title { -fx-font-size: 30px; }
+.login-brand { -fx-spacing: 0; -fx-alignment: center-left; }
+.login-brand-mark, .login-brand-et { -fx-font-family: "Archivo Black"; -fx-font-size: 22px; }
+.login-brand-mark { -fx-text-fill: #E65436; }
+.login-brand-et { -fx-text-fill: #18181B; }
+.login-access-label { -fx-text-fill: #E65436; -fx-font-size: 10px; -fx-font-weight: bold; }
 .login-art { -fx-background-color: linear-gradient(to bottom right, #E97852, #D83921); -fx-background-radius: 2; }
 
 /* Feedback, drawers and empty states. */
@@ -227,12 +233,14 @@
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-padding: 0; }
 
 /* Vertical power campaign; shares the storefront halo and motion. */
-.account-campaign { -fx-min-height: 0; -fx-pref-height: 600; -fx-max-height: 10000; -fx-background-color: linear-gradient(to bottom right, #171719 0%, #171719 45%, #2B2420 100%); }
-.account-campaign .hero-copy { -fx-padding: 32 32 12 32; -fx-spacing: 14; }
-.account-campaign .hero-headline { -fx-font-size: 48px; }
+.account-campaign { -fx-min-height: 0; -fx-pref-height: 600; -fx-max-height: 10000; -fx-background-color: linear-gradient(to bottom right, #090A0C 0%, #111214 48%, #241A17 100%); }
+.account-campaign .hero-copy { -fx-padding: 36 40 12 40; -fx-spacing: 14; }
+.account-campaign .hero-headline { -fx-font-size: 50px; }
 .account-campaign.hero-compact .hero-headline { -fx-font-size: 40px; }
 .account-campaign .hero-sub { -fx-font-size: 14px; }
-.account-edition { -fx-padding: 12 32 24 32; -fx-text-fill: #F08B63; }
+.account-campaign.hero-compact .hero-copy { -fx-padding: 28 28 10 28; -fx-spacing: 10; }
+.account-edition { -fx-padding: 12 40 24 40; -fx-text-fill: #F08B63; }
+.account-campaign.hero-compact .account-edition { -fx-padding: 8 28 16 28; }
 .password-toggle { -fx-min-width: 48; -fx-text-fill: -signal; }
 .login-card .text-field:focused { -fx-effect: dropshadow(gaussian, rgba(230,84,54,.14), 5, .15, 0, 0); }
 

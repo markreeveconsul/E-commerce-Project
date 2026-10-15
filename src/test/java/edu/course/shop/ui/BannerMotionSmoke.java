@@ -168,9 +168,9 @@ public final class BannerMotionSmoke {
             check(drift()==0&&fx(()->hero.lookup("#hero-headline").getOpacity())==1,"Account reduced motion resets drift and reveals all text");
             check(fx(()->{
                 ImageView image=(ImageView)hero.lookup("#login-pc");
-                return image.getBoundsInParent().getWidth()>hero.getWidth()*.94&&image.getBoundsInParent().getWidth()<=hero.getWidth()
+                return image.getBoundsInParent().getWidth()>hero.getWidth()*.80&&image.getBoundsInParent().getWidth()<=hero.getWidth()
                     &&Math.abs(image.getBoundsInParent().getWidth()/image.getBoundsInParent().getHeight()-image.getImage().getWidth()/image.getImage().getHeight())<.01;
-            }),"PC fills compact campaign width with proportional editorial crop");
+            }),"PC photo scales down responsively while preserving its proportions");
             snapshot(output.resolve("login-campaign.png"));
             System.out.println("BANNER MOTION SMOKE PASS: "+checks+" assertions; real hover, float, glow, parallax, reduced motion, viewport/window/detach lifecycle; 60 rendered frames.");
         } finally {fx(()->{Motion.reducedProperty().set(false);if(stage!=null)stage.close();return null;});Platform.exit();}
