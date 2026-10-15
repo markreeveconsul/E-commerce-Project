@@ -83,6 +83,7 @@ public final class SearchSuggestions {
         Runnable[] handle={null};
         handle[0]=ShopOverlay.show(headerSearch,panel,false,false,()->{if(closeOverlay==handle[0])closeOverlay=null;generation++;debounce.stop();if(pending!=null)pending.cancel();pending=null;});
         closeOverlay=handle[0];
+        Motion.dropIn(panel);
         input.textProperty().addListener((o,a,b)->{
             if(!headerSearch.getText().equals(b))headerSearch.setText(b);
             query(b,rows,resultScroll);
