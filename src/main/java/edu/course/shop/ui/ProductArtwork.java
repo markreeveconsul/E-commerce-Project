@@ -21,6 +21,10 @@ public final class ProductArtwork extends StackPane {
     }
     public ProductArtwork(byte[] photo, String name, double height) { this(photo,name,height,false,PhotoFrame.AUTO); }
     public ProductArtwork(byte[] photo, String name, double height,boolean square,PhotoFrame frame) {
+        this(photo,name,height,square,frame,false);
+    }
+    /** Full-resolution decoding is reserved for a focused product detail view. */
+    public ProductArtwork(byte[] photo,String name,double height,boolean square,PhotoFrame frame,boolean sourceResolution) {
         setMinHeight(height); setPrefHeight(height); setMaxHeight(height);
         setMinWidth(0); setPrefWidth(height * 1.35); getStyleClass().add("product-art");
         if(square) {
@@ -28,7 +32,9 @@ public final class ProductArtwork extends StackPane {
             getStyleClass().add("square-product-art");
         }
         if (photo != null && photo.length > 0) {
-            Image image = new Image(new ByteArrayInputStream(photo), 800, 800, true, true);
+            Image image = sourceResolution
+                ? new Image(new ByteArrayInputStream(photo))
+                : new Image(new ByteArrayInputStream(photo), 800, 800, true, true);
             if (!image.isError()) {
                 ImageView view = new ImageView(image); view.getStyleClass().add("product-photo"); view.setPreserveRatio(true); view.setSmooth(true);
                 if(square) {

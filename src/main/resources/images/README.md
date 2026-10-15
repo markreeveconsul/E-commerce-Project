@@ -4,6 +4,16 @@
 
 The supplied image depicts a wired headset. Banner links browse/search collections; the image is not substituted for the existing Wireless headphones product photo or advertised as that product's exact appearance.
 
-`login-pc-campaign.jpg` is the user's supplied **login.jpg** PC photo (848×1264). The original JPEG pixels are retained. The account campaign blends its deep-black photo background into the charcoal/orange artwork with JavaFX `LIGHTEN`, preserving the model's dark detail while allowing the rings and glow to show through. The login photo is campaign artwork, not a seeded catalog item or a specification claim.
+`login-pc-campaign.jpg` is the user's supplied **login.jpg** PC photo (848×1264). The original JPEG pixels are retained. The active account campaign blends its deep-black photo background into the charcoal/orange artwork with JavaFX `LIGHTEN`, preserving the model's dark detail while allowing the rings and glow to show through. The login photo is campaign artwork, not a seeded catalog item or a specification claim.
 
-`login-pc-campaign.png` is the previous login artwork and is retained as an unused project asset; the account campaign now loads `login-pc-campaign.jpg`.
+`login-pc-campaign.png` is the earlier login artwork, supplied as **Untitled design (1).png**. Fully transparent outer margins were trimmed (original 714×1071, alpha bounds 0,46–691,1037); visible pixels are retained. It remains in the project as an unused asset; the account campaign now loads `login-pc-campaign.jpg`. The PNG artwork was designed to scale proportionally with an orange halo, grid, framing marks, and shared motion. It is campaign artwork, not a seeded catalog item or a specification claim.
+
+## Category campaign artwork
+- category-gpu.png: supplied gpu model.png, unchanged source pixels; rotated only in the JavaFX banner.
+- category-phones.png: supplied RED MAGIC.png, unchanged.
+- category-laptop.png: supplied laptop2.png, unchanged.
+- category-keyboard.png: image-generation cleanup of the supplied gaming keyboard.png to remove its stray white patch and retain a transparent background.
+- category-pc.png: supplied PC SET.png, unchanged, used for PC Sets.
+- category-controller.png: supplied gaming controller.png, unchanged, used for Other Electronics. Peripherals keeps the keyboard.
+
+CategoryBanner draws its background rings, diagonal lines, glow, and shadow in JavaFX. Copy remains real accessible text. These category assets do not replace headset-campaign.png or the Shop all hero.

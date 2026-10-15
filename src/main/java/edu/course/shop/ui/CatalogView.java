@@ -95,7 +95,8 @@ public final class CatalogView extends VBox {
         search.setPromptText("Search products…");
         search.setMinWidth(0);search.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(search,Priority.ALWAYS);
         if(!search.getStyleClass().contains("catalog-search-input"))search.getStyleClass().add("catalog-search-input");
-        Button clearSearch=Ui.button("×",()->{search.clear();state.setScrollPosition(0);refresh();search.requestFocus();});
+        Button clearSearch=Ui.button("",()->{search.clear();state.setScrollPosition(0);refresh();search.requestFocus();});
+        clearSearch.setGraphic(StoreIcon.of("close"));clearSearch.setTooltip(new javafx.scene.control.Tooltip("Clear search"));
         clearSearch.setId("clear-search");clearSearch.setAccessibleText("Clear search");
         clearSearch.getStyleClass().add("search-clear");
         clearSearch.visibleProperty().bind(search.textProperty().isNotEmpty());clearSearch.managedProperty().bind(clearSearch.visibleProperty());
@@ -141,7 +142,13 @@ public final class CatalogView extends VBox {
         hero.managedProperty().bind(hero.visibleProperty());
         // The navigation shares the campaign canvas; it stays reachable when filters hide the campaign.
         navigation=categoryNavigation();
-        campaign=new javafx.scene.layout.StackPane(hero,navigation);
+        CategoryBanner categoryBanner=new CategoryBanner();
+        Runnable updateCategoryBanner=()->{int index=category.getSelectionModel().getSelectedIndex();if(index>0)categoryBanner.showCategory(Category.shopping().get(index-1));};
+        category.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->updateCategoryBanner.run());updateCategoryBanner.run();
+        categoryBanner.visibleProperty().bind(search.textProperty().isEmpty().and(category.getSelectionModel().selectedIndexProperty().greaterThan(0))
+            .and(budget.getSelectionModel().selectedIndexProperty().isEqualTo(0)).and(available.selectedProperty().not()).and(rangeApplied.not()));
+        categoryBanner.managedProperty().bind(categoryBanner.visibleProperty());
+        campaign=new javafx.scene.layout.StackPane(hero,categoryBanner,navigation);
         campaign.setId("catalog-campaign");campaign.getStyleClass().add("catalog-campaign");
         campaign.setViewOrder(-1); // Draw the headset overlap above the following white section.
         javafx.scene.layout.StackPane.setAlignment(navigation,Pos.TOP_CENTER);
@@ -189,8 +196,11 @@ public final class CatalogView extends VBox {
     private void applyFilters() { state.setScrollPosition(0);refresh(); }
     private void openFilters() {
         suggestions.dismiss();
-        Ui.async(this,"Loading filters…",()->products.search(user,"",null).stream().map(Product::getPrice).max(BigDecimal::compareTo).orElse(BigDecimal.ONE), ceiling->{
-            FilterDrawer.show(this,state,ceiling.doubleValue(),draft->{
+        Ui.async(this,"Loading filters…",()->products.search(user,"",null), rows->{
+            double ceiling=rows.stream().map(Product::getPrice).max(BigDecimal::compareTo).orElse(BigDecimal.ONE).doubleValue();
+            String query=search.getText().trim().toLowerCase(java.util.Locale.ROOT);
+            List<Product> matches=rows.stream().filter(p->p.getName().toLowerCase(java.util.Locale.ROOT).contains(query)).toList();
+            FilterDrawer.show(this,state,ceiling,matches,draft->{
                 clearing=true;
                 category.getSelectionModel().select(draft.category());available.setSelected(draft.inStock());
                 budget.getSelectionModel().selectFirst();minimum.setText(draft.minimum());maximum.setText(draft.maximum());
