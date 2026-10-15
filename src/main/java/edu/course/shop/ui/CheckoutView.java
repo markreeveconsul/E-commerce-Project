@@ -13,7 +13,7 @@ public final class CheckoutView extends VBox {
         this(user,cart,checkout,null,draft,placed,back);
     }
     public CheckoutView(User user,Cart cart,CheckoutService checkout,AccountService accounts,CheckoutDraft draft,Consumer<Order> placed,Runnable back) {
-        getStyleClass().add("page"); setSpacing(18);
+        getStyleClass().add("page"); setId("checkout-page"); setSpacing(18);
         TextArea address=new TextArea(draft.getAddress()); address.setWrapText(true);
         address.setPromptText("Street, building, unit or apartment"); address.setPrefRowCount(2); address.setId("address");
         Label addressError=Ui.feedback("address-error"), paymentError=Ui.feedback("payment-error"), feedback=Ui.feedback("checkout-feedback");

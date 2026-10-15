@@ -14,7 +14,7 @@ public final class ShopApp extends Application {
         OrderRepository orders = new OrderRepository();
         Services services = new Services(new AuthService(database, new UserRepository()),
             new ProductService(database, products), new CheckoutService(database, products, orders),
-            new OrderService(database, orders));
+            new OrderService(database, orders), new AdminService(database, new AdminRepository()));
         stage.setTitle("Market / Java OOP Store");
         stage.setMinWidth(960); stage.setMinHeight(680);
         var loading = new javafx.scene.layout.StackPane(new javafx.scene.control.Label("Preparing your store..."));

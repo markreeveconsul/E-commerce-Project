@@ -28,7 +28,7 @@ public final class CartView extends VBox {
     private final VBox body=new VBox(18);
     public CartView(User user, Cart cart, CartService carts, Runnable changed, Runnable checkout, Runnable browse) {
         this.user=user; this.cart=cart; this.carts=carts; this.changed=changed; this.checkout=checkout; this.browse=browse;
-        getStyleClass().add("page"); setSpacing(16);
+        getStyleClass().add("page"); setId("cart-page"); setSpacing(16);
         undo.setId("undo-cart-removal");undoBar.setId("undo-removal-bar");undoBar.getStyleClass().add("notice");undoBar.setVisible(false);undoBar.managedProperty().bind(undoBar.visibleProperty());undoTimeout.setOnFinished(e->{removed=null;undoBar.setVisible(false);});sceneProperty().addListener((o,a,b)->{if(b==null){undoTimeout.stop();removed=null;undoBar.setVisible(false);}});
         getChildren().addAll(Ui.label("Your cart", "page-title"),
             Ui.label("Review your items, adjust quantities, then make them yours.", "muted"),feedback,undoBar,Ui.scroll(body)); refresh();

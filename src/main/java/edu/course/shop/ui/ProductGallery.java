@@ -1,6 +1,7 @@
 package edu.course.shop.ui;
 
 import edu.course.shop.model.Product;
+import edu.course.shop.model.Money;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 /** Only real uploaded angles are offered; illustrations remain explicitly labeled. */
 public final class ProductGallery extends VBox {
     private final Product product;
+    private final Runnable addToCart;
     private final List<byte[]> photos=new ArrayList<>();
     private final List<Button> thumbnails=new ArrayList<>();
     private final Button main;
@@ -17,8 +19,9 @@ public final class ProductGallery extends VBox {
     private final javafx.beans.property.BooleanProperty compact=new javafx.beans.property.SimpleBooleanProperty();
     private final javafx.beans.property.DoubleProperty windowHeight=new javafx.beans.property.SimpleDoubleProperty(860);
     public void setCompact(boolean value){compact.set(value);}
-    public ProductGallery(Product product) {
-        this.product=product;
+    public ProductGallery(Product product) { this(product,null); }
+    public ProductGallery(Product product,Runnable addToCart) {
+        this.product=product;this.addToCart=addToCart;
         sceneProperty().addListener((o,a,b)->{windowHeight.unbind();if(b!=null)windowHeight.bind(b.heightProperty());});
         setId("product-gallery");setSpacing(14);setMinWidth(0);
         if(product.getPhoto()!=null)photos.add(product.getPhoto());photos.addAll(product.getAdditionalPhotos());
@@ -40,7 +43,10 @@ public final class ProductGallery extends VBox {
         ProductArtwork art=photos.isEmpty()?new ProductArtwork(product,520):
             new ProductArtwork(photos.get(index),product.getName(),520,false,edu.course.shop.model.PhotoFrame.AUTO,true);
         art.setId("gallery-main");art.getStyleClass().add(product.getCategory().name().toLowerCase(java.util.Locale.ROOT));
-        var height=javafx.beans.binding.Bindings.createDoubleBinding(()->compact.get()?Math.min(360,Math.max(240,windowHeight.get()*.42)):Math.min(560,Math.max(320,getWidth()*.9)),widthProperty(),compact,windowHeight);
+        var height=javafx.beans.binding.Bindings.createDoubleBinding(()->{
+            if(photos.isEmpty())return compact.get()?Math.min(280,Math.max(210,windowHeight.get()*.32)):Math.min(390,Math.max(280,getWidth()*.58));
+            return compact.get()?Math.min(360,Math.max(240,windowHeight.get()*.42)):Math.min(560,Math.max(320,getWidth()*.9));
+        },widthProperty(),compact,windowHeight);
         art.minHeightProperty().bind(height);art.prefHeightProperty().bind(height);art.maxHeightProperty().bind(height);
         // Full photograph stays visible; the catalog crop is not applied to the detail gallery.
         if(art.lookup(".product-photo") instanceof javafx.scene.image.ImageView image)image.fitHeightProperty().bind(height.subtract(32));
@@ -56,18 +62,19 @@ public final class ProductGallery extends VBox {
         DialogPane panel=new DialogPane();panel.setId("image-viewer-panel");
         panel.getStylesheets().add(ProductGallery.class.getResource("/shop.css").toExternalForm());
         panel.getStyleClass().addAll("image-viewer","glass-image-viewer");
-        double panelWidth=Math.min(1040,getScene().getWidth()*.80),panelHeight=Math.min(760,getScene().getHeight()*.84);
-        panel.setMinSize(0,0);panel.prefWidthProperty().bind(javafx.beans.binding.Bindings.min(1040,getScene().widthProperty().multiply(.80)));panel.prefHeightProperty().bind(javafx.beans.binding.Bindings.min(760,getScene().heightProperty().multiply(.84)));panel.maxWidthProperty().bind(panel.prefWidthProperty());panel.maxHeightProperty().bind(panel.prefHeightProperty());
+        double sceneWidth=getScene()==null?1280:getScene().getWidth(),sceneHeight=getScene()==null?800:getScene().getHeight();
+        double panelWidth=Math.min(1160,sceneWidth*.84),panelHeight=Math.min(760,sceneHeight*.72);
+        panel.setMinSize(0,0);panel.prefWidthProperty().bind(javafx.beans.binding.Bindings.min(1160,getScene().widthProperty().multiply(.84)));panel.prefHeightProperty().bind(javafx.beans.binding.Bindings.min(760,getScene().heightProperty().multiply(.72)));panel.maxWidthProperty().bind(panel.prefWidthProperty());panel.maxHeightProperty().bind(panel.prefHeightProperty());
         StackPane surface=new StackPane();surface.setMinSize(0,0);surface.getStyleClass().add("image-viewer-surface");
-        ScrollPane viewport=new ScrollPane(surface);viewport.setPannable(true);viewport.getStyleClass().add("image-viewer-viewport");viewport.setId("image-zoom-viewport");viewport.setPrefViewportWidth(panelWidth-48);viewport.setPrefViewportHeight(panelHeight-150);
+        ScrollPane viewport=new ScrollPane(surface);viewport.setPannable(true);viewport.getStyleClass().add("image-viewer-viewport");viewport.setId("image-zoom-viewport");viewport.prefViewportWidthProperty().bind(panel.prefWidthProperty().multiply(.60).subtract(64));viewport.prefViewportHeightProperty().bind(panel.prefHeightProperty().subtract(292));
         // Fixed content geometry breaks the viewport / scrollbar / preferred-size feedback loop.
         viewport.setFitToWidth(false);viewport.setFitToHeight(false);
         javafx.beans.property.DoubleProperty scale=new javafx.beans.property.SimpleDoubleProperty(1);
         Label caption=Ui.label("","muted");caption.setId("image-zoom-caption");
-        int[] current={selected};double baseWidth=panelWidth-52,baseHeight=panelHeight-210;
+        int[] current={selected};double baseWidth=Math.max(220,panelWidth*.60-88),baseHeight=Math.max(200,panelHeight-316);
         javafx.scene.image.ImageView image=new javafx.scene.image.ImageView();image.setPreserveRatio(true);image.setSmooth(true);image.setId("image-zoom-photo");
-        image.fitWidthProperty().bind(scale.multiply(panel.prefWidthProperty().subtract(52)));image.fitHeightProperty().bind(scale.multiply(panel.prefHeightProperty().subtract(210)));
-        surface.prefWidthProperty().bind(scale.multiply(panel.prefWidthProperty().subtract(52)));surface.prefHeightProperty().bind(scale.multiply(panel.prefHeightProperty().subtract(210)));
+        image.fitWidthProperty().bind(scale.multiply(panel.prefWidthProperty().multiply(.60).subtract(104)));image.fitHeightProperty().bind(scale.multiply(panel.prefHeightProperty().subtract(334)));
+        surface.prefWidthProperty().bind(scale.multiply(panel.prefWidthProperty().multiply(.60).subtract(80)));surface.prefHeightProperty().bind(scale.multiply(panel.prefHeightProperty().subtract(310)));
         surface.setMinSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);surface.setMaxSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);
         viewport.setMinSize(0,0);VBox.setVgrow(viewport,Priority.ALWAYS);
         Runnable render=()->{
@@ -81,14 +88,27 @@ public final class ProductGallery extends VBox {
         Button minus=Ui.button("−",()->scale.set(Math.max(1,scale.get()-.5))),plus=Ui.button("+",()->scale.set(Math.min(4,scale.get()+.5)));
         minus.setId("image-zoom-out");plus.setId("image-zoom-in");minus.setAccessibleText("Zoom out");plus.setAccessibleText("Zoom in");minus.disableProperty().bind(scale.lessThanOrEqualTo(1));plus.disableProperty().bind(scale.greaterThanOrEqualTo(4));
         if(photos.isEmpty()){minus.disableProperty().unbind();plus.disableProperty().unbind();minus.setDisable(true);plus.setDisable(true);}
-        Button reset=Ui.button("Fit image",()->{scale.set(1);viewport.setHvalue(.5);viewport.setVvalue(.5);});reset.setId("image-zoom-reset");Label level=Ui.label("","field-label");level.textProperty().bind(scale.multiply(100).asString("%.0f%%"));
-        FlowPane tools=new FlowPane(12,12,previous,minus,level,plus,reset,next);tools.setAlignment(javafx.geometry.Pos.CENTER);tools.getStyleClass().add("image-viewer-tools");render.run();
-        Label heading=Ui.label(product.getName(),"viewer-title");heading.setWrapText(false);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(heading,Priority.ALWAYS);
+        Button reset=Ui.button("Fit image",()->{scale.set(1);viewport.setHvalue(.5);viewport.setVvalue(.5);});reset.setId("image-zoom-reset");Label level=Ui.label("","field-label");level.textProperty().bind(javafx.beans.binding.Bindings.when(scale.lessThanOrEqualTo(1)).then("Fit").otherwise(scale.multiply(100).asString("%.0f%%")));
+        FlowPane tools=new FlowPane(10,10,previous,minus,level,plus,reset,next);tools.setAlignment(javafx.geometry.Pos.CENTER);tools.getStyleClass().add("image-viewer-tools");render.run();
+        VBox media=new VBox(10,viewport,tools,caption);media.getStyleClass().add("viewer-media");media.setMinWidth(0);HBox.setHgrow(media,Priority.ALWAYS);
+        Label heading=Ui.label(product.getName(),"viewer-title");heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(heading,Priority.ALWAYS);
         Button close=Ui.button("×",()->{});close.setId("image-close");close.setAccessibleText("Close image viewer");
-        HBox header=new HBox(16,heading,close);header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        VBox content=new VBox(10,header,viewport,tools,caption);content.setMinHeight(0);panel.setContent(content);
+        Label category=Ui.label(Ui.category(product.getCategory()).toUpperCase(java.util.Locale.ROOT)+" / PRODUCT DETAIL","viewer-category");
+        Label productName=Ui.label(product.getName(),"viewer-product-name");productName.setWrapText(true);
+        String description=product.getDescription().isBlank()?"A closer look at this item from the MARKET collection.":product.getDescription();
+        Label productDescription=Ui.label(description,"viewer-description");productDescription.setWrapText(true);
+        Label price=Ui.label(Money.format(product.getPrice()),"viewer-product-price");
+        Label availability=Ui.label(product.getStock()==0?"Currently unavailable":product.getStock()<=5?"Only "+product.getStock()+" left in stock":"In stock · ships in 2 days",product.getStock()==0?"stock-out":"viewer-stock");
+        VBox details=new VBox(18,category,productName,productDescription,price,availability);details.getStyleClass().add("viewer-info");details.setMinWidth(250);details.setPrefWidth(310);details.setMaxWidth(360);details.setMaxHeight(Region.USE_PREF_SIZE);
+        Button add=null;
+        if(addToCart!=null){add=Ui.primary("Add to cart",()->{});add.setId("image-viewer-add");add.getStyleClass().add("viewer-add");add.setMaxWidth(Double.MAX_VALUE);add.setDisable(!product.isActive()||product.getStock()==0);details.getChildren().addAll(add,Ui.label("Stock is checked again when you place the order.","viewer-note"));}
+        VBox imageWell=new VBox(0,media);imageWell.getStyleClass().add("viewer-image-well");imageWell.setMinWidth(0);HBox.setHgrow(imageWell,Priority.ALWAYS);
+        HBox columns=new HBox(22,imageWell,details);columns.getStyleClass().add("viewer-columns");columns.setMinHeight(0);columns.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        HBox header=new HBox(16,Ui.label("Photo viewer / "+product.getName(),"viewer-title"),new Region(),close);HBox.setHgrow(header.getChildren().get(1),Priority.ALWAYS);header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        VBox content=new VBox(14,header,columns);content.setMinHeight(0);panel.setContent(content);
         Runnable dismiss=ShopOverlay.show(this,panel,true,false,()->select(current[0]));
         close.setOnAction(e->dismiss.run());
+        if(add!=null)add.setOnAction(e->{addToCart.run();dismiss.run();});
         panel.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,e->{if(e.getCode()==javafx.scene.input.KeyCode.LEFT){previous.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.RIGHT){next.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.ADD||e.getCode()==javafx.scene.input.KeyCode.PLUS||e.getCode()==javafx.scene.input.KeyCode.EQUALS){plus.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.SUBTRACT||e.getCode()==javafx.scene.input.KeyCode.MINUS){minus.fire();e.consume();}else if(e.getCode()==javafx.scene.input.KeyCode.DIGIT0){reset.fire();e.consume();}});
 
     }

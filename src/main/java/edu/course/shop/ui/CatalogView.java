@@ -153,7 +153,14 @@ public final class CatalogView extends VBox {
         campaign.setViewOrder(-1); // Draw the headset overlap above the following white section.
         javafx.scene.layout.StackPane.setAlignment(navigation,Pos.TOP_CENTER);
         navigation.setMaxHeight(Region.USE_PREF_SIZE);
-        content.getChildren().addAll(campaign,collection,collections(),closing());
+        VBox discovery=collections(),end=closing();
+        var unfilteredShopAll=search.textProperty().isEmpty()
+            .and(category.getSelectionModel().selectedIndexProperty().isEqualTo(0))
+            .and(budget.getSelectionModel().selectedIndexProperty().isEqualTo(0))
+            .and(available.selectedProperty().not()).and(rangeApplied.not());
+        discovery.visibleProperty().bind(unfilteredShopAll);discovery.managedProperty().bind(discovery.visibleProperty());
+        end.visibleProperty().bind(unfilteredShopAll);end.managedProperty().bind(end.visibleProperty());
+        content.getChildren().addAll(campaign,collection,discovery,end);
         scroll=Ui.scroll(content);scroll.setId("catalog-scroll");getStyleClass().add("catalog-page");getChildren().add(scroll);
         scroll.vvalueProperty().addListener((o,a,b)->{if(!restoring)state.setScrollPosition(b.doubleValue());updateHeroViewport();});
         scroll.viewportBoundsProperty().addListener((o,a,b)->updateHeroViewport());

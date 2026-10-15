@@ -60,8 +60,17 @@ public final class ProductArtwork extends StackPane {
                 getChildren().add(view); setAccessibleText("Photo of " + name); return;
             }
         }
-        var placeholder = Ui.label(height<100?"NO PHOTO":"PHOTO COMING SOON", "photo-placeholder");
-        getChildren().add(placeholder); setAccessibleText("No photo for " + name);
+        if(height<100) {
+            getChildren().add(Ui.label("—","photo-placeholder"));
+        } else {
+            var title=Ui.label("NO PRODUCT PHOTO","photo-placeholder-title");
+            var hint=Ui.label("An image has not been uploaded yet.","photo-placeholder-copy");
+            hint.setWrapText(true);hint.setMaxWidth(260);
+            javafx.scene.layout.VBox placeholder=new javafx.scene.layout.VBox(8,title,hint);
+            placeholder.setAlignment(javafx.geometry.Pos.CENTER);placeholder.setMaxWidth(300);
+            getChildren().add(placeholder);
+        }
+        setAccessibleText("No photo for " + name);
     }
     /** Trim only transparent margins; opaque backgrounds remain photographic content. */
     private static javafx.geometry.Rectangle2D alphaBounds(Image image) {

@@ -1,3 +1,7 @@
+# Admin workspace and UI fidelity follow-up — October 15, 2026
+
+**43 backend tests, 112 GuiSmoke assertions and 99 NextUiSmoke assertions passed.** Admin overview, order history and customer summaries are database-backed read-only reports; customer access is rejected by the admin reporting service. The UI smoke exports overview, orders and customers screenshots in addition to its existing gallery. The latest desktop run also checked the centered search panel, filtered catalog spacing, compact viewer height, and responsive inventory columns. Existing shop-all hero, top section, category campaign artwork and motion were left unchanged.
+
 # Next UI verification — October 14, 2026
 
 **40 backend tests, 124 GUI assertions (89 existing + 35 new) and 30 motion assertions passed.** New service checks cover saved-item persistence/privacy, role checks, address ownership/defaults/limits/rollback, framing preservation, reviewed current-price repeat plans and atomic cart changes. NextUiSmoke exercises the new screens on a shown window and exports nine screenshots; existing GuiSmoke exports 26 shopping screenshots. Tests use fresh synthetic SQLite databases and gallery fixtures, never the user's store data. Source comparison confirms unchanged EditorialHeader, campaign assets and original CSS rules.

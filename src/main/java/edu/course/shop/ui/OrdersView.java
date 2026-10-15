@@ -14,7 +14,7 @@ public final class OrdersView extends VBox {
         setId("orders-page");getStyleClass().add("page");setSpacing(20);
         VBox cards=new VBox(16);cards.setId("order-cards");cards.setMinWidth(0);VBox receipt=new VBox(16);receipt.getStyleClass().add("card");receipt.setMinWidth(0);receipt.setId("order-receipt");
         VBox body=Ui.responsiveColumns(cards,receipt,950,24);Label feedback=Ui.feedback("orders-feedback");
-        DateTimeFormatter date=DateTimeFormatter.ofPattern("MMM d, yyyy · HH:mm").withZone(ZoneId.systemDefault());
+        DateTimeFormatter date=DateTimeFormatter.ofPattern("MMM dd, yyyy").withZone(ZoneId.systemDefault());
         Runnable refresh=()->Ui.async(this,"Loading your orders…",()->{
             List<Order> history=orders.history(user);Map<Long,Product> images=new HashMap<>();
             for(Order order:history)for(OrderItem item:order.items())if(!images.containsKey(item.productId())) {
@@ -28,11 +28,16 @@ public final class OrdersView extends VBox {
                 VBox card=new VBox(12);card.getStyleClass().add("order-card");card.setId("order-card-"+order.id());orderCards.add(card);
                 Runnable select=()->{for(VBox c:orderCards)c.getStyleClass().remove("order-selected");card.getStyleClass().add("order-selected");showReceipt(receipt,order);};
                 HBox pictures=new HBox(10);for(OrderItem item:order.items().stream().limit(3).toList()) {
-                    Product product=data.images().get(item.productId());ProductArtwork art=product==null?new ProductArtwork((byte[])null,item.productName(),70):new ProductArtwork(product,70);art.setPrefWidth(88);art.setMaxWidth(88);pictures.getChildren().add(art);
+                    Product product=data.images().get(item.productId());ProductArtwork art=product==null?new ProductArtwork((byte[])null,item.productName(),56):new ProductArtwork(product,56);art.setPrefWidth(74);art.setMaxWidth(74);pictures.getChildren().add(art);
                 }
-                Button view=Ui.button("View receipt",select);view.setId("receipt-"+order.id());Button again=Ui.link("Buy again →",()->repeat.accept(order));again.setId("buy-again-"+order.id());
-                card.getChildren().addAll(Ui.row("Order #"+order.id(),Money.format(order.total()),"section-title","price"),Ui.label(date.format(Instant.parse(order.createdAt()))+" · "+order.paymentMethod(),"muted"),pictures,
-                    Ui.label(order.paymentStatus().equals("PAID")?"Paid (demo)":"Payment due on delivery",order.paymentStatus().equals("PAID")?"stock":"badge-neutral"),new HBox(16,view,again));cards.getChildren().add(card);
+                int itemCount=order.items().stream().mapToInt(OrderItem::quantity).sum();
+                boolean paid=order.paymentStatus().equals("PAID");
+                Label title=Ui.label("#MK-"+order.id()+"  /  "+date.format(Instant.parse(order.createdAt()))+"  /  "+itemCount+(itemCount==1?" item":" items"),"order-title");title.setWrapText(true);
+                Label state=Ui.label(paid?"Paid · demo":"Due on delivery","order-status");state.getStyleClass().add(paid?"order-status-paid":"order-status-pending");
+                Region gap=new Region();HBox.setHgrow(gap,Priority.ALWAYS);
+                HBox header=new HBox(12,title,gap,state);header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                Button view=Ui.link("Details →",select);view.setId("receipt-"+order.id());Button again=Ui.link("Buy again",()->repeat.accept(order));again.setId("buy-again-"+order.id());
+                card.getChildren().addAll(header,Ui.label(Money.format(order.total()),"price"),pictures,new HBox(16,view,again));cards.getChildren().add(card);
             }
             orderCards.getFirst().getStyleClass().add("order-selected");showReceipt(receipt,data.orders().getFirst());
         },error->{Ui.failure(feedback,error);cards.getChildren().setAll(Ui.empty("Could not load orders","Your orders are saved. Please retry.","Retry",()->((Button)lookup("#refresh-orders")).fire()));});
@@ -41,7 +46,7 @@ public final class OrdersView extends VBox {
     }
     private record History(List<Order> orders,Map<Long,Product> images) { }
     private static void showReceipt(VBox receipt,Order order) {
-        receipt.getChildren().setAll(Ui.label("Receipt · Order #"+order.id(),"section-title"),Ui.label("Deliver to\n"+order.address(),"muted"),new Separator());
+        receipt.getChildren().setAll(Ui.label("Receipt · #MK-"+order.id(),"section-title"),Ui.label("Deliver to\n"+order.address(),"muted"),new Separator());
         for(OrderItem item:order.items())receipt.getChildren().add(Ui.row(item.quantity()+" × "+item.productName(),Money.format(item.subtotal()),"summary-item","summary-value"));
         receipt.getChildren().addAll(new Separator(),Ui.row("Total",Money.format(order.total()),"field-label","total"),Ui.label(order.paymentMethod()+" · "+(order.paymentStatus().equals("PAID")?"Paid (demo)":"Due on delivery"),"notice"));
     }
