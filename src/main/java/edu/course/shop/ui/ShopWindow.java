@@ -130,7 +130,7 @@ public final class ShopWindow {
             Region space=new Region();VBox.setVgrow(space,Priority.ALWAYS);
             nav.getChildren().add(space);
             nav.getStyleClass().add("sidebar");nav.setPrefWidth(210);shell.setLeft(nav);
-            HBox brand=new HBox(0,Ui.label("MARK","admin-brand-mark"),Ui.label("ET","admin-brand-rest"));
+            HBox brand=new HBox(0,Ui.label("FOR","admin-brand-mark"),Ui.label("GE","admin-brand-rest"));
             brand.setAlignment(Pos.BASELINE_LEFT);
             Region topSpace=new Region();HBox.setHgrow(topSpace,Priority.ALWAYS);
             Label role=Ui.label("ADMIN","admin-role");
@@ -141,7 +141,7 @@ public final class ShopWindow {
         }else{
             search.setPromptText("Search the collection");search.setAccessibleText("Search products");search.setMinWidth(130);search.setPrefWidth(260);
             Runnable find=()->{catalogState.setScrollPosition(0);showCatalog();};search.setOnAction(e->find.run());
-            Button logo=Ui.button("MARKET",()->category(0));logo.getStyleClass().add("brand-link");logo.setMinWidth(Region.USE_PREF_SIZE);
+            Button logo=Ui.button("FORGE",()->category(0));logo.getStyleClass().add("brand-link");logo.setMinWidth(Region.USE_PREF_SIZE);
             cartButton=link("Cart · 0",this::showCartDrawer);cartButton.setId("nav-cart");
             cartButton.setGraphic(StoreIcon.of("bag"));cartButton.getStyleClass().add("cart-button");
             Button account=link(user instanceof Guest?"Sign in":"My orders",user instanceof Guest?this::showLogin:this::showOrders);account.setId("account");
@@ -204,13 +204,13 @@ public final class ShopWindow {
         Region footerSpace=new Region();HBox.setHgrow(footerSpace,Priority.ALWAYS);
         CheckBox motion=new CheckBox("Reduce motion");motion.setId("reduce-motion");motion.getStyleClass().add("motion-control");
         motion.selectedProperty().bindBidirectional(Motion.reducedProperty());
-        HBox footer=new HBox(16,Ui.label("MARKET · Good things, every day.","muted"),footerSpace,motion,link("About",this::showInfo),Ui.label("USD · Course demo · Simulated payments","muted"));
+        HBox footer=new HBox(16,Ui.label("FORGE · Good things, every day.","muted"),footerSpace,motion,link("About",this::showInfo),Ui.label("USD · Course demo · Simulated payments","muted"));
         footer.getStyleClass().add("store-footer");footer.setAlignment(Pos.CENTER_LEFT);
         shell.setBottom(footer);stage.getScene().setRoot(window);
     }
     private void showInfo(){
         Alert info=new Alert(Alert.AlertType.INFORMATION,"Browse without an account. Sign in as a customer to place a simulated order.\n\nShipping is free and taxes are omitted in this demo. No real money or delivery is involved.\n\nAdmins manage descriptions, photos and inventory. Your cart is temporary; completed orders are saved.",ButtonType.OK);
-        info.initOwner(stage);info.setTitle("About Market");info.setHeaderText("A small shop. Good things.");info.showAndWait();
+        info.initOwner(stage);info.setTitle("About FORGE");info.setHeaderText("A small shop. Good things.");info.showAndWait();
     }
     private void category(int index){catalogState.setCategoryIndex(index);catalogState.setScrollPosition(0);search.clear();showCatalog();}
     private void show(Node page){if(shell.getCenter() instanceof CatalogView previous&&previous!=page)previous.stopSearchSuggestions();dismissDrawer();stopFeedbackAnimations();if(headerNavigation!=null&&!(page instanceof CatalogView)){headerNavigation.setVisible(false);headerNavigation.setManaged(false);}shell.setCenter(page);if(!(page instanceof CatalogView)){search.setOnAction(e->{catalogState.setScrollPosition(0);showCatalog();});Motion.reveal(page);}updateNav();}

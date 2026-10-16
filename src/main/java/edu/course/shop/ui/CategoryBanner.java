@@ -140,8 +140,10 @@ public final class CategoryBanner extends Pane {
         if(campaign.image()!=null){
             double artWidth=w*.47,artHeight=body+36,overlap=18;
             product.setFitWidth(artWidth);product.setFitHeight(artHeight);
-            floating.resizeRelocate(w*.52,nav+(body-artHeight)/2+overlap,artWidth,artHeight);
-            contactShadow.setCenterX(w*.755);contactShadow.setCenterY(h+2);
+            // Center the PC and its contact shadow on the background rings.
+            double artCenter=category==Category.PC_SETS?cx:w*.755;
+            floating.resizeRelocate(artCenter-artWidth/2,nav+(body-artHeight)/2+overlap,artWidth,artHeight);
+            contactShadow.setCenterX(artCenter);contactShadow.setCenterY(h+2);
             contactShadow.setRadiusX(Math.min(artWidth*.26,150));contactShadow.setRadiusY(8);
             pending.setVisible(false);
         }else{

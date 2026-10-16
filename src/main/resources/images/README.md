@@ -4,9 +4,9 @@
 
 The supplied image depicts a wired headset. Banner links browse/search collections; the image is not substituted for the existing Wireless headphones product photo or advertised as that product's exact appearance.
 
-`login-pc-campaign.jpg` is the user's supplied **login.jpg** PC photo (848×1264). The original JPEG pixels are retained. The active account campaign blends its deep-black photo background into the charcoal/orange artwork with JavaFX `LIGHTEN`, preserving the model's dark detail while allowing the rings and glow to show through. The login photo is campaign artwork, not a seeded catalog item or a specification claim.
+`login-pc-cutout.png` is the active login campaign artwork, prepared from the user's **gaming pc.jpg** (1000×1500) using built-in image generation for background extraction. The output is 1024×1536 with exterior transparency; dark chassis cavities and the gap between the top rails are retained as dark interior areas. Generative processing is not pixel-identical to the source photo. JavaFX uses normal compositing rather than LIGHTEN so the campaign glow does not wash through the PC. The existing proportional sizing, backdrop, and motion remain in use.
 
-`login-pc-campaign.png` is the earlier login artwork, supplied as **Untitled design (1).png**. Fully transparent outer margins were trimmed (original 714×1071, alpha bounds 0,46–691,1037); visible pixels are retained. It remains in the project as an unused asset; the account campaign now loads `login-pc-campaign.jpg`. The PNG artwork was designed to scale proportionally with an orange halo, grid, framing marks, and shared motion. It is campaign artwork, not a seeded catalog item or a specification claim.
+`login-pc-campaign.jpg` (the previous **login.jpg**, 848×1264) and `login-pc-campaign.png` (the earlier **Untitled design (1).png** artwork) remain unused legacy assets. Login artwork is not a seeded catalog item or a specification claim.
 
 ## Category campaign artwork
 - category-gpu.png: supplied gpu model.png, unchanged source pixels; rotated only in the JavaFX banner.

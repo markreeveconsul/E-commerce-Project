@@ -77,7 +77,7 @@ public final class GuiSmoke {
             check(fx(()->scene.lookup("#login-pc") instanceof javafx.scene.image.ImageView image&&!image.getImage().isError()
                 &&image.getImage().getWidth()>=848&&image.getImage().getHeight()>=1264
                 &&image.getBlendMode()==javafx.scene.effect.BlendMode.LIGHTEN),"Account campaign loads the supplied high-resolution PC photo");
-            check(fx(()->"MARKET".equals(scene.lookup("#login-brand").getAccessibleText())),"Login wordmark is accessible and split by brand color");
+            check(fx(()->"FORGE".equals(scene.lookup("#login-brand").getAccessibleText())),"Login wordmark is accessible and split by brand color");
             check(fx(()->scene.lookup("#login-reduce-motion").getParent().getStyleClass().contains("login-utility")),"Login utility controls overlay the full-height campaign instead of reserving a footer strip");
             check(fx(()->scene.lookup("#login-campaign").getBoundsInParent().getHeight()>scene.getHeight()*.9),"Login campaign extends to the bottom of the window");
             check(fx(()->scene.lookup("#login-utility").getBoundsInParent().getMaxY()>scene.getHeight()*.9),"Login utility controls stay at the bottom edge");

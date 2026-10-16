@@ -1,4 +1,4 @@
-/* MARKET / Everyday collection. Original Nike-inspired editorial direction.
+/* FORGE / Everyday collection. Original Nike-inspired editorial direction.
    Shared tokens keep the storefront, receipts, forms and inventory consistent. */
 .root {
     -brand: #18181B;
@@ -183,7 +183,7 @@
 .login-brand { -fx-spacing: 0; -fx-alignment: center-left; }
 .login-brand-mark, .login-brand-et { -fx-font-family: "Archivo Black"; -fx-font-size: 22px; }
 .login-brand-mark { -fx-text-fill: #E65436; }
-.login-brand-et { -fx-text-fill: #18181B; }
+.login-brand-et { -fx-text-fill: #E65436; }
 .login-access-label { -fx-text-fill: #E65436; -fx-font-size: 10px; -fx-font-weight: bold; }
 .login-art { -fx-background-color: linear-gradient(to bottom right, #E97852, #D83921); -fx-background-radius: 2; }
 
