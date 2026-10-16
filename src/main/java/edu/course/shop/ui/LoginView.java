@@ -50,9 +50,9 @@ public final class LoginView extends StackPane {
 
         Label passwordLabel=Ui.label("Password","field-label");passwordLabel.setLabelFor(password);
         password.setAccessibleText("Password");passwordError.getStyleClass().add("field-error");
-        Label mark=Ui.label("MARK","login-brand-mark"),et=Ui.label("ET","login-brand-et");
+        Label mark=Ui.label("FOR","login-brand-mark"),et=Ui.label("GE","login-brand-et");
         mark.setWrapText(false);et.setWrapText(false);
-        HBox wordmark=new HBox(0,mark,et);wordmark.setId("login-brand");wordmark.setAccessibleText("MARKET");wordmark.getStyleClass().add("login-brand");
+        HBox wordmark=new HBox(0,mark,et);wordmark.setId("login-brand");wordmark.setAccessibleText("FORGE");wordmark.getStyleClass().add("login-brand");
         TitledPane demoPanel=new TitledPane("Demo accounts",demo);demoPanel.setExpanded(false);demoPanel.setAnimated(false);demoPanel.setId("demo-accounts");
         VBox form=new VBox(14,wordmark,Ui.label("ACCOUNT ACCESS","login-access-label"),Ui.label("Welcome back.","page-title"),
             Ui.label("Sign in to continue shopping or manage your store.","muted"),Ui.field("Username",username,usernameError),

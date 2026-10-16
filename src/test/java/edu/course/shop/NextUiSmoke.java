@@ -119,7 +119,7 @@ public final class NextUiSmoke {
             check(fx(()->!scene.lookup("#detail-add").isDisabled()&&((Label)scene.lookup("#detail-quantity-error")).getText().isEmpty()),"Valid edit clears quantity error and restores purchase");
             press("gallery-photo-1");check(fx(()->scene.lookup("#gallery-photo-1").getStyleClass().contains("gallery-selected")),"Gallery angle gets selected state");screenshot("03-product-details.png");
             fx(()->{scene.lookup("#zoom-photo").requestFocus();return null;});openDialog("zoom-photo");fx(()->{((Button)dialog().lookup("#image-zoom-in")).fire();return null;});check(fx(()->((Label)dialog().lookup("#image-zoom-caption")).getText()).contains("Photo 2 of 2"),"Zoom opens the selected real angle");
-            check(fx(()->dialog().getStylesheets().stream().anyMatch(sheet->sheet.endsWith("shop.css"))),"Image viewer inherits the Market visual system");
+            check(fx(()->dialog().getStylesheets().stream().anyMatch(sheet->sheet.endsWith("shop.css"))),"Image viewer inherits the FORGE visual system");
             check(fx(()->dialog().lookup("#image-viewer-add") instanceof Button),"Photo viewer includes the real add-to-cart action");
             check(fx(()->dialog().lookupAll(".viewer-info").size()==1&&dialog().lookupAll(".viewer-product-price").size()==1),"Photo viewer surfaces product details and price beside the image");
             fx(()->{((Button)dialog().lookup("#image-zoom-reset")).fire();return null;});

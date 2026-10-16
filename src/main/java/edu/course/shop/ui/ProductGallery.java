@@ -96,11 +96,11 @@ public final class ProductGallery extends VBox {
         BorderPane tools=new BorderPane();tools.setLeft(previous);tools.setCenter(zoomControls);tools.setRight(next);tools.setId("image-viewer-tools");tools.setPrefWidth(mediaWidth.doubleValue());tools.setMaxWidth(mediaWidth.doubleValue());tools.getStyleClass().add("image-viewer-tools");render.run();
         VBox media=new VBox(10,viewport,tools,caption);media.getStyleClass().add("viewer-media");media.setMinWidth(0);media.setPrefWidth(mediaWidth.doubleValue());media.setMaxWidth(mediaWidth.doubleValue());media.setAlignment(javafx.geometry.Pos.TOP_CENTER);
         media.prefWidthProperty().bind(mediaWidth);media.maxWidthProperty().bind(mediaWidth);tools.prefWidthProperty().bind(mediaWidth);tools.maxWidthProperty().bind(mediaWidth);caption.setMaxWidth(Double.MAX_VALUE);caption.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        Label heading=Ui.label(product.getName(),"viewer-title");heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(heading,Priority.ALWAYS);
+        Label heading=Ui.label("Photo viewer / "+product.getName(),"viewer-title");heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(heading,Priority.ALWAYS);
         Button close=Ui.button("×",()->{});close.setId("image-close");close.setAccessibleText("Close image viewer");
         Label category=Ui.label(Ui.category(product.getCategory()).toUpperCase(java.util.Locale.ROOT)+" / PRODUCT DETAIL","viewer-category");
         Label productName=Ui.label(product.getName(),"viewer-product-name");productName.setWrapText(true);
-        String description=product.getDescription().isBlank()?"A closer look at this item from the MARKET collection.":product.getDescription();
+        String description=product.getDescription().isBlank()?"A closer look at this item from the FORGE collection.":product.getDescription();
         Label productDescription=Ui.label(description,"viewer-description");productDescription.setWrapText(true);
         Label price=Ui.label(Money.format(product.getPrice()),"viewer-product-price");
         Label availability=Ui.label(product.getStock()==0?"Currently unavailable":product.getStock()<=5?"Only "+product.getStock()+" left in stock":"In stock · ships in 2 days",product.getStock()==0?"stock-out":"viewer-stock");
@@ -117,7 +117,9 @@ public final class ProductGallery extends VBox {
         details.prefHeightProperty().bind(panel.prefHeightProperty().subtract(104));details.maxHeightProperty().bind(details.prefHeightProperty());
         VBox imageWell=new VBox(0,media);imageWell.getStyleClass().add("viewer-image-well");imageWell.setMinWidth(0);imageWell.prefWidthProperty().bind(mediaWidth);imageWell.maxWidthProperty().bind(mediaWidth);
         HBox columns=new HBox(14,imageWell,details);columns.getStyleClass().add("viewer-columns");columns.setMinHeight(0);columns.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-        HBox header=new HBox(16,Ui.label("Photo viewer / "+product.getName(),"viewer-title"),new Region(),close);HBox.setHgrow(header.getChildren().get(1),Priority.ALWAYS);header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        // Track the centered image column instead of using an unrelated title inset.
+        Region titleInset=new Region();titleInset.minWidthProperty().bind(imageWell.layoutXProperty());titleInset.prefWidthProperty().bind(imageWell.layoutXProperty());titleInset.maxWidthProperty().bind(imageWell.layoutXProperty());
+        HBox header=new HBox(0,titleInset,heading,close);HBox.setMargin(close,new javafx.geometry.Insets(0,0,0,16));header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         VBox content=new VBox(14,header,columns);content.setMinHeight(0);panel.setContent(content);
         Runnable dismiss=ShopOverlay.show(this,panel,true,false,()->select(current[0]));
         close.setOnAction(e->dismiss.run());

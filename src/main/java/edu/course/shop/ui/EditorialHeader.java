@@ -50,7 +50,7 @@ public final class EditorialHeader extends StackPane {
         StackPane.setAlignment(glow,Pos.CENTER_RIGHT);StackPane.setMargin(glow,new Insets(0,-25,0,0));
         Pane rings=new Rings();rings.setMouseTransparent(true);
 
-        Label eyebrow=Ui.label(account?"MARKET / THE POWER EDIT":"MARKET / THE SOUND EDIT","hero-eyebrow");
+        Label eyebrow=Ui.label(account?"FORGE / THE POWER EDIT":"FORGE / THE SOUND EDIT","hero-eyebrow");
         VBox headline=new VBox(-5,Ui.label(account?"POWER UP.":"TUNE IN.","hero-headline"),Ui.label("STAND OUT.","hero-headline"));
         headline.setId("hero-headline");
         Label support=Ui.label(account?"Sign in. Find your next favorite.":"Find your rhythm. Make it yours.","hero-sub");
@@ -62,10 +62,10 @@ public final class EditorialHeader extends StackPane {
         if(account)copy.getChildren().remove(actions);
         copyNodes=account?new Node[]{eyebrow,headline,support}:new Node[]{eyebrow,headline,support,actions};
 
-        Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource(account?"/images/login-pc-campaign.jpg":"/images/headset-campaign.png")).toExternalForm());
+        Image image=new Image(java.util.Objects.requireNonNull(getClass().getResource(account?"/images/login-pc-cutout.png":"/images/headset-campaign.png")).toExternalForm());
         if(image.isError())throw new IllegalStateException("Campaign image could not be loaded",image.getException());
         ImageView headset=new ImageView(image);headset.setId(account?"login-pc":"hero-headset");headset.setPreserveRatio(true);headset.setSmooth(true);
-        if(account)headset.setBlendMode(javafx.scene.effect.BlendMode.LIGHTEN);
+        // Normal compositing keeps the PC interior dark instead of blending in the orange backdrop.
         if(!account) {
             headset.fitHeightProperty().bind(heightProperty().add(26));
             // Alpha mask fades only the cable's final pixels; the source artwork stays intact.
@@ -116,8 +116,8 @@ public final class EditorialHeader extends StackPane {
             pcShadow.radiusXProperty().bind(widthProperty().multiply(.30));pcShadow.radiusYProperty().bind(heightProperty().multiply(.02));
             StackPane artwork=new StackPane(productReveal);artwork.setMinSize(0,0);
             VBox.setVgrow(artwork,Priority.ALWAYS);
-            // The supplied JPEG has a deep-black photo background; LIGHTEN lets the campaign glow
-            // and rings show through its darkest pixels without repainting the PC itself.
+            // The PNG cutout exposes the campaign only outside the PC silhouette.
+            // Keep normal compositing so the dark chassis does not become see-through.
             // Compact windows scale the photo down slightly so the login copy stays clear.
             headset.fitWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
                 ()->Math.max(1,artwork.getWidth()*(getWidth()<550?.84:.96)),artwork.widthProperty(),widthProperty()));

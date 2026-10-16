@@ -277,7 +277,7 @@ public final class Ui {
 
     public static void info(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
-        alert.setHeaderText("Market");
+        alert.setHeaderText("FORGE");
         alert.showAndWait();
     }
 
