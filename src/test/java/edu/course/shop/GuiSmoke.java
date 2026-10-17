@@ -75,8 +75,8 @@ public final class GuiSmoke {
             screenshot("24-login-compact.png",960,680);screenshot("01-login.png",1280,860);
             check(fx(()->scene.lookup("#login-pc").getBoundsInParent().getWidth()>scene.lookup("#login-campaign").getBoundsInParent().getWidth()*.80),"Login PC remains prominent at compact size");
             check(fx(()->scene.lookup("#login-pc") instanceof javafx.scene.image.ImageView image&&!image.getImage().isError()
-                &&image.getImage().getWidth()>=848&&image.getImage().getHeight()>=1264
-                &&image.getBlendMode()==javafx.scene.effect.BlendMode.LIGHTEN),"Account campaign loads the supplied high-resolution PC photo");
+                &&image.getImage().getWidth()>=1000&&image.getImage().getHeight()>=1500
+                &&image.getBlendMode()==null),"Account campaign loads the high-resolution PC cutout without lightening its dark interior");
             check(fx(()->"FORGE".equals(scene.lookup("#login-brand").getAccessibleText())),"Login wordmark is accessible and split by brand color");
             check(fx(()->scene.lookup("#login-reduce-motion").getParent().getStyleClass().contains("login-utility")),"Login utility controls overlay the full-height campaign instead of reserving a footer strip");
             check(fx(()->scene.lookup("#login-campaign").getBoundsInParent().getHeight()>scene.getHeight()*.9),"Login campaign extends to the bottom of the window");

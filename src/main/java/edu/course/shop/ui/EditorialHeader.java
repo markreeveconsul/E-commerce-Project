@@ -1,18 +1,27 @@
 package edu.course.shop.ui;
 
-import javafx.animation.*;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Ellipse;
@@ -50,10 +59,10 @@ public final class EditorialHeader extends StackPane {
         StackPane.setAlignment(glow,Pos.CENTER_RIGHT);StackPane.setMargin(glow,new Insets(0,-25,0,0));
         Pane rings=new Rings();rings.setMouseTransparent(true);
 
-        Label eyebrow=Ui.label(account?"FORGE / THE POWER EDIT":"FORGE / THE SOUND EDIT","hero-eyebrow");
-        VBox headline=new VBox(-5,Ui.label(account?"POWER UP.":"TUNE IN.","hero-headline"),Ui.label("STAND OUT.","hero-headline"));
+        Label eyebrow=Ui.label(account?"FORGE / BUILD YOUR DREAMS":"FORGE / THE SOUND LAB","hero-eyebrow");
+        VBox headline=new VBox(-5,Ui.label(account?"BUILD IT.":"TUNE IN.","hero-headline"),Ui.label(account?"FORGE IT.":"STAND OUT.","hero-headline"));
         headline.setId("hero-headline");
-        Label support=Ui.label(account?"Sign in. Find your next favorite.":"Find your rhythm. Make it yours.","hero-sub");
+        Label support=Ui.label(account?"Sign in. Your setup is waiting.":"Find your rhythm. Make it yours.","hero-sub");
         Button browse=Ui.button("Explore headphones  →",headphones);browse.setId("hero-headphones");browse.getStyleClass().add("hero-cta");
         Button all=Ui.button("Browse collection  ↗",shop);all.setId("hero-shop");all.getStyleClass().add("hero-link");
         FlowPane actions=new FlowPane(16,8,browse,all);actions.setId("hero-actions");

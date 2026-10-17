@@ -1,16 +1,17 @@
 package edu.course.shop.ui;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Consumer;
+
 import edu.course.shop.model.Cart;
 import edu.course.shop.model.Category;
 import edu.course.shop.model.Product;
 import edu.course.shop.model.User;
 import edu.course.shop.service.CartService;
 import edu.course.shop.service.ProductService;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -41,7 +42,7 @@ public final class CatalogView extends VBox {
     private final ComboBox<String> category=new ComboBox<>(),sort=new ComboBox<>(),budget=new ComboBox<>();
     private final CheckBox available=new CheckBox("In stock only");
     // Sentence case reads calmer and more modern than ALL CAPS; the hero stays uppercase as the one brand moment.
-    private final Label feedback=Ui.feedback("catalog-feedback"),result=Ui.label("","muted"),title=Ui.label("The tech edit","collection-title");
+    private final Label feedback=Ui.feedback("catalog-feedback"),result=Ui.label("","muted"),title=Ui.label("Fresh from the forge","collection-title");
     private final FlowPane chips=new FlowPane(8,8);
     private final VBox results=new VBox(16);
     private final ScrollPane scroll;
@@ -89,7 +90,7 @@ public final class CatalogView extends VBox {
             grid.setPrefTileWidth(Math.max(180,Math.floor((b.doubleValue()-20*(columns-1))/columns)-2));
         });
 
-        VBox collectionTitle=new VBox(4,title,Ui.label("Shop the collection","muted"),result);
+        VBox collectionTitle=new VBox(4,title,Ui.label("Everything to forge your setup","muted"),result);
         collectionTitle.setMinWidth(0);
         Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
         search.setPromptText("Search products…");
